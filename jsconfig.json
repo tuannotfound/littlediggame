@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "es6", // Or another target if needed
+        "baseUrl": ".",
+        "paths": {
+            "*": ["third_party/*"]
+        }
+    },
+    "include": [
+        "**/*.js", // Include all JavaScript files
+        "third_party/**/*.js" // Explicitly include third-party JS
+    ]
+}

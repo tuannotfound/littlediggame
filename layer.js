@@ -12,6 +12,9 @@ class Layer {
         this.canvas.id = this.name;
         this.canvas.width = this.width;
         this.canvas.height = this.height;
+        this.canvas.onselectstart = function () {
+            return false;
+        };
         this.container.appendChild(this.canvas);
     }
 

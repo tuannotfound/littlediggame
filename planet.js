@@ -46,9 +46,8 @@ class Planet {
             );
 
             for (let theta = 0; theta < 2 * Math.PI; theta += thetaIncrement) {
-                let x = Math.round(this.imageData.width / 2 + r * Math.cos(theta));
-                let y = Math.round(this.imageData.height / 2 + r * Math.sin(theta));
-                this.setPixel(this.imageData, x, y, color);
+                let { x, y } = this.polarToCartesian(r, theta);
+                this.setPixel(x, y, color);
             }
         }
         this.draw();
@@ -63,30 +62,36 @@ class Planet {
         return Math.min(Math.max(value, min), max);
     }
 
-    getPixel(imageData, x, y) {
-        let pixelIndex = (x + y * imageData.width) * 4;
+    polarToCartesian(r, theta) {
         return {
-            r: imageData.data[pixelIndex],
-            g: imageData.data[pixelIndex + 1],
-            b: imageData.data[pixelIndex + 2],
-            a: imageData.data[pixelIndex + 3],
+            x: Math.round(this.imageData.width / 2 + r * Math.cos(theta)),
+            y: Math.round(this.imageData.height / 2 + r * Math.sin(theta)),
         };
     }
 
-    setPixel(imageData, x, y, color) {
-        let pixelIndex = (x + y * imageData.width) * 4;
-        imageData.data[pixelIndex] = color.r; // Red
-        imageData.data[pixelIndex + 1] = color.g; // Green
-        imageData.data[pixelIndex + 2] = color.b; // Blue
-        imageData.data[pixelIndex + 3] = color.a; // Alpha
+    getPixel(x, y) {
+        let pixelIndex = (x + y * this.imageData.width) * 4;
+        return {
+            r: this.imageData.data[pixelIndex],
+            g: this.imageData.data[pixelIndex + 1],
+            b: this.imageData.data[pixelIndex + 2],
+            a: this.imageData.data[pixelIndex + 3],
+        };
+    }
+
+    setPixel(x, y, color) {
+        let pixelIndex = (x + y * this.imageData.width) * 4;
+        this.imageData.data[pixelIndex] = color.r; // Red
+        this.imageData.data[pixelIndex + 1] = color.g; // Green
+        this.imageData.data[pixelIndex + 2] = color.b; // Blue
+        this.imageData.data[pixelIndex + 3] = color.a; // Alpha
     }
 
     eat(r, theta) {
-        let x = Math.round(this.imageData.width / 2 + r * Math.cos(theta));
-        let y = Math.round(this.imageData.height / 2 + r * Math.sin(theta));
-        let ate = this.getPixel(this.imageData, x, y).a > 0;
+        let { x, y } = this.polarToCartesian(r, theta);
+        let ate = this.getPixel(x, y).a > 0;
         if (ate) {
-            this.setPixel(this.imageData, x, y, { r: 0, g: 0, b: 0, a: 0 });
+            this.setPixel(x, y, { r: 0, g: 0, b: 0, a: 0 });
         }
         return ate;
     }
@@ -110,7 +115,7 @@ class Planet {
         let count = 0;
         for (let x = 0; x < this.imageData.width; x++) {
             for (let y = 0; y < this.imageData.height; y++) {
-                let pixel = this.getPixel(this.imageData, x, y);
+                let pixel = this.getPixel(x, y);
                 if (pixel.a > 0) {
                     count++;
                 }

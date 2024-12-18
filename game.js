@@ -7,7 +7,7 @@ class Game {
         this.lastFrameTime = 0;
         this.containerElement = null;
         this.planet = null;
-        this.eaters = [];
+        this.eaters = null;
 
         this.gold = 0;
         this.goldElement = null;
@@ -23,9 +23,9 @@ class Game {
     init(containerElement) {
         this.containerElement = containerElement;
         this.planet = new Planet(this.containerElement, this.width, this.height, 300, 300, 300);
+        this.eaters = new Eaters(this);
         this.initUi();
         this.initHandlers();
-        this.addEater();
         this.tick(0);
     }
 
@@ -46,10 +46,11 @@ class Game {
             console.log("Durability: " + this.upgrades.durability);
         });
         this.goldElement = document.getElementById("gold");
-        this.updateGold();
+        this.updateGold(0);
     }
 
-    updateGold() {
+    updateGold(amount) {
+        this.gold += amount;
         this.goldElement.innerHTML = this.gold;
     }
 
@@ -59,32 +60,9 @@ class Game {
         });
     }
 
-    addEater() {
-        var eater = new Eater(this.width, this.height, this.planet, Math.random() * 2 * Math.PI);
-        eater.speed += this.upgrades.speed;
-        eater.width += this.upgrades.width;
-        eater.durability += this.upgrades.durability;
-        eater.addListener({
-            onTreasure: (eater) => {
-                this.gold += this.upgrades.gold;
-                this.updateGold();
-                console.log("Gold: " + this.gold);
-            },
-            onDeath: (eater) => {
-                eater.removeListener(this);
-                this.eaters = this.eaters.filter((e) => e !== eater);
-            },
-        });
-        this.eaters.push(eater);
-    }
-
+    // Main game loop
     tick(deltaTime) {
-        // Update game state based on deltaTime
-        // ...
-        //this.addEater();
-        for (let eater of this.eaters) {
-            eater.tick(deltaTime);
-        }
+        this.eaters.tick(deltaTime);
         this.planet.draw();
 
         this.lastFrameTime = Date.now();
@@ -99,7 +77,13 @@ class Game {
         if (event.button != 0) {
             return;
         }
-        this.addEater();
+        console.log(event);
+        // Get the angle between the mouse event and the center of the planet
+        let angle = Math.atan2(
+            event.offsetY - this.planet.centerY,
+            event.offsetX - this.planet.centerX
+        );
+        this.eaters.spawn(angle);
         console.log("Health: " + (this.planet.getHealth() * 100).toFixed(2) + "%");
     }
 }

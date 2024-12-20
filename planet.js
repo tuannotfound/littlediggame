@@ -1,10 +1,10 @@
 class Planet {
-    constructor(gameContainer, gameWidth, gameHeight, centerX, centerY, radius) {
+    constructor(gameWidth, gameHeight, centerX, centerY, radius) {
         this.centerX = centerX;
         this.centerY = centerY;
         this.radius = radius;
-        this.layer = new Layer("planet", gameContainer, gameWidth, gameHeight);
-        this.layer.init();
+        this.layer = new Layer("planet", gameWidth, gameHeight);
+        this.layer.initOffscreen();
         this.imageData = this.layer.getContext().createImageData(this.radius * 2, this.radius * 2);
 
         console.log("Drawing horizontal lines");
@@ -95,6 +95,11 @@ class Planet {
         }
         return ate;
     }
+
+    // setZoom(zoomLevel) {
+    //     this.layer.getContext().scale(zoomLevel, zoomLevel);
+    //     this.draw();
+    // }
 
     getHealth() {
         let currentOpaqueCount = this.getOpaqueCount();

@@ -1,8 +1,8 @@
 class Eaters {
     constructor(game) {
         this.game = game;
-        this.layer = new Layer("eaters", game.containerElement, game.width, game.height);
-        this.layer.init();
+        this.layer = new Layer("eaters", game.width, game.height);
+        this.layer.initOffscreen();
 
         this.eaters = [];
     }

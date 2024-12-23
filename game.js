@@ -1,4 +1,9 @@
-class Game {
+import CircularPlanet from "./circular_planet.js";
+import MaskedPlanet from "./masked_planet.js";
+import Eaters from "./eaters.js";
+import Layer from "./layer.js";
+
+export default class Game {
     MAX_ZOOM = 4;
     MIN_ZOOM = 0.25;
 
@@ -9,10 +14,15 @@ class Game {
         this.frameTime = 1000 / targetFps;
         this.lastFrameTime = 0;
         this.containerElement = null;
-        this.planet = null;
-        this.eaters = null;
         this.zoomLevel = 1;
+        this.planet = new CircularPlanet(250);
+        //this.planet = new MaskedPlanet("assets/skull.png", 229, 300);
+        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
+        this.eaters = new Eaters(this);
         this.layer = null;
+        this.planetX = 0;
+        this.planetY = 0;
 
         this.gold = 0;
         this.goldElement = null;
@@ -26,12 +36,12 @@ class Game {
         };
     }
 
-    init(containerElement) {
+    async init(containerElement) {
         this.containerElement = containerElement;
         this.layer = new Layer("main", this.width, this.height);
         this.layer.initOnscreen(containerElement);
-        this.planet = new Planet(this.width, this.height, 300, 300, 300);
-        this.eaters = new Eaters(this);
+        await this.planet.init();
+        this.eaters.init();
         this.initUi();
         this.initHandlers();
         this.tick(0);
@@ -75,21 +85,20 @@ class Game {
         this.eaters.tick(deltaTime);
         this.planet.draw();
 
-        this.layer.getContext().clearRect(0, 0, this.layer.canvas.width, this.layer.canvas.height);
-        let zoomedLayerWidth = this.planet.layer.width * this.zoomLevel;
-        let zoomedLayerHeight = this.planet.layer.height * this.zoomLevel;
+        this.layer.getContext().clearRect(0, 0, this.width, this.height);
 
         this.layer.getContext().drawImage(
             this.planet.layer.canvas,
             0, // source x
             0, // source y
-            this.planet.layer.width, // source width
-            this.planet.layer.height, // source height
-            this.width / 2, // - zoomedLayerWidth / 2, // destination x
-            this.height / 2, // - zoomedLayerHeight / 2, // destination y
-            zoomedLayerWidth,
-            zoomedLayerHeight
+            this.planet.width, // source width
+            this.planet.height, // source height
+            this.planetX, // destination x
+            this.planetY, // destination y
+            this.currentPlanetWidth,
+            this.currentPlanetHeight
         );
+        this.drawDebugBorder();
 
         this.lastFrameTime = Date.now();
         setTimeout(() => {
@@ -97,6 +106,14 @@ class Game {
             const deltaTime = currentTime - this.lastFrameTime;
             this.tick(deltaTime);
         }, this.frameTime);
+    }
+
+    drawDebugBorder() {
+        let ctx = this.layer.getContext();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "black";
+        ctx.rect(0, 0, this.planet.width, this.planet.height);
+        ctx.stroke();
     }
 
     zoom(amount) {
@@ -107,6 +124,8 @@ class Game {
             return;
         }
         this.zoomLevel += amount;
+        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
         this.zoomPctElement.innerHTML = (this.zoomLevel * 100).toFixed(0);
     }
 
@@ -119,12 +138,10 @@ class Game {
         if (event.button != 0) {
             return;
         }
-        console.log(event);
+        let planetCenterX = this.planetX + this.currentPlanetWidth / 2;
+        let planetCenterY = this.planetY + this.currentPlanetHeight / 2;
         // Get the angle between the mouse event and the center of the planet
-        let angle = Math.atan2(
-            event.offsetY - this.planet.centerY,
-            event.offsetX - this.planet.centerX
-        );
+        let angle = Math.atan2(event.offsetY - planetCenterX, event.offsetX - planetCenterY);
         this.eaters.spawn(angle);
         console.log("Health: " + (this.planet.getHealth() * 100).toFixed(2) + "%");
     }

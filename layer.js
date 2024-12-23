@@ -1,4 +1,4 @@
-class Layer {
+export default class Layer {
     constructor(name, width, height) {
         this.name = name;
         this.container = null;

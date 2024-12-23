@@ -1,10 +1,8 @@
-class Eater {
+export default class Eater {
     MIN_CHOMP_DEPTH = 0.01;
     INITIAL_CHOMP_DEPTH = 0.1;
 
-    constructor(gameWidth, gameHeight, planet, theta) {
-        this.gameWidth = gameWidth;
-        this.gameHeight = gameHeight;
+    constructor(planet, theta) {
         this.planet = planet;
         this.theta = theta;
         this.r = planet.radius;
@@ -59,7 +57,8 @@ class Eater {
             for (let i = 0; i < this.width; i++) {
                 let angle = this.theta + (i - this.width / 2) / 1000;
                 let { x, y } = this.planet.polarToCartesian(this.r, angle);
-                onSurface = onSurface || this.planet.getPixel(x, y).a > 0;
+                let pixel = this.planet.getPixel(x, y);
+                onSurface = onSurface || pixel.a > 0;
                 if (onSurface) {
                     break;
                 }
@@ -88,6 +87,7 @@ class Eater {
 
     chomp() {
         this.r -= this.chompDepth;
+        this.theta += 0.0001;
         for (let i = 0; i < this.width; i++) {
             // Ensure we center the chomp around our current angle as width changes.
             let angle = this.theta + (i - this.width / 2) / 1000;

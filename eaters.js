@@ -1,14 +1,20 @@
-class Eaters {
+import Eater from "./eater.js";
+import Layer from "./layer.js";
+
+export default class Eaters {
     constructor(game) {
         this.game = game;
         this.layer = new Layer("eaters", game.width, game.height);
-        this.layer.initOffscreen();
 
         this.eaters = [];
     }
 
+    init() {
+        this.layer.initOffscreen();
+    }
+
     spawn(theta) {
-        var eater = new Eater(this.game.width, this.game.height, this.game.planet, theta);
+        var eater = new Eater(this.game.planet, theta);
         eater.speed += this.game.upgrades.speed;
         eater.width += this.game.upgrades.width;
         eater.durability += this.game.upgrades.durability;

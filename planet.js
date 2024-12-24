@@ -87,7 +87,7 @@ export default class Planet {
     }
 
     collapse() {
-        const radiusIncrement = 0.5;
+        const radiusIncrement = 1;
         for (let x = 0; x < this.imageData.width; x++) {
             for (let y = 0; y < this.imageData.height; y++) {
                 let pixel = this.getPixel(x, y);
@@ -96,14 +96,16 @@ export default class Planet {
                 }
                 // Look outwards radially until we get a new pixel
                 let { r, theta } = this.cartesianToPolar(x, y);
-                let newX = x;
-                let newY = y;
-                for (let newR = r + radiusIncrement; newR < this.radius; newR += radiusIncrement) {
-                    ({ x: newX, y: newY } = this.polarToCartesian(newR, theta));
-                    if (newX != x || newY != y) {
-                        break;
-                    }
-                }
+                r += radiusIncrement;
+                let { x: newX, y: newY } = this.polarToCartesian(r, theta);
+                // let newX = x;
+                // let newY = y;
+                // for (let newR = r + radiusIncrement; newR < this.radius; newR += radiusIncrement) {
+                //     ({ x: newX, y: newY } = this.polarToCartesian(newR, theta));
+                //     if (newX != x || newY != y) {
+                //         break;
+                //     }
+                // }
                 if (newX == x && newY == y) {
                     continue;
                 }

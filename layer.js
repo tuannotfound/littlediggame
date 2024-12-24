@@ -26,6 +26,7 @@ export default class Layer {
         this.canvas.onselectstart = function () {
             return false;
         };
+        this.canvas.addEventListener("contextmenu", (e) => e.preventDefault());
         this.container = container;
         this.container.appendChild(this.canvas);
     }

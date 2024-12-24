@@ -82,6 +82,7 @@ export default class Game {
 
     // Main game loop
     tick(deltaTime) {
+        console.log(deltaTime);
         this.eaters.tick(deltaTime);
         this.planet.draw();
 

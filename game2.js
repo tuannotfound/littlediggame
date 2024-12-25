@@ -1,12 +1,9 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
-import Pixel from "./pixel.js";
-import Quadtree from "@timohausmann/quadtree-js";
 import Stats from "stats.js";
+import CircularPlanet from "./circular_planet2.js";
 
 export default class Game {
-    INITIAL_COUNT = 1000;
-
     constructor(width, height) {
         this.width = width;
         this.height = height;
@@ -17,18 +14,17 @@ export default class Game {
         this.then = 0;
         this.containerElement = null;
         this.layer = null;
-        this.pixels = [];
-        // https://github.com/timohausmann/quadtree-js
-        this.quadtree = new Quadtree(
-            {
-                x: 0,
-                y: 0,
-                width: this.width,
-                height: this.height,
-            },
-            10,
-            20
-        );
+        this.planet = new CircularPlanet(30);
+        this.zoomLevel = 1;
+        this.planetX = 0;
+        this.planetY = 0;
+        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
+
+        this.zoomPctElement = null;
+        this.gold = 0;
+        this.goldElement = null;
+
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild(this.stats.dom);
@@ -39,13 +35,41 @@ export default class Game {
         this.layer = new Layer("main", this.width, this.height);
         this.layer.initOnscreen(containerElement);
 
+        this.initUi();
         this.initHandlers();
 
         let center = new Vector(this.width / 2, this.height / 2);
-        this.addAt(center, this.width / 2, this.INITIAL_COUNT);
+        this.planet.init();
 
         this.then = window.performance.now();
         this.tick(this.then);
+    }
+
+    initUi() {
+        let speedBtn = document.getElementById("speed");
+        speedBtn.addEventListener("click", () => {
+            this.upgrades.speed += 1;
+            console.log("Speed: " + this.upgrades.speed);
+        });
+        let widthBtn = document.getElementById("width");
+        widthBtn.addEventListener("click", () => {
+            this.upgrades.width += 1;
+            console.log("Width: " + this.upgrades.width);
+        });
+        let durabilityBtn = document.getElementById("durability");
+        durabilityBtn.addEventListener("click", () => {
+            this.upgrades.durability += 1;
+            console.log("Durability: " + this.upgrades.durability);
+        });
+        let zoomInBtn = document.getElementById("zoom_in");
+        zoomInBtn.addEventListener("click", () => this.zoom(0.25));
+        let zoomOutBtn = document.getElementById("zoom_out");
+        zoomOutBtn.addEventListener("click", () => this.zoom(-0.25));
+
+        this.zoomPctElement = document.getElementById("zoom_pct");
+
+        this.goldElement = document.getElementById("gold");
+        this.updateGold(0);
     }
 
     initHandlers() {
@@ -54,15 +78,39 @@ export default class Game {
         });
     }
 
+    updateGold(amount) {
+        this.gold += amount;
+        this.goldElement.innerHTML = this.gold;
+    }
+
+    zoom(amount) {
+        if (this.zoomLevel + amount < this.MIN_ZOOM) {
+            return;
+        }
+        if (this.zoomLevel + amount > this.MAX_ZOOM) {
+            return;
+        }
+        this.zoomLevel += amount;
+        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
+        this.zoomPctElement.innerHTML = (this.zoomLevel * 100).toFixed(0);
+    }
+
     handleMouseEvent(event) {
         if (event.button != 0) {
             return;
         }
         let mousePos = new Vector(event.offsetX, event.offsetY);
+        // this is broken, need to translate from canvas coordinates to planet coordinates
+        // let planetCenterX = this.planetX + this.currentPlanetWidth / 2;
+        // let planetCenterY = this.planetY + this.currentPlanetHeight / 2;
+        // mousePos.x -= planetCenterX;
+        // mousePos.y -= planetCenterY;
+
         if (event.shiftKey) {
-            this.addAt(mousePos, 5, 10);
+            this.addAround(mousePos, 5, 10);
         } else {
-            this.removeAt(mousePos, 5);
+            this.removeAround(mousePos, 5);
         }
     }
 
@@ -80,24 +128,24 @@ export default class Game {
         return new Vector(x, y);
     }
 
-    addAt(pos, radius, count) {
+    addAround(pos, radius, count) {
         for (let i = 0; i < count; i++) {
-            this.pixels.push(new Pixel(this.getRandomPointInCircle(pos, radius), this.bounds));
+            this.planet.addPixel(this.getRandomPointInCircle(pos, radius), {
+                r: 255,
+                g: 0,
+                b: 0,
+                a: 255,
+            });
         }
     }
 
-    removeAt(position, radius) {
-        let toRemove = [];
-        for (let d of this.pixels) {
-            let dist = new Vector(position.x - d.position.x, position.y - d.position.y).mag();
-            if (dist < radius) {
-                toRemove.push(d);
-            }
-        }
-        for (let d of toRemove) {
-            let index = this.pixels.indexOf(d);
-            if (index > -1) {
-                this.pixels.splice(index, 1);
+    removeAround(center, radius) {
+        for (let x = center.x - radius; x < center.x + radius; x++) {
+            for (let y = center.y - radius; y < center.y + radius; y++) {
+                let dist = new Vector(center.x - x, center.y - y).mag();
+                if (dist < radius) {
+                    this.planet.removePixelAt(new Vector(x, y));
+                }
             }
         }
     }
@@ -107,33 +155,27 @@ export default class Game {
         this.now = newtime;
         let elapsed = this.now - this.then;
 
-        // if enough time has elapsed, draw the next frame
-        if (elapsed > this.frameInterval) {
-            this.then = this.now - (elapsed % this.frameInterval);
-
-            this.stats.begin();
-
-            this.quadtree.clear();
-            for (let pixel of this.pixels) {
-                this.quadtree.insert(pixel);
-            }
-            let imageData = this.layer.getContext().createImageData(this.width, this.height);
-            for (let pixel of this.pixels) {
-                pixel.update();
-                pixel.constrain();
-                pixel.checkCollision(this.quadtree);
-                pixel.render(imageData);
-            }
-            this.layer.getContext().putImageData(imageData, 0, 0);
-            this.stats.end();
+        if (elapsed <= this.frameInterval) {
+            return;
         }
-        // requestAnimationFrame(this.tick.bind(this));
+        this.then = this.now - (elapsed % this.frameInterval);
 
-        // this.frameEndTime = Date.now();
-        // setTimeout(() => {
-        //     const currentTime = Date.now();
-        //     const deltaTime = currentTime - this.frameEndTime;
-        //     this.tick(deltaTime);
-        // }, this.frameTime);
+        this.stats.begin();
+        this.planet.update();
+
+        this.layer.getContext().clearRect(0, 0, this.width, this.height);
+
+        this.layer.getContext().drawImage(
+            this.planet.layer.canvas,
+            0, // source x
+            0, // source y
+            this.planet.width, // source width
+            this.planet.height, // source height
+            this.planetX, // destination x
+            this.planetY, // destination y
+            this.currentPlanetWidth,
+            this.currentPlanetHeight
+        );
+        this.stats.end();
     }
 }

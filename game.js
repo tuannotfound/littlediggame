@@ -15,14 +15,14 @@ export default class Game {
         this.lastFrameTime = 0;
         this.containerElement = null;
         this.zoomLevel = 1;
+        this.planetX = 0;
+        this.planetY = 0;
         this.planet = new CircularPlanet(250);
         //this.planet = new MaskedPlanet("assets/skull.png", 229, 300);
         this.currentPlanetWidth = this.planet.width * this.zoomLevel;
         this.currentPlanetHeight = this.planet.height * this.zoomLevel;
         this.eaters = new Eaters(this);
         this.layer = null;
-        this.planetX = 0;
-        this.planetY = 0;
 
         this.gold = 0;
         this.goldElement = null;

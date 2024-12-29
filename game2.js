@@ -2,6 +2,7 @@ import Layer from "./layer.js";
 import Vector from "./vector.js";
 import Stats from "stats.js";
 import CircularPlanet from "./circular_planet2.js";
+import LittleGuy from "./little_guy.js";
 
 export default class Game {
     constructor(width, height) {
@@ -14,12 +15,18 @@ export default class Game {
         this.then = 0;
         this.containerElement = null;
         this.layer = null;
-        this.planet = new CircularPlanet(30);
-        this.zoomLevel = 1;
-        this.planetX = 0;
-        this.planetY = 0;
-        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
-        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
+        this.planet = new CircularPlanet(this.bounds, 10);
+        this.zoomLevel = 6;
+        this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
+        this.planetPosition = new Vector(
+            (this.width - this.planet.layer.width * this.zoomLevel) / 2,
+            (this.height - this.planet.layer.height * this.zoomLevel) / 2
+        );
+        console.log("planet position = " + this.planetPosition.toString());
+        // this.planetPosition = new Vector(0, 0);
+
+        this.littleGuy = new LittleGuy(this.planet);
 
         this.zoomPctElement = null;
         this.gold = 0;
@@ -38,8 +45,16 @@ export default class Game {
         this.initUi();
         this.initHandlers();
 
-        let center = new Vector(this.width / 2, this.height / 2);
         this.planet.init();
+        console.log(
+            "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
+        );
+        console.log(
+            "Planet canvas bounds: " +
+                new Vector(this.planet.layer.width, this.planet.layer.height).toString()
+        );
+
+        this.littleGuy.init();
 
         this.then = window.performance.now();
         this.tick(this.then);
@@ -70,10 +85,20 @@ export default class Game {
 
         this.goldElement = document.getElementById("gold");
         this.updateGold(0);
+
+        let debugBtn = document.getElementById("debug");
+        window.DEBUG = debugBtn.checked;
+        debugBtn.addEventListener("change", () => {
+            window.DEBUG = debugBtn.checked;
+            console.log("Debug: " + window.DEBUG);
+        });
     }
 
     initHandlers() {
         this.containerElement.addEventListener("click", this.handleMouseEvent.bind(this), {
+            passive: true,
+        });
+        window.addEventListener("keydown", this.handleKeyEvent.bind(this), {
             passive: true,
         });
     }
@@ -91,26 +116,44 @@ export default class Game {
             return;
         }
         this.zoomLevel += amount;
-        this.currentPlanetWidth = this.planet.width * this.zoomLevel;
-        this.currentPlanetHeight = this.planet.height * this.zoomLevel;
+        this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
+        this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
         this.zoomPctElement.innerHTML = (this.zoomLevel * 100).toFixed(0);
+    }
+
+    gameToPlanetCoords(gameCoords) {
+        return new Vector(
+            (gameCoords.x - this.planetPosition.x) / this.zoomLevel,
+            (gameCoords.y - this.planetPosition.y) / this.zoomLevel
+        ).round();
+    }
+
+    handleKeyEvent(event) {
+        let direction = 0;
+        if (event.key == "ArrowLeft" || event.key == "a") {
+            direction = -1;
+        } else if (event.key == "ArrowRight" || event.key == "d") {
+            direction = 1;
+        }
+        if (direction == 0) {
+            return;
+        }
+        this.littleGuy.move(direction);
     }
 
     handleMouseEvent(event) {
         if (event.button != 0) {
             return;
         }
-        let mousePos = new Vector(event.offsetX, event.offsetY);
-        // this is broken, need to translate from canvas coordinates to planet coordinates
-        // let planetCenterX = this.planetX + this.currentPlanetWidth / 2;
-        // let planetCenterY = this.planetY + this.currentPlanetHeight / 2;
-        // mousePos.x -= planetCenterX;
-        // mousePos.y -= planetCenterY;
-
+        let gameCoords = new Vector(event.offsetX, event.offsetY);
+        let planetCoords = this.gameToPlanetCoords(gameCoords);
+        console.log(
+            "Translating mouse click @ " + gameCoords.toString() + " to " + planetCoords.toString()
+        );
         if (event.shiftKey) {
-            this.addAround(mousePos, 5, 10);
+            this.addAround(planetCoords, 5, 10);
         } else {
-            this.removeAround(mousePos, 5);
+            this.removeAround(planetCoords, 5);
         }
     }
 
@@ -128,9 +171,9 @@ export default class Game {
         return new Vector(x, y);
     }
 
-    addAround(pos, radius, count) {
+    addAround(planetCoords, radius, count) {
         for (let i = 0; i < count; i++) {
-            this.planet.addPixel(this.getRandomPointInCircle(pos, radius), {
+            this.planet.addPixel(this.getRandomPointInCircle(planetCoords, radius), {
                 r: 255,
                 g: 0,
                 b: 0,
@@ -169,12 +212,25 @@ export default class Game {
             this.planet.layer.canvas,
             0, // source x
             0, // source y
-            this.planet.width, // source width
-            this.planet.height, // source height
-            this.planetX, // destination x
-            this.planetY, // destination y
-            this.currentPlanetWidth,
-            this.currentPlanetHeight
+            this.planet.layer.width, // source width
+            this.planet.layer.height, // source height
+            this.planetPosition.x, // destination x
+            this.planetPosition.y, // destination y
+            this.currentPlanetWidth, // destination width
+            this.currentPlanetHeight // destination height
+        );
+        this.layer.getContext().drawImage(
+            this.littleGuy.layer.canvas,
+            0, // source x
+            0, // source y
+            this.littleGuy.layer.width, // source width
+            this.littleGuy.layer.height, // source height
+            this.planetPosition.x +
+                (this.planet.center.x + this.littleGuy.position.x) * this.zoomLevel, // destination x
+            this.planetPosition.y +
+                (this.planet.center.y + this.littleGuy.position.y) * this.zoomLevel, // destination y
+            this.littleGuy.layer.width * this.zoomLevel, // destination width
+            this.littleGuy.layer.height * this.zoomLevel // destination height
         );
         this.stats.end();
     }

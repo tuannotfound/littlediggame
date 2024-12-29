@@ -1,4 +1,5 @@
 canvas {
     position: absolute;
     image-rendering: pixelated;
+    border: 1px solid #000;
 }

@@ -4,24 +4,27 @@ import Quadtree from "@timohausmann/quadtree-js";
 import Vector from "./vector.js";
 
 export default class Planet {
-    constructor(width, height) {
+    constructor(gameBounds, width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
         }
+        this.gameBounds = gameBounds;
         this.width = width;
         this.height = height;
-        this.bounds = new Vector(width, height);
         this.radius = Math.max(width, height) / 2;
-        this.layer = new Layer("planet", this.width, this.height);
+        this.layer = new Layer("planet", this.gameBounds.x * 1, this.gameBounds.y * 1);
+        console.log("Planet layer size: " + this.layer.width + "x" + this.layer.height + "px");
+        this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
         this.pixels = [];
         this.pixelPositions = new Map();
+        this.furthestPixelDistance = 0;
         // https://github.com/timohausmann/quadtree-js
         this.quadtree = new Quadtree(
             {
                 x: 0,
                 y: 0,
-                width: this.width,
-                height: this.height,
+                width: this.layer.width,
+                height: this.layer.height,
             },
             10,
             20
@@ -41,14 +44,20 @@ export default class Planet {
         for (let pixel of this.pixels) {
             this.quadtree.insert(pixel);
         }
-        let imageData = this.layer.getContext().createImageData(this.width, this.height);
+        let imageData = this.layer
+            .getContext()
+            .createImageData(this.layer.width, this.layer.height);
         for (let pixel of this.pixels) {
             pixel.update();
-            pixel.constrain();
             pixel.checkCollision(this.quadtree);
             pixel.checkInactive();
             pixel.render(imageData);
+            // Optimizations:
             this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
+            let distToCenter = pixel.position.dist(this.center);
+            if (distToCenter > this.furthestPixelDistance) {
+                this.furthestPixelDistance = distToCenter;
+            }
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
     }
@@ -57,9 +66,10 @@ export default class Planet {
         if (this.getPixel(position)) {
             return false;
         }
-        let pixel = new Pixel(position, color, this.bounds);
+        console.log("addPixel @ " + position.toString());
+        let pixel = new Pixel(position, color, this.center);
         this.pixels.push(pixel);
-        this.pixelPositions.set(position.toString(), pixel);
+        this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
         return true;
     }
 
@@ -83,21 +93,21 @@ export default class Planet {
 
     reactivateFrom(reactivationPosition) {
         // Reactivate pixels that are radially outward from the removed pixel
-        let radialVec = new Vector(
-            reactivationPosition.x - this.width / 2,
-            reactivationPosition.y - this.height / 2
-        );
+        let radialVec = reactivationPosition.copy();
+        radialVec.sub(this.center);
         let minRadius = radialVec.mag();
 
         // Calculate the angle of the radialVec
         const angle = Math.atan2(radialVec.y, radialVec.x);
-        for (let r = minRadius; r < Math.max(this.width, this.height); r += 0.5) {
-            let x = Math.round(this.width / 2 + r * Math.cos(angle));
-            let y = Math.round(this.height / 2 + r * Math.sin(angle));
-            let position = new Vector(x, y);
-            let pixel = this.pixelPositions.get(position.toString());
-            if (pixel) {
-                pixel.setActive(true);
+        for (let r = minRadius; r <= this.furthestPixelDistance; r += 0.25) {
+            for (let theta = angle - 0.01; theta < angle + 0.01; theta += 0.001) {
+                let x = Math.round(this.center.x + r * Math.cos(theta));
+                let y = Math.round(this.center.y + r * Math.sin(theta));
+                let position = new Vector(x, y);
+                let pixel = this.pixelPositions.get(position.toString());
+                if (pixel) {
+                    pixel.setActive(true);
+                }
             }
         }
     }
@@ -116,20 +126,20 @@ export default class Planet {
 
     polarToCartesian(r, theta) {
         return new Vector(
-            Math.round(this.width / 2 + r * Math.cos(theta)),
-            Math.round(this.height / 2 + r * Math.sin(theta))
+            Math.round(this.center.x + r * Math.cos(theta)),
+            Math.round(this.center.y + r * Math.sin(theta))
         );
     }
 
     cartesianToPolar(cartesianPosition) {
         return {
             r: Math.sqrt(
-                Math.pow(cartesianPosition.x - this.width / 2, 2) +
-                    Math.pow(cartesianPosition.y - this.height / 2, 2)
+                Math.pow(cartesianPosition.x - this.center.x, 2) +
+                    Math.pow(cartesianPosition.y - this.center.y / 2, 2)
             ),
             theta: Math.atan2(
-                cartesianPosition.y - this.height / 2,
-                cartesianPosition.x - this.width / 2
+                cartesianPosition.y - this.center.y / 2,
+                cartesianPosition.x - this.center.x / 2
             ),
         };
     }

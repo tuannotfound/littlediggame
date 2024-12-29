@@ -1,13 +1,13 @@
 import Planet from "./planet2.js";
 
 export default class CircularPlanet extends Planet {
-    constructor(radius) {
+    constructor(gameBounds, radius) {
         let size = radius * 2;
-        super(size, size);
+        super(gameBounds, size, size);
     }
 
     createPlanetData() {
-        let color = { r: 255, g: 0, b: 0, a: 255 };
+        let color = { r: 100, g: 0, b: 0, a: 255 };
         console.log("Drawing circle");
         const thetaIncrementMin = 0.001;
         const thetaIncrementMax = 0.01;
@@ -28,8 +28,9 @@ export default class CircularPlanet extends Planet {
             for (let theta = 0; theta < 2 * Math.PI; theta += thetaIncrement) {
                 let position = this.polarToCartesian(r, theta);
                 position.round();
-                this.addPixel(position, color);
-                this.getPixel(position).setActive(false);
+                if (this.addPixel(position, { ...color })) {
+                    this.getPixel(position).setActive(false);
+                }
             }
         }
     }

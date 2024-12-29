@@ -1,11 +1,11 @@
 import Vector from "./vector.js";
 
 export default class Pixel {
-    UNMOVED_FRAMES_BEFORE_INACTIVE = 10;
+    UNMOVED_FRAMES_BEFORE_INACTIVE = 30;
     INACTIVE_COLOR = { r: 125, g: 125, b: 125, a: 255 };
 
-    constructor(initialPosition, color, bounds) {
-        this.bounds = bounds.copy();
+    constructor(initialPosition, color, gravityCenter) {
+        this.gravityCenter = gravityCenter.copy();
 
         this.position = initialPosition.copy();
         this.oldPosition = initialPosition.copy();
@@ -16,13 +16,12 @@ export default class Pixel {
         this.previousNeighbours = [];
 
         this.friction = 0.5;
-        this.groundFriction = 0.1;
+        this.groundFriction = 0.25;
         this.slipped = false;
 
         this.gravity = new Vector(0, 0);
 
-        this.activeColor = color;
-        this.color = this.activeColor;
+        this.color = color;
         this.mass = 1;
         this.unmovedFrames = 0;
         this.active = true;
@@ -30,8 +29,8 @@ export default class Pixel {
 
     updateGravity() {
         this.gravity.setXY(
-            this.bounds.x / 2 - this.position.x,
-            this.bounds.y / 2 - this.position.y
+            this.gravityCenter.x - this.position.x,
+            this.gravityCenter.y - this.position.y
         );
         this.gravity.normalize();
     }
@@ -60,21 +59,6 @@ export default class Pixel {
         this.renderPosition.round();
     }
 
-    constrain() {
-        if (this.position.x > this.bounds.x - 1) {
-            this.position.x = this.bounds.x - 1;
-        }
-        if (this.position.x < 1) {
-            this.position.x = 1;
-        }
-        if (this.position.y > this.bounds.y - 1) {
-            this.position.y = this.bounds.y - 1;
-        }
-        if (this.position.y < 1) {
-            this.position.y = 1;
-        }
-    }
-
     setActive(active) {
         if (this.active == active) {
             return;
@@ -82,9 +66,6 @@ export default class Pixel {
         this.active = active;
         if (active) {
             this.unmovedFrames = 0;
-            this.color = this.activeColor;
-        } else {
-            this.color = this.INACTIVE_COLOR;
         }
     }
 
@@ -119,7 +100,7 @@ export default class Pixel {
     checkSlipCollision(quadtree) {
         let spotsToCheck = [];
         spotsToCheck.push(this.renderPosition);
-        let vecToCenter = new Vector(this.x - this.bounds.x / 2, this.y - this.bounds.y / 2);
+        let vecToCenter = new Vector(this.x - this.gravityCenter.x, this.y - this.gravityCenter.y);
         vecToCenter.normalize();
         // Also check spots just to the left and right of the render position along a vector perpendicular to vecToCenter
         spotsToCheck.push(
@@ -196,11 +177,18 @@ export default class Pixel {
     }
 
     render(imageData) {
+        if (this.renderPosition.x < 0 || this.renderPosition.x >= imageData.width) {
+            return;
+        }
+        if (this.renderPosition.y < 0 || this.renderPosition.y >= imageData.height) {
+            return;
+        }
         let pixelIndex = (this.renderPosition.x + this.renderPosition.y * imageData.width) * 4;
-        imageData.data[pixelIndex] = this.color.r; // Red
-        imageData.data[pixelIndex + 1] = this.color.g; // Green
-        imageData.data[pixelIndex + 2] = this.color.b; // Blue
-        imageData.data[pixelIndex + 3] = this.color.a; // Alpha
+        let color = window.DEBUG && !this.active ? this.INACTIVE_COLOR : this.color;
+        imageData.data[pixelIndex] = color.r; // Red
+        imageData.data[pixelIndex + 1] = color.g; // Green
+        imageData.data[pixelIndex + 2] = color.b; // Blue
+        imageData.data[pixelIndex + 3] = color.a; // Alpha
     }
 
     // Needed for quad tree

@@ -3,6 +3,7 @@ import Vector from "./vector.js";
 export default class Pixel {
     UNMOVED_FRAMES_BEFORE_INACTIVE = 30;
     INACTIVE_COLOR = { r: 125, g: 125, b: 125, a: 255 };
+    SURFACE_COLOR = { r: 60, g: 180, b: 90, a: 255 };
 
     constructor(initialPosition, color, gravityCenter) {
         this.gravityCenter = gravityCenter.copy();
@@ -25,6 +26,7 @@ export default class Pixel {
         this.mass = 1;
         this.unmovedFrames = 0;
         this.active = true;
+        this.isSurface = false;
     }
 
     updateGravity() {
@@ -33,6 +35,10 @@ export default class Pixel {
             this.gravityCenter.y - this.position.y
         );
         this.gravity.normalize();
+    }
+
+    setSurface(isSurface) {
+        this.isSurface = isSurface;
     }
 
     update() {
@@ -185,6 +191,7 @@ export default class Pixel {
         }
         let pixelIndex = (this.renderPosition.x + this.renderPosition.y * imageData.width) * 4;
         let color = window.DEBUG && !this.active ? this.INACTIVE_COLOR : this.color;
+        color = this.isSurface ? this.SURFACE_COLOR : color;
         imageData.data[pixelIndex] = color.r; // Red
         imageData.data[pixelIndex + 1] = color.g; // Green
         imageData.data[pixelIndex + 2] = color.b; // Blue

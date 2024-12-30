@@ -29,6 +29,7 @@ export default class Planet {
             10,
             20
         );
+        this.planetSurface = [];
     }
 
     init() {
@@ -36,6 +37,7 @@ export default class Planet {
 
         this.createPlanetData();
         this.initialCount = this.pixels.length;
+        this.updatePlanetSurface();
     }
 
     update() {
@@ -60,6 +62,7 @@ export default class Planet {
             }
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
+        //this.updatePlanetSurface();
     }
 
     addPixel(position, color) {
@@ -144,7 +147,115 @@ export default class Planet {
         };
     }
 
-    // May return None
+    getSurroundingPixels(position) {
+        let pixels = {};
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+                let dPos = new Vector(position.x + dx, position.y + dy);
+                let pixel = this.getPixel(dPos);
+                pixels[dPos.toString()] = pixel;
+            }
+        }
+        return pixels;
+    }
+
+    getClosestSurfacePixel(position) {
+        if (this.planetSurface.length == 0) {
+            console.log("No surface");
+            return null;
+        }
+        this.planetSurface.sort((a, b) => {
+            return a.position.dist(position) - b.position.dist(position);
+        });
+        console.log("Closest surface pixel: " + this.planetSurface[0].position.toString());
+        return this.planetSurface[0];
+    }
+
+    updatePlanetSurface() {
+        const width = this.layer.width;
+        const height = this.layer.height;
+        const visited = Array(width)
+            .fill(null)
+            .map(() => Array(height).fill(false));
+        const planetSurfaces = [];
+
+        const self = this;
+
+        const isIsland = (pos) => {
+            return (
+                pos.y >= 0 && pos.y < height && pos.x >= 0 && pos.x < width && self.getPixel(pos)
+            );
+        };
+
+        const isSurface = (pos) => {
+            const neighbors = [
+                new Vector(pos.x - 1, pos.y),
+                new Vector(pos.x + 1, pos.y),
+                new Vector(pos.x, pos.y - 1),
+                new Vector(pos.x, pos.y + 1),
+            ];
+            return neighbors.some((neighbor) => !isIsland(neighbor));
+        };
+
+        const dfs = (pos, currentPlanet) => {
+            let pixel = self.getPixel(pos);
+            if (
+                pos.y < 0 ||
+                pos.y >= height ||
+                pos.x < 0 ||
+                pos.x >= width ||
+                visited[pos.x][pos.y] ||
+                !pixel
+            ) {
+                return;
+            }
+
+            visited[pos.x][pos.y] = true;
+
+            if (isSurface(pos)) {
+                currentPlanet.push(pixel);
+                pixel.setSurface(true);
+            } else {
+                pixel.setSurface(false);
+            }
+
+            dfs(new Vector(pos.x + 1, pos.y), currentPlanet);
+            dfs(new Vector(pos.x - 1, pos.y), currentPlanet);
+            dfs(new Vector(pos.x, pos.y + 1), currentPlanet);
+            dfs(new Vector(pos.x, pos.y - 1), currentPlanet);
+        };
+
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                let position = new Vector(x, y);
+
+                if (self.getPixel(position) && !visited[x][y]) {
+                    const currentPlanet = [];
+                    dfs(position, currentPlanet);
+                    if (currentPlanet.length > 0) {
+                        planetSurfaces.push(currentPlanet);
+                    }
+                }
+            }
+        }
+
+        console.log("Planet surface count = " + planetSurfaces.length);
+        if (planetSurfaces.length === 0) {
+            console.log("No planet surfaces found");
+            this.planetSurface = [];
+        }
+
+        let largestSurface = planetSurfaces[0];
+        for (let i = 1; i < planetSurfaces.length; i++) {
+            if (planetSurfaces[i].length > largestSurface.length) {
+                largestSurface = planetSurfaces[i];
+            }
+        }
+        console.log("Largest planet surface had " + largestSurface.length + " pixels");
+        this.planetSurface = largestSurface;
+    }
+
+    // May return null
     getPixel(position) {
         let pixel = this.pixelPositions.get(position.toString());
         return pixel;

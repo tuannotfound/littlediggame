@@ -69,7 +69,6 @@ export default class Planet {
         if (this.getPixel(position)) {
             return false;
         }
-        console.log("addPixel @ " + position.toString());
         let pixel = new Pixel(position, color, this.center);
         this.pixels.push(pixel);
         this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
@@ -148,12 +147,18 @@ export default class Planet {
     }
 
     getSurroundingPixels(position) {
-        let pixels = {};
+        let pixels = new Map();
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
+                if (dx == 0 && dy == 0) {
+                    continue;
+                }
                 let dPos = new Vector(position.x + dx, position.y + dy);
+                dPos.round();
                 let pixel = this.getPixel(dPos);
-                pixels[dPos.toString()] = pixel;
+                if (pixel) {
+                    pixels.set(dPos.toString(), pixel);
+                }
             }
         }
         return pixels;

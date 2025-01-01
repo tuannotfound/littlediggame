@@ -214,4 +214,8 @@ export default class Pixel {
     get height() {
         return 1;
     }
+
+    get surface() {
+        return this.isSurface;
+    }
 }

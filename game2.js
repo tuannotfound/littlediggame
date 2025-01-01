@@ -92,6 +92,9 @@ export default class Game {
             window.DEBUG = debugBtn.checked;
             console.log("Debug: " + window.DEBUG);
         });
+
+        let refreshSurfaceBtn = document.getElementById("refresh_surface");
+        refreshSurfaceBtn.addEventListener("click", () => this.planet.updatePlanetSurface());
     }
 
     initHandlers() {

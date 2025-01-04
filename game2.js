@@ -3,6 +3,7 @@ import Vector from "./vector.js";
 import Stats from "stats.js";
 import CircularPlanet from "./circular_planet2.js";
 import LittleGuy from "./little_guy.js";
+import Upgrades from "./upgrades.js";
 
 export default class Game {
     constructor(width, height) {
@@ -15,8 +16,9 @@ export default class Game {
         this.then = 0;
         this.containerElement = null;
         this.layer = null;
-        this.planet = new CircularPlanet(this.bounds, 10);
-        this.zoomLevel = 6;
+        this.upgrades = new Upgrades();
+        this.planet = new CircularPlanet(this.bounds, 8);
+        this.zoomLevel = 7;
         this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
         this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
         this.planetPosition = new Vector(
@@ -26,7 +28,7 @@ export default class Game {
         console.log("planet position = " + this.planetPosition.toString());
         // this.planetPosition = new Vector(0, 0);
 
-        this.littleGuy = new LittleGuy(this.planet);
+        this.littleGuys = [];
 
         this.zoomPctElement = null;
         this.gold = 0;
@@ -34,6 +36,8 @@ export default class Game {
 
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        this.stats.dom.style.left = "90%";
+        console.log("Appending stats panel");
         document.body.appendChild(this.stats.dom);
     }
 
@@ -54,28 +58,32 @@ export default class Game {
                 new Vector(this.planet.layer.width, this.planet.layer.height).toString()
         );
 
-        this.littleGuy.init();
-
         this.then = window.performance.now();
         this.tick(this.then);
     }
 
     initUi() {
-        let speedBtn = document.getElementById("speed");
-        speedBtn.addEventListener("click", () => {
-            this.upgrades.speed += 1;
-            console.log("Speed: " + this.upgrades.speed);
+        let digSpeedBtn = document.getElementById("digspeed");
+        digSpeedBtn.addEventListener("click", () => {
+            this.upgrades.digSpeed += 1;
+            console.log("Dig speed: " + this.upgrades.digSpeed);
         });
-        let widthBtn = document.getElementById("width");
-        widthBtn.addEventListener("click", () => {
-            this.upgrades.width += 1;
-            console.log("Width: " + this.upgrades.width);
+        let digCountBtn = document.getElementById("digcount");
+        digCountBtn.addEventListener("click", () => {
+            this.upgrades.digCount += 1;
+            console.log("Dig count: " + this.upgrades.digCount);
         });
-        let durabilityBtn = document.getElementById("durability");
-        durabilityBtn.addEventListener("click", () => {
-            this.upgrades.durability += 1;
-            console.log("Durability: " + this.upgrades.durability);
+        let goldPerDigBtn = document.getElementById("diggold");
+        goldPerDigBtn.addEventListener("click", () => {
+            this.upgrades.goldPerDig += 1;
+            console.log("Gold per dig: " + this.upgrades.goldPerDig);
         });
+        let afterlifeBtn = document.getElementById("afterlife");
+        afterlifeBtn.addEventListener("change", () => {
+            this.upgrades.afterlife = afterlifeBtn.checked;
+            console.log("Afterlife: " + afterlifeBtn.checked);
+        });
+
         let zoomInBtn = document.getElementById("zoom_in");
         zoomInBtn.addEventListener("click", () => this.zoom(0.25));
         let zoomOutBtn = document.getElementById("zoom_out");
@@ -92,9 +100,6 @@ export default class Game {
             window.DEBUG = debugBtn.checked;
             console.log("Debug: " + window.DEBUG);
         });
-
-        let refreshSurfaceBtn = document.getElementById("refresh_surface");
-        refreshSurfaceBtn.addEventListener("click", () => this.planet.updatePlanetSurface());
     }
 
     initHandlers() {
@@ -141,7 +146,6 @@ export default class Game {
         if (direction == 0) {
             return;
         }
-        this.littleGuy.move(direction);
     }
 
     handleMouseEvent(event) {
@@ -153,11 +157,10 @@ export default class Game {
         console.log(
             "Translating mouse click @ " + gameCoords.toString() + " to " + planetCoords.toString()
         );
-        if (event.shiftKey) {
-            this.addAround(planetCoords, 5, 10);
-        } else {
-            this.removeAround(planetCoords, 5);
-        }
+        let closestSurfacePixel = this.planet.getClosestSurfacePixel(planetCoords);
+        let littleGuy = new LittleGuy(this, closestSurfacePixel.renderPosition);
+        littleGuy.init();
+        this.littleGuys.push(littleGuy);
     }
 
     getRandomPointInCircle(center, radius) {
@@ -186,14 +189,16 @@ export default class Game {
     }
 
     removeAround(center, radius) {
+        let toRemove = [];
         for (let x = center.x - radius; x < center.x + radius; x++) {
             for (let y = center.y - radius; y < center.y + radius; y++) {
                 let dist = new Vector(center.x - x, center.y - y).mag();
                 if (dist < radius) {
-                    this.planet.removePixelAt(new Vector(x, y));
+                    toRemove.push(new Vector(x, y));
                 }
             }
         }
+        this.planet.removePixelsAt(toRemove);
     }
 
     tick(newtime) {
@@ -222,19 +227,33 @@ export default class Game {
             this.currentPlanetWidth, // destination width
             this.currentPlanetHeight // destination height
         );
-        this.layer.getContext().drawImage(
-            this.littleGuy.layer.canvas,
-            0, // source x
-            0, // source y
-            this.littleGuy.layer.width, // source width
-            this.littleGuy.layer.height, // source height
-            this.planetPosition.x +
-                (this.planet.center.x + this.littleGuy.position.x) * this.zoomLevel, // destination x
-            this.planetPosition.y +
-                (this.planet.center.y + this.littleGuy.position.y) * this.zoomLevel, // destination y
-            this.littleGuy.layer.width * this.zoomLevel, // destination width
-            this.littleGuy.layer.height * this.zoomLevel // destination height
-        );
+        let inactiveLittleGuys = [];
+        for (const littleGuy of this.littleGuys) {
+            littleGuy.update();
+            if (!littleGuy.active) {
+                inactiveLittleGuys.push(littleGuy);
+                continue;
+            }
+            this.layer.getContext().drawImage(
+                littleGuy.layer.canvas,
+                0, // source x
+                0, // source y
+                littleGuy.layer.width, // source width
+                littleGuy.layer.height, // source height
+                this.planetPosition.x +
+                    (this.planet.center.x + Math.round(littleGuy.position.x) - littleGuy.center.x) *
+                        this.zoomLevel, // destination x
+                this.planetPosition.y +
+                    (this.planet.center.y + Math.round(littleGuy.position.y) - littleGuy.center.y) *
+                        this.zoomLevel, // destination y
+                littleGuy.layer.width * this.zoomLevel, // destination width
+                littleGuy.layer.height * this.zoomLevel // destination height
+            );
+        }
+        for (const inactiveLittleGuy of inactiveLittleGuys) {
+            this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
+        }
+
         this.stats.end();
     }
 }

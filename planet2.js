@@ -1,9 +1,10 @@
 import Layer from "./layer.js";
-import Pixel from "./pixel.js";
-import Quadtree from "@timohausmann/quadtree-js";
 import Vector from "./vector.js";
+import Pixel from "./pixel.js";
 
 export default class Planet {
+    PLANET_SURFACE_UPDATE_INTERVAL_MS = 500;
+
     constructor(gameBounds, width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
@@ -17,18 +18,6 @@ export default class Planet {
         this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
         this.pixels = [];
         this.pixelPositions = new Map();
-        this.furthestPixelDistance = 0;
-        // https://github.com/timohausmann/quadtree-js
-        this.quadtree = new Quadtree(
-            {
-                x: 0,
-                y: 0,
-                width: this.layer.width,
-                height: this.layer.height,
-            },
-            10,
-            20
-        );
         this.planetSurface = [];
     }
 
@@ -42,76 +31,74 @@ export default class Planet {
 
     update() {
         this.pixelPositions.clear();
-        this.quadtree.clear();
-        for (let pixel of this.pixels) {
-            this.quadtree.insert(pixel);
-        }
         let imageData = this.layer
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
         for (let pixel of this.pixels) {
-            pixel.update();
-            pixel.checkCollision(this.quadtree);
-            pixel.checkInactive();
-            pixel.render(imageData);
-            // Optimizations:
-            this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
-            let distToCenter = pixel.position.dist(this.center);
-            if (distToCenter > this.furthestPixelDistance) {
-                this.furthestPixelDistance = distToCenter;
-            }
+            this.updatePixel(pixel, imageData);
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
-        //this.updatePlanetSurface();
+    }
+
+    updatePixel(pixel, imageData) {
+        pixel.render(imageData);
+        this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
+    }
+
+    createPixel(position, color) {
+        let pixel = new Pixel(position, color, this.center);
+        return pixel;
     }
 
     addPixel(position, color) {
         if (this.getPixel(position)) {
             return false;
         }
-        let pixel = new Pixel(position, color, this.center);
+        let pixel = this.createPixel(position, color);
         this.pixels.push(pixel);
         this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
         return true;
     }
 
+    updatePlanetSurfaceOnQuiescence() {
+        if (this.surfaceUpdateTimeoutId) {
+            clearTimeout(this.surfaceUpdateTimeoutId);
+        }
+        this.surfaceUpdateTimeoutId = setTimeout(() => {
+            this.updatePlanetSurface();
+        }, this.PLANET_SURFACE_UPDATE_INTERVAL_MS);
+    }
+
     removePixelAt(position) {
         let pixel = this.pixelPositions.get(position.toString());
         if (pixel) {
-            return this.removePixel(pixel);
+            let removed = this.removePixel(pixel);
+            if (removed) {
+                this.updatePlanetSurface();
+            }
+            return removed;
         }
         return false;
+    }
+
+    removePixelsAt(positions) {
+        for (let position of positions) {
+            let pixel = this.pixelPositions.get(position.toString());
+            if (pixel) {
+                this.removePixel(pixel);
+            }
+        }
+        this.updatePlanetSurface();
     }
 
     removePixel(pixel) {
         let index = this.pixels.indexOf(pixel);
         if (index > -1) {
             this.pixels.splice(index, 1);
-            this.reactivateFrom(pixel.position);
+            this.pixelPositions.delete(pixel.renderPosition.toString());
             return true;
         }
         return false;
-    }
-
-    reactivateFrom(reactivationPosition) {
-        // Reactivate pixels that are radially outward from the removed pixel
-        let radialVec = reactivationPosition.copy();
-        radialVec.sub(this.center);
-        let minRadius = radialVec.mag();
-
-        // Calculate the angle of the radialVec
-        const angle = Math.atan2(radialVec.y, radialVec.x);
-        for (let r = minRadius; r <= this.furthestPixelDistance; r += 0.25) {
-            for (let theta = angle - 0.01; theta < angle + 0.01; theta += 0.001) {
-                let x = Math.round(this.center.x + r * Math.cos(theta));
-                let y = Math.round(this.center.y + r * Math.sin(theta));
-                let position = new Vector(x, y);
-                let pixel = this.pixelPositions.get(position.toString());
-                if (pixel) {
-                    pixel.setActive(true);
-                }
-            }
-        }
     }
 
     createPlanetData() {
@@ -146,11 +133,11 @@ export default class Planet {
         };
     }
 
-    getSurroundingPixels(position) {
+    getSurroundingPixels(position, excludeSelf = true) {
         let pixels = new Map();
         for (let dx = -1; dx <= 1; dx++) {
             for (let dy = -1; dy <= 1; dy++) {
-                if (dx == 0 && dy == 0) {
+                if (excludeSelf && dx == 0 && dy == 0) {
                     continue;
                 }
                 let dPos = new Vector(position.x + dx, position.y + dy);
@@ -166,7 +153,6 @@ export default class Planet {
 
     getClosestSurfacePixel(position) {
         if (this.planetSurface.length == 0) {
-            console.log("No surface");
             return null;
         }
         this.planetSurface.sort((a, b) => {
@@ -177,14 +163,16 @@ export default class Planet {
     }
 
     updatePlanetSurface() {
+        if (this.pixels.length == 0) {
+            this.planetSurface = [];
+        }
         const width = this.layer.width;
         const height = this.layer.height;
         const visited = Array(width)
             .fill(null)
             .map(() => Array(height).fill(false));
         const planetSurfaces = [];
-
-        const self = this;
+        const self = this; // Avoid issues with 'this' inside nested functions
 
         const isIsland = (pos) => {
             return (
@@ -202,41 +190,48 @@ export default class Planet {
             return neighbors.some((neighbor) => !isIsland(neighbor));
         };
 
-        const dfs = (pos, currentPlanet) => {
-            let pixel = self.getPixel(pos);
-            if (
-                pos.y < 0 ||
-                pos.y >= height ||
-                pos.x < 0 ||
-                pos.x >= width ||
-                visited[pos.x][pos.y] ||
-                !pixel
-            ) {
-                return;
+        function dfs(startPos) {
+            const stack = [startPos];
+            const currentPlanet = [];
+
+            while (stack.length > 0) {
+                const pos = stack.pop();
+                let pixel = self.getPixel(pos);
+
+                if (
+                    pos.y < 0 ||
+                    pos.y >= height ||
+                    pos.x < 0 ||
+                    pos.x >= width ||
+                    visited[pos.x][pos.y] ||
+                    !pixel
+                ) {
+                    continue; // Skip invalid or visited positions
+                }
+
+                visited[pos.x][pos.y] = true;
+
+                if (isSurface(pos)) {
+                    currentPlanet.push(pixel);
+                    pixel.setSurface(true);
+                } else {
+                    pixel.setSurface(false);
+                }
+
+                // Push neighbors onto the stack (order determines search direction)
+                stack.push(new Vector(pos.x + 1, pos.y));
+                stack.push(new Vector(pos.x - 1, pos.y));
+                stack.push(new Vector(pos.x, pos.y + 1));
+                stack.push(new Vector(pos.x, pos.y - 1));
             }
-
-            visited[pos.x][pos.y] = true;
-
-            if (isSurface(pos)) {
-                currentPlanet.push(pixel);
-                pixel.setSurface(true);
-            } else {
-                pixel.setSurface(false);
-            }
-
-            dfs(new Vector(pos.x + 1, pos.y), currentPlanet);
-            dfs(new Vector(pos.x - 1, pos.y), currentPlanet);
-            dfs(new Vector(pos.x, pos.y + 1), currentPlanet);
-            dfs(new Vector(pos.x, pos.y - 1), currentPlanet);
-        };
+            return currentPlanet;
+        }
 
         for (let x = 0; x < width; x++) {
             for (let y = 0; y < height; y++) {
                 let position = new Vector(x, y);
-
                 if (self.getPixel(position) && !visited[x][y]) {
-                    const currentPlanet = [];
-                    dfs(position, currentPlanet);
+                    const currentPlanet = dfs(position);
                     if (currentPlanet.length > 0) {
                         planetSurfaces.push(currentPlanet);
                     }
@@ -244,20 +239,10 @@ export default class Planet {
             }
         }
 
-        console.log("Planet surface count = " + planetSurfaces.length);
-        if (planetSurfaces.length === 0) {
-            console.log("No planet surfaces found");
-            this.planetSurface = [];
+        this.planetSurface = [];
+        for (const planetSurface of planetSurfaces) {
+            this.planetSurface.push(...planetSurface);
         }
-
-        let largestSurface = planetSurfaces[0];
-        for (let i = 1; i < planetSurfaces.length; i++) {
-            if (planetSurfaces[i].length > largestSurface.length) {
-                largestSurface = planetSurfaces[i];
-            }
-        }
-        console.log("Largest planet surface had " + largestSurface.length + " pixels");
-        this.planetSurface = largestSurface;
     }
 
     // May return null

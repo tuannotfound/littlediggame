@@ -72,6 +72,9 @@ export default class Game {
 
         this.goldElement = document.getElementById("gold");
         this.updateGold(0);
+
+        let refreshSurfaceBtn = document.getElementById("refresh_surface");
+        refreshSurfaceBtn.addEventListener("click", () => this.planet.collapse());
     }
 
     initHandlers() {
@@ -82,7 +85,7 @@ export default class Game {
 
     // Main game loop
     tick(deltaTime) {
-        console.log(deltaTime);
+        //console.log(deltaTime);
         this.eaters.tick(deltaTime);
         this.planet.draw();
 

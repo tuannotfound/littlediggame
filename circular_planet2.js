@@ -1,5 +1,7 @@
 import Planet from "./planet2.js";
 
+import PhysicsPixel from "./physics_pixel.js";
+
 export default class CircularPlanet extends Planet {
     constructor(gameBounds, radius) {
         let size = radius * 2;
@@ -29,7 +31,10 @@ export default class CircularPlanet extends Planet {
                 let position = this.polarToCartesian(r, theta);
                 position.round();
                 if (this.addPixel(position, { ...color })) {
-                    this.getPixel(position).setActive(false);
+                    let pixel = this.getPixel(position);
+                    if (pixel instanceof PhysicsPixel) {
+                        pixel.setActive(false);
+                    }
                 }
             }
         }

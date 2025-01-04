@@ -82,7 +82,7 @@ export default class Planet {
     }
 
     draw() {
-        this.collapse();
+        //this.collapse();
         this.layer.getContext().putImageData(this.imageData, 0, 0);
     }
 

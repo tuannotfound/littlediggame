@@ -1,5 +1,6 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
+import PixelType from "./pixel_type.js";
 
 export default class LittleGuy {
     DEFAULT_HEAD_COLOR = { r: 242, g: 222, b: 187, a: 255 };
@@ -19,18 +20,15 @@ export default class LittleGuy {
     SAINTLY_PCT = 0.95;
 
     constructor(game, positionInPlanetSpace) {
-        console.log("Spawning little guy @ " + positionInPlanetSpace.toString());
         this.game = game;
         this.planet = game.planet;
 
         this.positionInPlanetSpace = positionInPlanetSpace;
         // This is relative to the center of the planet
         this.position = this.toLocalSpace(this.positionInPlanetSpace);
-        console.log("   local space: " + this.position.toString());
-        let angle = Math.atan2(this.position.y, this.position.x);
 
+        let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
-        this.position.add(this.orientation);
         this.layer = new Layer("little_guy", 3, 3);
         this.center = new Vector(1, 1);
         this.previousPositions = [];
@@ -38,8 +36,6 @@ export default class LittleGuy {
         this.digging = false;
         this.pixelBeingDug = null;
         this.digProgressPct = 0;
-        // The progress made each frame towards 100% dig progress
-        this.digStrength = game.upgrades.digSpeed;
         // Whether we're dead or alive.
         this.alive = true;
         this.ascentionProgressPct = 0;
@@ -52,12 +48,68 @@ export default class LittleGuy {
         if (!this.saintly) {
             console.log("Uh oh, we got a bad one, folks");
         }
+
+        this.listeners = [];
+    }
+
+    toJSON() {
+        return {
+            positionInPlanetSpace: this.positionInPlanetSpace,
+            orientation: this.orientation,
+            previousPositions: this.previousPositions,
+            previousDirection: this.previousDirection,
+            digging: this.digging,
+            pixelBeingDug: this.pixelBeingDug,
+            digProcessPct: this.digProcessPct,
+            alive: this.alive,
+            ascentionProgressPct: this.ascentionProgressPct,
+            active: this.active,
+            digsRemaining: this.digsRemaining,
+            saintly: this.saintly,
+        };
+    }
+
+    static fromJSON(json, game, pixelBeingDug) {
+        let littleGuy = new LittleGuy(game, Vector.fromJSON(json.positionInPlanetSpace));
+        littleGuy.orientation = Vector.fromJSON(json.orientation);
+        for (const previousPositionJson of json.previousPositions) {
+            littleGuy.previousPositions.push(Vector.fromJSON(previousPositionJson));
+        }
+        littleGuy.previousDirection = json.previousDirection;
+        littleGuy.digging = json.digging;
+        littleGuy.pixelBeingDug = pixelBeingDug;
+        littleGuy.digProcessPct = json.digProcessPct;
+        littleGuy.alive = json.alive;
+        littleGuy.ascentionProgressPct = json.ascentionProgressPct;
+        littleGuy.active = json.active;
+        littleGuy.digsRemaining = json.digsRemaining;
+        littleGuy.saintly = json.saintly;
+        return littleGuy;
     }
 
     init() {
         this.layer.initOffscreen();
+
+        this.position.add(this.orientation);
         this.addPreviousPosition(this.positionInPlanetSpace);
         this.updateRenderData();
+    }
+
+    notifyDigComplete(pixel) {
+        for (const listener of this.listeners) {
+            listener.onDigComplete(pixel);
+        }
+    }
+
+    addListener(listener) {
+        this.listeners.push(listener);
+    }
+
+    removeListener(listener) {
+        let index = this.listeners.indexOf(listener);
+        if (index >= 0) {
+            this.listeners.splice(index, 1);
+        }
     }
 
     addPreviousPosition(positionInPlanetSpace) {
@@ -172,7 +224,7 @@ export default class LittleGuy {
                 this.ascend();
                 return;
             } else {
-                this.decompose();
+                this.bury();
                 return;
             }
         }
@@ -183,20 +235,20 @@ export default class LittleGuy {
         this.wander();
     }
 
-    decompose() {
+    bury() {
         this.active = false;
-        let decomposePosition = null;
+        let tombstonePosition = null;
         if (this.pixelBeingDug) {
-            decomposePosition = this.pixelBeingDug.renderPosition;
+            tombstonePosition = this.pixelBeingDug.renderPosition;
         } else {
-            decomposePosition = this.positionInPlanetSpace.copy();
-            decomposePosition.add(this.orientation);
+            tombstonePosition = this.positionInPlanetSpace.copy();
+            tombstonePosition.add(this.orientation);
         }
-        let added = this.planet.addPixel(decomposePosition, { r: 170, g: 170, b: 170, a: 255 });
-        if (added) {
-            console.log("Added pixel on decompose @ " + decomposePosition);
+        let added = this.planet.addPixel(tombstonePosition, PixelType.TOMBSTONE);
+        if (!added) {
+            console.error("Failed to add pixel on decompose @ " + tombstonePosition.toString());
         } else {
-            console.log("Failed to add pixel on decompose @ " + decomposePosition);
+            this.planet.updateSurface();
         }
     }
 
@@ -241,8 +293,10 @@ export default class LittleGuy {
             return;
         }
         this.digging = false;
-        this.planet.removePixelAt(this.pixelBeingDug.renderPosition);
-        console.log("Removing pixel at " + this.pixelBeingDug.renderPosition.toString());
+        if (this.pixelBeingDug != null) {
+            this.planet.removePixelAt(this.pixelBeingDug.renderPosition);
+            this.notifyDigComplete(this.pixelBeingDug);
+        }
         this.goToNearestSurfacePixel();
 
         this.updateRenderData();
@@ -273,7 +327,7 @@ export default class LittleGuy {
             return;
         }
         // Make sure the pixel we're digging at is still present
-        if (!this.planet.getPixel(this.pixelBeingDug.renderPosition)) {
+        if (!this.pixelBeingDug || !this.planet.getPixel(this.pixelBeingDug.renderPosition)) {
             // Update our position and get a new pixel to work on
             this.goToNearestSurfacePixel();
             this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
@@ -284,7 +338,7 @@ export default class LittleGuy {
             }
         }
 
-        this.digProgressPct += this.digStrength;
+        this.digProgressPct += this.game.upgrades.digSpeed;
         if (this.digProgressPct >= 100) {
             this.finishDigging();
         }

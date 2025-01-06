@@ -1,9 +1,13 @@
-import Pixel from "./pixel.js";
-import Vector from "./vector.js";
+import Pixel from "../pixel.js";
+import Vector from "../vector.js";
 
 export default class PhysicsPixel extends Pixel {
+    UNMOVED_FRAMES_BEFORE_INACTIVE = 30;
+    INACTIVE_COLOR = new Color(125, 125, 125, 255);
+
     constructor(position, color, gravityCenter) {
-        super(position, color, gravityCenter);
+        super(position, color);
+        this.gravityCenter = gravityCenter.copy();
 
         this.oldPosition = position.copy();
         this.oldRenderPosition = this.renderPosition.copy();

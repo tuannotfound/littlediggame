@@ -10,29 +10,6 @@ export default function Vector(x, y) {
     this.y = y || 0;
 }
 
-// Static Functions
-Vector.dist = function (v1, v2) {
-    return v1.dist(v2);
-};
-Vector.distSq = function (v1, v2) {
-    return v1.distSq(v2);
-};
-Vector.sub = function (v1, v2) {
-    return new Vector(v1.x - v2.x, v1.y - v2.y);
-};
-Vector.add = function (v1, v2) {
-    return new Vector(v1.x + v2.x, v1.y + v2.y);
-};
-Vector.fromAngle = function (angle) {
-    let v = new Vector(0, 0);
-    v.x = Math.cos(angle);
-    v.y = Math.sin(angle);
-    return v;
-};
-Vector.random2D = function () {
-    return Vector.fromAngle(Math.random() * Math.PI * 180);
-};
-
 Vector.prototype = {
     add: function (x, y) {
         if (arguments.length === 1) {
@@ -156,4 +133,30 @@ Vector.prototype = {
         this.x = Math.cos(b) * c;
         this.y = Math.sin(b) * c;
     },
+};
+
+// Static Functions
+Vector.dist = function (v1, v2) {
+    return v1.dist(v2);
+};
+Vector.distSq = function (v1, v2) {
+    return v1.distSq(v2);
+};
+Vector.sub = function (v1, v2) {
+    return new Vector(v1.x - v2.x, v1.y - v2.y);
+};
+Vector.add = function (v1, v2) {
+    return new Vector(v1.x + v2.x, v1.y + v2.y);
+};
+Vector.fromAngle = function (angle) {
+    let v = new Vector(0, 0);
+    v.x = Math.cos(angle);
+    v.y = Math.sin(angle);
+    return v;
+};
+Vector.random2D = function () {
+    return Vector.fromAngle(Math.random() * Math.PI * 180);
+};
+Vector.fromJSON = function (json) {
+    return Object.assign(new Vector(), json);
 };

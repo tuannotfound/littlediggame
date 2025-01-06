@@ -1,4 +1,4 @@
-import PhysicsPixel from "./physics_pixel.js";
+import PhysicsPixel from "./archive/physics_pixel.js";
 import Quadtree from "@timohausmann/quadtree-js";
 import Vector from "./vector.js";
 import Planet from "./planet2.js";
@@ -47,18 +47,18 @@ export default class PhysicsPlanet extends Planet {
         let pixel = new PhysicsPixel(position, color, this.center);
         pixel.addListener({
             onActiveStateChanged: (pixel) => {
-                this.updatePlanetSurfaceOnQuiescence();
+                this.updateSurfaceOnQuiescence();
             },
         });
         return pixel;
     }
 
-    updatePlanetSurfaceOnQuiescence() {
+    updateSurfaceOnQuiescence() {
         if (this.surfaceUpdateTimeoutId) {
             clearTimeout(this.surfaceUpdateTimeoutId);
         }
         this.surfaceUpdateTimeoutId = setTimeout(() => {
-            this.updatePlanetSurface();
+            this.updateSurface();
         }, this.PLANET_SURFACE_UPDATE_INTERVAL_MS);
     }
 

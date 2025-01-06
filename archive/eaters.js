@@ -1,5 +1,5 @@
 import Eater from "./eater.js";
-import Layer from "./layer.js";
+import Layer from "../layer.js";
 
 export default class Eaters {
     constructor(game) {

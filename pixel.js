@@ -1,37 +1,55 @@
+import PixelType from "./pixel_type.js";
+import Color from "./color.js";
+import MathExtras from "./math_extras.js";
 import Vector from "./vector.js";
 
 export default class Pixel {
-    UNMOVED_FRAMES_BEFORE_INACTIVE = 30;
-    INACTIVE_COLOR = { r: 125, g: 125, b: 125, a: 255 };
-    SURFACE_COLOR = { r: 60, g: 180, b: 90, a: 255 };
-
-    constructor(position, color, gravityCenter) {
+    GOLD_REVEAL_THRESHOLD = 0.15;
+    constructor(position, type = PixelType.DIRT) {
         this.position = position.copy();
-        this.color = color;
-        this.gravityCenter = gravityCenter.copy();
+        this.type = type;
+        this.color = type.variableColor ? Color.wiggle(type.color, 10) : type.color;
+        this.surfaceColor = type.variableColor
+            ? Color.wiggle(type.surfaceColor, 10)
+            : type.surfaceColor;
 
         this.renderPosition = position.copy();
         this.renderPosition.round();
         this.isSurface = false;
-
-        this.surfaceColor = this.generateSurfaceColor();
+        // 0-1, where 0 is no change to the color, 1 is fully black
+        this.darkness = 0;
     }
 
-    generateSurfaceColor() {
-        let surfaceColor = {
-            r: this.SURFACE_COLOR.r,
-            g: this.SURFACE_COLOR.g,
-            b: this.SURFACE_COLOR.b,
-            a: this.SURFACE_COLOR.a,
+    toJSON() {
+        return {
+            position: this.position,
+            typeName: this.type.name,
+            color: this.color,
+            surfaceColor: this.surfaceColor,
+            renderPosition: this.renderPosition,
+            isSurface: this.isSurface,
+            darkness: this.darkness,
         };
+    }
 
-        surfaceColor.r += Math.min(255, Math.max(0, (Math.random() * 2 - 1) * 10));
-        surfaceColor.g += Math.min(255, Math.max(0, (Math.random() * 2 - 1) * 10));
-        surfaceColor.b += Math.min(255, Math.max(0, (Math.random() * 2 - 1) * 10));
-        return surfaceColor;
+    static fromJSON(json) {
+        let position = Vector.fromJSON(json.position);
+        let type = PixelType[json.typeName];
+        let pixel = new Pixel(position, type);
+        pixel.color = json.color;
+        pixel.surfaceColor = json.surfaceColor;
+        pixel.renderPosition = Vector.fromJSON(json.renderPosition);
+        pixel.isSurface = json.isSurface;
+        pixel.darkness = json.darkness;
+        return pixel;
     }
 
     getRenderColor() {
+        if (this.type == PixelType.GOLD) {
+            if (this.darkness >= this.GOLD_REVEAL_THRESHOLD) {
+                return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
+            }
+        }
         return this.isSurface ? this.surfaceColor : this.color;
     }
 
@@ -44,14 +62,18 @@ export default class Pixel {
         }
         let pixelIndex = (this.renderPosition.x + this.renderPosition.y * imageData.width) * 4;
         let color = this.getRenderColor();
-        imageData.data[pixelIndex] = color.r; // Red
-        imageData.data[pixelIndex + 1] = color.g; // Green
-        imageData.data[pixelIndex + 2] = color.b; // Blue
-        imageData.data[pixelIndex + 3] = color.a; // Alpha
+        imageData.data[pixelIndex] = Math.round(color.r * (1 - this.darkness)); // Red
+        imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - this.darkness)); // Green
+        imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - this.darkness)); // Blue
+        imageData.data[pixelIndex + 3] = Math.round(color.a); // Alpha
     }
 
     setSurface(isSurface) {
         this.isSurface = isSurface;
+    }
+
+    setDarkness(darkness) {
+        this.darkness = MathExtras.clamp(darkness, 0, 1);
     }
 
     // Needed for quad tree

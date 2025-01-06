@@ -34,4 +34,9 @@ export default class Layer {
     getContext() {
         return this.canvas.getContext("2d");
     }
+
+    destroy() {
+        this.container.removeChild(this.canvas);
+        this.canvas = null;
+    }
 }

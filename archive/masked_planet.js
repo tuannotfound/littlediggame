@@ -1,4 +1,5 @@
-import Planet from "./planet.js";
+import Planet from "../planet.js";
+import Color from "../color.js";
 
 export default class MaskedPlanet extends Planet {
     constructor(maskImgUrl, width, height) {
@@ -42,7 +43,7 @@ export default class MaskedPlanet extends Planet {
             return; // or throw an error, depending on desired behavior
         }
 
-        let color = { r: 255, g: 0, b: 0, a: 255 };
+        let color = new Color(255, 0, 0, 255);
         console.log(
             "Drawing mask - dest size = " +
                 this.width +

@@ -5,6 +5,7 @@ export default class Upgrades {
         this.digCount = 2;
         this.goldPerDig = 1;
         this.spawnCostReduction = 0;
+        this.goldSeeker = false;
         this.afterlife = false;
         this.heavenRevealed = false;
         this.hellRevealed = false;

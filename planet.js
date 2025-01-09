@@ -255,7 +255,7 @@ export default class Planet {
                 continue;
             }
             let distanceToSurface = nearestSurfacePixel.renderPosition.dist(pixel.renderPosition);
-            pixel.setDarkness(1 - (this.radius - distanceToSurface) / this.radius);
+            pixel.setDarkness(1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2);
         }
     }
 

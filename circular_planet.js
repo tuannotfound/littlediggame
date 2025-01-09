@@ -44,9 +44,6 @@ export default class CircularPlanet extends Planet {
                 let isGold = Math.random() * 100 < threshold;
                 let pixel = this.addPixel(position, isGold ? PixelType.GOLD : PixelType.DIRT);
                 previousWasGold = isGold;
-                if (pixel) {
-                    pixel.setDarkness(1 - r / this.radius);
-                }
                 if (pixel && pixel instanceof PhysicsPixel) {
                     pixel.setActive(false);
                 }

@@ -8,10 +8,10 @@ export default class Pixel {
     constructor(position, type = PixelType.DIRT) {
         this.position = position.copy();
         this.type = type;
-        this.color = type.variableColor ? Color.wiggle(type.color, 10) : type.color;
+        this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
-            : type.surfaceColor;
+            : new Color(type.surfaceColor);
 
         this.renderPosition = position.copy();
         this.renderPosition.round();
@@ -46,7 +46,7 @@ export default class Pixel {
 
     getRenderColor() {
         if (this.type == PixelType.GOLD) {
-            if (this.darkness >= this.GOLD_REVEAL_THRESHOLD) {
+            if (this.darkness >= this.GOLD_REVEAL_THRESHOLD && !window.DEBUG) {
                 return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
             }
         }
@@ -74,6 +74,12 @@ export default class Pixel {
 
     setDarkness(darkness) {
         this.darkness = MathExtras.clamp(darkness, 0, 1);
+    }
+
+    setOpacity(opacity) {
+        let alpha = MathExtras.clamp(opacity, 0, 1) * 255;
+        this.color.a = alpha;
+        this.surfaceColor.a = alpha;
     }
 
     // Needed for quad tree

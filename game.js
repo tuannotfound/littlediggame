@@ -10,6 +10,8 @@ import SaveLoad from "./save_load.js";
 export default class Game {
     TARGET_FPS = 60;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
+    PULSE_ANIMATION_NAME = "pulsing";
+    PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
     constructor(width, height) {
         this.width = width;
@@ -157,6 +159,11 @@ export default class Game {
             this.upgrades.goldPerDig += 1;
             console.log("Gold per dig: " + this.upgrades.goldPerDig);
         });
+        let seekGoldBtn = document.getElementById("seek_gold");
+        seekGoldBtn.addEventListener("change", () => {
+            this.upgrades.goldSeeker = seekGoldBtn.checked;
+            console.log("Seek gold: " + seekGoldBtn.checked);
+        });
         let afterlifeBtn = document.getElementById("afterlife");
         afterlifeBtn.addEventListener("change", () => {
             this.upgrades.afterlife = afterlifeBtn.checked;
@@ -173,13 +180,23 @@ export default class Game {
         this.goldElement = document.getElementById("gold");
         this.updateGold();
 
+        this.littleGuyCountElement = document.getElementById("little_guy_count");
         this.spawnCostElement = document.getElementById("spawn_cost");
         this.updateSpawnCost();
 
-        let debugBtn = document.getElementById("debug");
-        window.DEBUG = debugBtn.checked;
-        debugBtn.addEventListener("change", () => {
-            window.DEBUG = debugBtn.checked;
+        let debugCheckbox = document.getElementById("debug_checkbox");
+        window.DEBUG = debugCheckbox.checked;
+        debugCheckbox.addEventListener("change", () => {
+            if (window.DEBUG == debugCheckbox.checked) {
+                return;
+            }
+            window.DEBUG = debugCheckbox.checked;
+            let debugDiv = document.getElementById("debug");
+            if (window.DEBUG) {
+                debugDiv.classList.remove("hidden");
+            } else {
+                debugDiv.classList.add("hidden");
+            }
             console.log("Debug: " + window.DEBUG);
         });
     }
@@ -251,13 +268,48 @@ export default class Game {
         this.spawn(closestSurfacePixel.renderPosition);
     }
 
-    notifyNotEnoughGold() {}
+    startNotEnoughGoldAnimation() {
+        this.startAnimation(
+            [this.goldElement.parentElement, this.spawnCostElement.parentElement],
+            this.PULSE_ANIMATION_NAME,
+            this.PULSE_ANIMATION_DURATION_MS
+        );
+    }
+
+    stopNotEnoughGoldAnimation() {
+        this.stopAnimation(
+            [this.goldElement.parentElement, this.spawnCostElement.parentElement],
+            this.PULSE_ANIMATION_NAME
+        );
+    }
+
+    startAnimation(elements, name, durationMs) {
+        console.log("Starting " + name + " animation");
+        for (const element of elements) {
+            if (element.classList.contains(name)) {
+                continue;
+            }
+            element.classList.add(name);
+        }
+        setTimeout(() => {
+            console.log("Stopping " + name + " animation");
+            this.stopAnimation(elements, name);
+        }, durationMs);
+    }
+
+    stopAnimation(elements, name) {
+        for (const element of elements) {
+            element.classList.remove(name);
+        }
+    }
 
     spawn(position) {
-        if (this.spawnCost > this.gold) {
-            this.notifyNotEnoughGold();
+        if (this.spawnCost > this.gold && !window.DEBUG) {
+            this.startNotEnoughGoldAnimation();
             return;
         }
+        this.stopNotEnoughGoldAnimation();
+
         let littleGuy = new LittleGuy(this, position);
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
@@ -270,6 +322,7 @@ export default class Game {
     updateSpawnCost() {
         this.spawnCost = this.littleGuys.length * this.littleGuys.length;
         this.spawnCostElement.innerHTML = this.spawnCost;
+        this.littleGuyCountElement.innerHTML = this.littleGuys.length;
     }
 
     addAround(planetCoords, radius, count) {

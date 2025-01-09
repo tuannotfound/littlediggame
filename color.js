@@ -40,6 +40,10 @@ export default class Color {
         Color.clamp(this);
     }
 
+    immutableCopy() {
+        return Object.freeze(new Color(this));
+    }
+
     static clampValue(value) {
         return MathExtras.clamp(value, 0, 255);
     }

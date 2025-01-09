@@ -14,6 +14,7 @@ export default class LittleGuy {
     // The likelihood this little guy will wander in a given frame.
     MOVE_PROBABILITY_PCT = 2;
     DIG_PROBABILITY_PCT = 0.005;
+    DIG_VISUAL_PROGRESS_PCT_INTERVAL = 20;
     // The likelihood that we'll continue moving in the direction we were already moving in.
     DIRECTION_PERSISTENCE_FACTOR = 0.9;
     // The likelihood this little guy will get into heaven.
@@ -33,6 +34,9 @@ export default class LittleGuy {
         this.center = new Vector(1, 1);
         this.previousPositions = [];
         this.previousDirection = 0;
+        // Cache the nearest surface pixel every time we move. Will be null whenever it needs to be
+        // refreshed in the next update.
+        this.closestSurfacePixel = null;
         this.digging = false;
         this.pixelBeingDug = null;
         this.digProgressPct = 0;
@@ -146,7 +150,7 @@ export default class LittleGuy {
                     imageData.data[i] = 0; // Red
                     imageData.data[i + 1] = 0; // Green
                     imageData.data[i + 2] = 0; // Blue
-                    imageData.data[i + 3] = 180; // Alpha
+                    imageData.data[i + 3] = 40; // Alpha
                 }
             }
         }
@@ -228,7 +232,16 @@ export default class LittleGuy {
                 return;
             }
         }
-        if (Math.random() < this.DIG_PROBABILITY_PCT) {
+        let forcedToDig = false;
+        if (this.game.upgrades.goldSeeker && !this.closestSurfacePixel) {
+            this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
+                this.positionInPlanetSpace.copy().sub(this.orientation)
+            );
+            if (this.closestSurfacePixel && this.closestSurfacePixel.type == PixelType.GOLD) {
+                forcedToDig = true;
+            }
+        }
+        if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
             this.startDigging();
         }
         this.dig();
@@ -320,6 +333,7 @@ export default class LittleGuy {
         this.orientation = this.angleToOrientation(angle);
         this.position.add(this.orientation);
         this.previousPositions = [];
+        this.closestSurfacePixel = newSurfacePixel;
     }
 
     dig() {
@@ -339,6 +353,11 @@ export default class LittleGuy {
         }
 
         this.digProgressPct += this.game.upgrades.digSpeed;
+        // Only make visual progress in jumps, fits better with the look of the game.
+        let roundedDigProgressPct = Math.round(this.digProgressPct);
+        if (roundedDigProgressPct % this.DIG_VISUAL_PROGRESS_PCT_INTERVAL == 0) {
+            this.pixelBeingDug.setOpacity(1 - roundedDigProgressPct / 100);
+        }
         if (this.digProgressPct >= 100) {
             this.finishDigging();
         }
@@ -346,10 +365,12 @@ export default class LittleGuy {
 
     wander() {
         if (this.digging) {
+            this.closestSurfacePixel = null;
             return;
         }
         let willMove = Math.random() * 100 <= this.MOVE_PROBABILITY_PCT;
         if (!willMove) {
+            this.closestSurfacePixel = null;
             return;
         }
         // Prefer continuing in the current direction to avoid quickly going back and forth too much
@@ -642,5 +663,6 @@ export default class LittleGuy {
         this.positionInPlanetSpace = this.toPlanetSpace(this.position);
         this.addPreviousPosition(this.positionInPlanetSpace);
         this.updateRenderData();
+        this.closestSurfacePixel = null;
     }
 }

@@ -7,19 +7,27 @@
         <button id="new_game">New Game</button>
         <button id="load_game" disabled>Load Game</button>
         <button id="save_game" disabled>Save Game</button>
-        <p>Gold: <span id="gold"></span></p>
-        <p>Spawn cost: <span id="spawn_cost"></span></p>
-        <button id="digspeed">Dig Speed++</button>
-        <button id="digcount">Dig Count++</button>
-        <button id="diggold">Dig Gold++</button>
-        <input type="checkbox" id="afterlife" />
-        <label for="afterlife">Afterlife</label>
+        <div class="info_container">
+            <span><span id="gold"></span>🪙</span>
+            <span class="separator">|</span>
+            <span><span id="little_guy_count"></span>x🧍🏻</span></span>
+            <span class="separator">|</span>
+            <span>+🧍🏻: <span id="spawn_cost"></span>🪙</span>
+        </div>
         <button id="zoom_out">-</button>
         <span><span id="zoom_pct">100</span>%</span>
         <button id="zoom_in">+</button>
-        <input type="checkbox" id="debug" />
-        <label for="debug">Debug</label>
-        <br />
+        <input type="checkbox" id="debug_checkbox" />
+        <label for="debug_checkbox">Debug</label>
+        <div id="debug" class="hidden">
+            <button id="digspeed">Dig Speed++</button>
+            <button id="digcount">Dig Count++</button>
+            <button id="diggold">Dig Gold++</button>
+            <input type="checkbox" id="seek_gold" />
+            <label for="seek_gold">Seek Gold</label>
+            <input type="checkbox" id="afterlife" />
+            <label for="afterlife">Afterlife</label>
+        </div>
         <div id="game"></div>
 
         <script src="bundle.js"></script>

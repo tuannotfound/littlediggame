@@ -43,7 +43,7 @@ export default class Game {
 
         this.littleGuyListener = {
             onDigComplete: (pixel) => {
-                this.gold += this.upgrades.goldPerDig * pixel.type.valueMultiplier;
+                this.gold += this.upgrades.goldPer[pixel.type];
                 this.updateGold();
             },
         };
@@ -99,12 +99,12 @@ export default class Game {
         this.containerElement = containerElement;
         this.layer.initOnscreen(containerElement);
 
-        this.initUi();
-        this.initHandlers();
-
         if (!this.upgrades) {
             this.upgrades = new Upgrades();
         }
+
+        this.initUi();
+        this.initHandlers();
 
         if (!this.planet) {
             this.planet = new CircularPlanet(this.bounds, 20);
@@ -320,7 +320,7 @@ export default class Game {
     }
 
     updateSpawnCost() {
-        this.spawnCost = this.littleGuys.length * this.littleGuys.length;
+        this.spawnCost = this.littleGuys.length ** this.upgrades.populationPowerScale;
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
     }

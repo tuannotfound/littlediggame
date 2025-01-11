@@ -12,6 +12,7 @@ export default class Pixel {
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
             : new Color(type.surfaceColor);
+        this.initialAlpha = this.color.a;
 
         this.renderPosition = position.copy();
         this.renderPosition.round();
@@ -77,7 +78,7 @@ export default class Pixel {
     }
 
     setOpacity(opacity) {
-        let alpha = MathExtras.clamp(opacity, 0, 1) * 255;
+        let alpha = MathExtras.clamp(opacity, 0, 1) * this.initialAlpha;
         this.color.a = alpha;
         this.surfaceColor.a = alpha;
     }

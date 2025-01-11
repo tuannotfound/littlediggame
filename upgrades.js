@@ -7,11 +7,11 @@ export default class Upgrades {
         // Pct pts increase per frame towards a complete dig.
         this.digSpeed = 0.5;
         this.digCount = 2;
-        this.goldPer = new Map();
-        this.goldPer.set(PixelType.DIRT, 1);
-        this.goldPer.set(PixelType.GOLD, 10);
-        this.goldPer.set(PixelType.TOMBSTONE, 0);
-        this.goldPer.set(PixelType.DIAMOND, 200);
+        this.goldPer = {};
+        this.goldPer[PixelType.DIRT.name] = 1;
+        this.goldPer[PixelType.GOLD.name] = 10;
+        this.goldPer[PixelType.TOMBSTONE.name] = 0;
+        this.goldPer[PixelType.DIAMOND.name] = 200;
         this.diamonds = false;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
@@ -35,8 +35,12 @@ export default class Upgrades {
             10,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIRT] = Math.round(this.goldPer[PixelType.DIRT] * 2);
-                this.goldPer[PixelType.GOLD] = Math.round(this.goldPer[PixelType.GOLD] * 1.25);
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 2
+                );
+                this.goldPer[PixelType.GOLD.name] = Math.round(
+                    this.goldPer[PixelType.GOLD.name] * 1.25
+                );
             }
         );
         this.upgradeTree.set(moreGold1.id, moreGold1);
@@ -48,8 +52,12 @@ export default class Upgrades {
             50,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIRT] = Math.round(this.goldPer[PixelType.DIRT] * 1.5);
-                this.goldPer[PixelType.GOLD] = Math.round(this.goldPer[PixelType.GOLD] * 1.1);
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 1.5
+                );
+                this.goldPer[PixelType.GOLD.name] = Math.round(
+                    this.goldPer[PixelType.GOLD.name] * 1.1
+                );
             }
         );
         moreGold2.addPrereq(moreGold1);
@@ -62,8 +70,12 @@ export default class Upgrades {
             200,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIRT] = Math.round(this.goldPer[PixelType.DIRT] * 0.98);
-                this.goldPer[PixelType.GOLD] = Math.round(this.goldPer[PixelType.GOLD] * 0.99);
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 0.98
+                );
+                this.goldPer[PixelType.GOLD.name] = Math.round(
+                    this.goldPer[PixelType.GOLD.name] * 0.99
+                );
             }
         );
         moreGold3.addPrereq(moreGold2);
@@ -76,8 +88,12 @@ export default class Upgrades {
             205,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIRT] = Math.round(this.goldPer[PixelType.DIRT] * 2);
-                this.goldPer[PixelType.GOLD] = Math.round(this.goldPer[PixelType.GOLD] * 1.25);
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 2
+                );
+                this.goldPer[PixelType.GOLD.name] = Math.round(
+                    this.goldPer[PixelType.GOLD.name] * 1.25
+                );
             }
         );
         moreGold4.addPrereq(moreGold3);
@@ -90,7 +106,7 @@ export default class Upgrades {
             5,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.TOMBSTONE] = 1;
+                this.goldPer[PixelType.TOMBSTONE.name] = 1;
             }
         );
         graveDigger1.addPrereq(moreGold1);
@@ -103,7 +119,7 @@ export default class Upgrades {
             35,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.TOMBSTONE] = 5;
+                this.goldPer[PixelType.TOMBSTONE.name] = 5;
             }
         );
         graveDigger2.addPrereq(graveDigger1);
@@ -121,7 +137,9 @@ export default class Upgrades {
             300,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIAMOND] = Math.round(this.goldPer[PixelType.DIAMOND] * 3.5);
+                this.goldPer[PixelType.DIAMOND.name] = Math.round(
+                    this.goldPer[PixelType.DIAMOND.name] * 3.5
+                );
             }
         );
         diamondDeals.addPrereq(diamonds);
@@ -134,8 +152,8 @@ export default class Upgrades {
             30,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.DIAMOND] = Math.round(
-                    this.goldPer[PixelType.DIAMOND] * 1.03
+                this.goldPer[PixelType.DIAMOND.name] = Math.round(
+                    this.goldPer[PixelType.DIAMOND.name] * 1.03
                 );
             }
         );

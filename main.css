@@ -1,5 +1,4 @@
 canvas {
-    position: absolute;
     image-rendering: pixelated;
     border: 1px solid #000;
 }
@@ -14,6 +13,24 @@ p {
 
 .info_container > .separator {
     padding: 0px 30px;
+}
+
+.upgrades_container {
+    display: grid;
+    width: fit-content;
+    grid-auto-flow: column;
+}
+
+button.upgrade {
+    text-wrap: break-word;
+}
+
+button.upgrade.cannot_afford {
+    color: red;
+}
+
+button.upgrade.purchased {
+    background-color: rgb(188, 214, 188);
 }
 
 .pulsing {

@@ -6,6 +6,7 @@ import LittleGuy from "./little_guy.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
+import UpgradesUi from "./upgrades_ui.js";
 
 export default class Game {
     TARGET_FPS = 60;
@@ -25,6 +26,7 @@ export default class Game {
         this.then = 0;
         this.currentPlanetWidth = 0;
         this.currentPlanetHeight = 0;
+        this.upgradesUi = new UpgradesUi();
 
         // Created during init()
         this.containerElement = null;
@@ -43,7 +45,7 @@ export default class Game {
 
         this.littleGuyListener = {
             onDigComplete: (pixel) => {
-                this.gold += this.upgrades.goldPer[pixel.type];
+                this.gold += this.upgrades.goldPer[pixel.type.name];
                 this.updateGold();
             },
         };
@@ -102,6 +104,20 @@ export default class Game {
         if (!this.upgrades) {
             this.upgrades = new Upgrades();
         }
+        this.upgradesUi.init(
+            document.getElementById("upgrades"),
+            (upgrade, button) => {
+                if (upgrade.cost > this.gold) {
+                    this.startNotEnoughGoldAnimation();
+                    return;
+                }
+                this.stopNotEnoughGoldAnimation();
+                this.gold -= upgrade.cost;
+                this.updateGold();
+                upgrade.purchase();
+            },
+            this.upgrades
+        );
 
         this.initUi();
         this.initHandlers();
@@ -153,11 +169,6 @@ export default class Game {
         digCountBtn.addEventListener("click", () => {
             this.upgrades.digCount += 1;
             console.log("Dig count: " + this.upgrades.digCount);
-        });
-        let goldPerDigBtn = document.getElementById("diggold");
-        goldPerDigBtn.addEventListener("click", () => {
-            this.upgrades.goldPerDig += 1;
-            console.log("Gold per dig: " + this.upgrades.goldPerDig);
         });
         let seekGoldBtn = document.getElementById("seek_gold");
         seekGoldBtn.addEventListener("change", () => {
@@ -212,6 +223,7 @@ export default class Game {
 
     updateGold() {
         this.goldElement.innerHTML = this.gold;
+        this.upgradesUi.onGoldChanged(this.gold);
     }
 
     zoom(amount) {
@@ -320,7 +332,7 @@ export default class Game {
     }
 
     updateSpawnCost() {
-        this.spawnCost = this.littleGuys.length ** this.upgrades.populationPowerScale;
+        this.spawnCost = Math.floor(this.littleGuys.length ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
     }

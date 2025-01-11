@@ -7,9 +7,10 @@ export default class Upgrade {
         this.currency = currency;
         this.impactFunc = impactFunc;
         this.prereqs = new Map();
+        this.downstream = new Map();
         this.unlocked = false;
         this.purchased = false;
-        this.listeners = [];
+        this.listeners = new Set();
         this.prereqListener = {
             onPurchased: (upgrade) => {
                 if (this.unlocked || !this.prereqs.has(upgrade.id)) {
@@ -25,32 +26,41 @@ export default class Upgrade {
                 // All of the prereqs are purchased
                 this.unlock();
             },
+            onUnlocked: (upgrade) => {},
         };
+    }
+
+    addDownstream(upgrade) {
+        this.downstream.set(upgrade.id, upgrade);
     }
 
     addPrereq(upgrade) {
         upgrade.addListener(this.prereqListener);
         this.prereqs.set(upgrade.id, upgrade);
+        upgrade.addDownstream(this);
     }
 
     addListener(listener) {
-        this.listeners.push(listener);
+        this.listeners.add(listener);
     }
 
     removeListener(listener) {
-        this.listeners.splice(this.listeners.indexOf(listener), 1);
+        this.listeners.delete(listener);
     }
 
     unlock() {
         console.log("Unlock: " + this.id);
         this.unlocked = true;
+        for (const listener of this.listeners) {
+            listener.onUnlocked(this);
+        }
     }
 
     purchase() {
         console.log("Purchase: " + this.id);
         this.purchased = true;
         this.impactFunc();
-        for (listener of this.listeners) {
+        for (const listener of this.listeners) {
             listener.onPurchased(this);
         }
     }

@@ -4,10 +4,11 @@ import MathExtras from "./math_extras.js";
 import Vector from "./vector.js";
 
 export default class Pixel {
-    GOLD_REVEAL_THRESHOLD = 0.15;
-    constructor(position, type = PixelType.DIRT) {
+    REVEAL_THRESHOLD = 0.15;
+    constructor(position, type = PixelType.DIRT, upgrades) {
         this.position = position.copy();
         this.type = type;
+        this.upgrades = upgrades;
         this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
@@ -33,10 +34,10 @@ export default class Pixel {
         };
     }
 
-    static fromJSON(json) {
+    static fromJSON(json, upgrades) {
         let position = Vector.fromJSON(json.position);
         let type = PixelType[json.typeName];
-        let pixel = new Pixel(position, type);
+        let pixel = new Pixel(position, type, upgrades);
         pixel.color = json.color;
         pixel.surfaceColor = json.surfaceColor;
         pixel.renderPosition = Vector.fromJSON(json.renderPosition);
@@ -46,10 +47,19 @@ export default class Pixel {
     }
 
     getRenderColor() {
-        if (this.type == PixelType.GOLD) {
-            if (this.darkness >= this.GOLD_REVEAL_THRESHOLD && !window.DEBUG) {
-                return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
+        let showAsDirt = false;
+        if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
+            showAsDirt = true;
+        } else if (this.darkness >= this.REVEAL_THRESHOLD && !window.DEBUG) {
+            if (
+                (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
+                (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar)
+            ) {
+                showAsDirt = true;
             }
+        }
+        if (showAsDirt) {
+            return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
         }
         return this.isSurface ? this.surfaceColor : this.color;
     }

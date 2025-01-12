@@ -7,6 +7,7 @@ import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
 import UpgradesUi from "./upgrades_ui.js";
+import PixelType from "./pixel_type.js";
 
 export default class Game {
     TARGET_FPS = 60;
@@ -43,9 +44,19 @@ export default class Game {
         this.spawnCost = 0;
         this.spawnCostElement = null;
 
+        this.angelCount = 0;
+        this.demonCount = 0;
+
+        this.lastConceptionTime = 0;
+
         this.littleGuyListener = {
             onDigComplete: (pixel) => {
-                this.gold += this.upgrades.goldPer[pixel.type.name];
+                if (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds) {
+                    // Pretend we dug up some dirt if we haven't researched diamonds yet.
+                    this.gold += this.upgrades.goldPer[PixelType.DIRT.name];
+                } else {
+                    this.gold += this.upgrades.goldPer[pixel.type.name];
+                }
                 this.updateGold();
             },
         };
@@ -76,7 +87,7 @@ export default class Game {
     static fromJSON(json) {
         let game = new Game(json.width, json.height);
         let upgrades = Upgrades.fromJSON(json.upgrades);
-        let planet = CircularPlanet.fromJSON(json.planet);
+        let planet = CircularPlanet.fromJSON(json.planet, upgrades);
 
         game.upgrades = upgrades;
         game.planet = planet;
@@ -106,17 +117,21 @@ export default class Game {
         }
         this.upgradesUi.init(
             document.getElementById("upgrades"),
+            this.upgrades,
             (upgrade, button) => {
+                let buttonCostEl = document.querySelector(
+                    "button#" + button.id + " > div.upgrade_title > span.cost"
+                );
                 if (upgrade.cost > this.gold) {
-                    this.startNotEnoughGoldAnimation();
+                    this.startNotEnoughGoldAnimation(buttonCostEl);
                     return;
                 }
-                this.stopNotEnoughGoldAnimation();
+                this.stopNotEnoughGoldAnimation(buttonCostEl);
                 this.gold -= upgrade.cost;
                 this.updateGold();
                 upgrade.purchase();
             },
-            this.upgrades
+            () => this.gold
         );
 
         this.initUi();
@@ -132,7 +147,7 @@ export default class Game {
             (this.height - this.planet.layer.height * this.zoomLevel) / 2
         );
         console.log("planet position = " + this.planetPosition.toString());
-        this.planet.init();
+        this.planet.init(this.upgrades);
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
         );
@@ -286,22 +301,23 @@ export default class Game {
         if (!closestSurfacePixel) {
             return;
         }
-        this.spawn(closestSurfacePixel.renderPosition);
+        this.spawn(closestSurfacePixel.renderPosition, false);
     }
 
-    startNotEnoughGoldAnimation() {
-        this.startAnimation(
-            [this.goldElement.parentElement, this.spawnCostElement.parentElement],
-            this.PULSE_ANIMATION_NAME,
-            this.PULSE_ANIMATION_DURATION_MS
-        );
+    startNotEnoughGoldAnimation(other) {
+        let animated = [this.goldElement.parentElement];
+        if (other) {
+            animated.push(other);
+        }
+        this.startAnimation(animated, this.PULSE_ANIMATION_NAME, this.PULSE_ANIMATION_DURATION_MS);
     }
 
-    stopNotEnoughGoldAnimation() {
-        this.stopAnimation(
-            [this.goldElement.parentElement, this.spawnCostElement.parentElement],
-            this.PULSE_ANIMATION_NAME
-        );
+    stopNotEnoughGoldAnimation(other) {
+        let animated = [this.goldElement.parentElement];
+        if (other) {
+            animated.push(other);
+        }
+        this.stopAnimation(animated, this.PULSE_ANIMATION_NAME);
     }
 
     startAnimation(elements, name, durationMs) {
@@ -324,24 +340,29 @@ export default class Game {
         }
     }
 
-    spawn(position) {
-        if (this.spawnCost > this.gold && !window.DEBUG) {
-            this.startNotEnoughGoldAnimation();
-            return;
+    spawn(position, immaculate) {
+        if (!immaculate) {
+            if (this.spawnCost > this.gold && !window.DEBUG) {
+                this.startNotEnoughGoldAnimation(this.spawnCostElement.parentElement);
+                return;
+            }
+            this.stopNotEnoughGoldAnimation(this.spawnCostElement.parentElement);
         }
-        this.stopNotEnoughGoldAnimation();
 
-        let littleGuy = new LittleGuy(this, position);
+        let littleGuy = new LittleGuy(this, position, immaculate);
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
         this.littleGuys.push(littleGuy);
-        this.gold -= this.spawnCost;
+        if (!immaculate) {
+            this.gold -= this.spawnCost;
+        }
         this.updateGold();
         this.updateSpawnCost();
     }
 
     updateSpawnCost() {
-        this.spawnCost = Math.floor(this.littleGuys.length ** this.upgrades.populationPowerScale);
+        let maculateCount = this.littleGuys.filter((lg) => !lg.immaculate).length;
+        this.spawnCost = Math.floor(maculateCount ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
     }
@@ -382,6 +403,7 @@ export default class Game {
     destroy() {
         this.setPaused(true);
         this.layer.destroy();
+        this.upgradesUi.destroy();
     }
 
     tick(newtime) {
@@ -397,6 +419,23 @@ export default class Game {
             return;
         }
         this.then = this.now - (elapsed % this.FRAME_INTERVAL);
+
+        if (
+            this.upgrades.conceptionIntervalMs > 0 &&
+            this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
+        ) {
+            console.log("Immaculate conception occurred");
+            let planetCoords = new Vector(
+                Math.random() * this.planet.layer.width,
+                Math.random() * this.planet.layer.height
+            );
+            let closestSurfacePixel = this.planet.getClosestSurfacePixel(planetCoords);
+            if (closestSurfacePixel) {
+                this.spawn(closestSurfacePixel.renderPosition, true);
+            }
+
+            this.lastConceptionTime = this.now;
+        }
 
         this.stats.begin();
         this.planet.update();
@@ -438,6 +477,13 @@ export default class Game {
             );
         }
         for (const inactiveLittleGuy of inactiveLittleGuys) {
+            if (this.upgrades.afterlife) {
+                if (inactiveLittleGuy.saintly) {
+                    this.angelCount++;
+                } else {
+                    this.demonCount++;
+                }
+            }
             this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
         }
         if (inactiveLittleGuys.length > 0) {

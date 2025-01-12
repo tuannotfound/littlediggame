@@ -20,19 +20,66 @@ export default class Upgrades {
         this.goldSeeker = false;
         this.religion = false;
         this.afterlife = false;
+        this.conceptionIntervalMs = -1;
         this.heavenRevealed = false;
         this.hellRevealed = false;
-        this.angelAttackIntervalMs = -1;
-        this.damnedAttackIntervalMs = -1;
-        this.damnedUpgradeCount = 0;
         this.upgradeTree = new Map();
         this.initUpgradeTree();
     }
 
+    toJSON() {
+        const upgradeStates = [];
+        for (const upgrade of this.upgradeTree.values()) {
+            upgradeStates.push(upgrade.toJSON());
+        }
+        return {
+            digSpeed: this.digSpeed,
+            digCount: this.digCount,
+            goldPer: this.goldPer,
+            diamonds: this.diamonds,
+            diamondRadar: this.diamondRadar,
+            goldRadar: this.goldRadar,
+            populationPowerScale: this.populationPowerScale,
+            goldSeeker: this.goldSeeker,
+            religion: this.religion,
+            afterlife: this.afterlife,
+            conceptionIntervalMs: this.conceptionIntervalMs,
+            heavenRevealed: this.heavenRevealed,
+            hellRevealed: this.hellRevealed,
+            upgradeStates: upgradeStates,
+        };
+    }
+
     static fromJSON(json) {
-        // TBD: Make this work with the new upgrade tree.
         let upgrades = new Upgrades();
-        Object.assign(upgrades, json);
+        upgrades.digSpeed = json.digSpeed;
+        upgrades.digCount = json.digCount;
+        upgrades.goldPer = json.goldPer;
+        upgrades.diamonds = json.diamonds;
+        upgrades.diamondRadar = json.diamondRadar;
+        upgrades.goldRadar = json.goldRadar;
+        upgrades.populationPowerScale = json.populationPowerScale;
+        upgrades.goldSeeker = json.goldSeeker;
+        upgrades.religion = json.religion;
+        upgrades.afterlife = json.afterlife;
+        upgrades.conceptionIntervalMs = json.conceptionIntervalMs;
+        upgrades.heavenRevealed = json.heavenRevealed;
+        upgrades.hellRevealed = json.hellRevealed;
+        if (upgrades.religion) {
+            upgrades.initReligionTree();
+        }
+        for (let i = 0; i < json.upgradeStates.length; i++) {
+            let upgradeState = json.upgradeStates[i];
+            if (!upgrades.upgradeTree.has(upgradeState.id)) {
+                console.warn(
+                    "Unable to restore upgrade state for upgrade with ID " + upgradeState.id
+                );
+                continue;
+            }
+            let upgrade = upgrades.upgradeTree.get(upgradeState.id);
+            upgrade.unlocked = upgradeState.unlocked;
+            upgrade.purchased = upgradeState.purchased;
+        }
         return upgrades;
     }
 
@@ -303,7 +350,7 @@ export default class Upgrades {
         let digCount1 = new Upgrade(
             "dig_count_1",
             "Salutem et incolumitatem",
-            "TBD",
+            StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             30,
             Currency.GOLD,
@@ -316,7 +363,7 @@ export default class Upgrades {
         let digCount2 = new Upgrade(
             "dig_count_2",
             "Salus et sanitas",
-            "TBD",
+            StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             100,
             Currency.GOLD,
@@ -330,7 +377,7 @@ export default class Upgrades {
         let digCount3 = new Upgrade(
             "dig_count_3",
             "Ferro pollicem tabernus",
-            "TBD",
+            StringUtils.dedent(`TBD`),
             ["Digs before death increases by 2"],
             350,
             Currency.GOLD,
@@ -344,8 +391,8 @@ export default class Upgrades {
         let pop1 = new Upgrade(
             "pop_1",
             "Opus insumptuosus",
-            "TBD",
-            ["The cost of additional workers scales up slower"],
+            StringUtils.dedent(`TBD`),
+            ["The cost of additional workers scales up more slowly"],
             20,
             Currency.GOLD,
             () => {
@@ -357,8 +404,8 @@ export default class Upgrades {
         let pop2 = new Upgrade(
             "pop_2",
             "pop_2_tbd",
-            "TBD",
-            ["The cost of additional workers scales up slower"],
+            StringUtils.dedent(`TBD`),
+            ["The cost of additional workers scales up more slowly"],
             100,
             Currency.GOLD,
             () => {
@@ -371,8 +418,8 @@ export default class Upgrades {
         let pop3 = new Upgrade(
             "pop_3",
             "pop_3_tbd",
-            "TBD",
-            ["The cost of additional workers scales up slower"],
+            StringUtils.dedent(`TBD`),
+            ["The cost of additional workers scales up more slowly"],
             250,
             Currency.GOLD,
             () => {
@@ -385,8 +432,8 @@ export default class Upgrades {
         let pop4 = new Upgrade(
             "pop_4",
             "pop_4_tbd",
-            "TBD",
-            ["The cost of additional workers scales up slower"],
+            StringUtils.dedent(`TBD`),
+            ["The cost of additional workers scales up more slowly"],
             1000,
             Currency.GOLD,
             () => {
@@ -398,8 +445,8 @@ export default class Upgrades {
 
         let religion = new Upgrade(
             "religion",
-            "Religio",
-            "TBD",
+            "In Deo Omnia Possibilia",
+            StringUtils.dedent(`TBD`),
             ["Unlock the Religion research wing"],
             800,
             Currency.GOLD,
@@ -416,8 +463,8 @@ export default class Upgrades {
     initReligionTree() {
         let afterlife = new Upgrade(
             "afterlife",
-            "afterlife",
-            "TBD",
+            "Supra Vita",
+            StringUtils.dedent(`TBD`),
             ["Death no longer results in tombstones"],
             1622,
             Currency.GOLD,
@@ -426,5 +473,46 @@ export default class Upgrades {
             }
         );
         this.upgradeTree.set(afterlife.id, afterlife);
+
+        let spawning1 = new Upgrade(
+            "spawning_1",
+            "Immaculata Conceptionis",
+            StringUtils.dedent(`TBD`),
+            ["New congregants begin to manifest without your intervention"],
+            6678,
+            Currency.GOLD,
+            () => {
+                this.conceptionIntervalMs = 8000;
+            }
+        );
+        this.upgradeTree.set(spawning1.id, spawning1);
+
+        let spawning2 = new Upgrade(
+            "spawning_2",
+            "Beati Lumbi",
+            StringUtils.dedent(`TBD`),
+            ["New believers are brought into existence twice as often"],
+            3122,
+            Currency.GOLD,
+            () => {
+                this.conceptionIntervalMs *= 0.5;
+            }
+        );
+        spawning2.addPrereq(spawning1);
+        this.upgradeTree.set(spawning2.id, spawning2);
+
+        let spawning3 = new Upgrade(
+            "spawning_3",
+            "Beati Lumbi",
+            StringUtils.dedent(`TBD`),
+            ["You are blessed with thrice as many new members joining your efforts"],
+            10323,
+            Currency.GOLD,
+            () => {
+                this.conceptionIntervalMs = Math.round(this.conceptionIntervalMs * 0.3);
+            }
+        );
+        spawning3.addPrereq(spawning2);
+        this.upgradeTree.set(spawning3.id, spawning3);
     }
 }

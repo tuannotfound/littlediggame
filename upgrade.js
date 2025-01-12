@@ -31,6 +31,14 @@ export default class Upgrade {
         };
     }
 
+    toJSON() {
+        return {
+            id: this.id,
+            unlocked: this.unlocked,
+            purchased: this.purchased,
+        };
+    }
+
     addDownstream(upgrade) {
         this.downstream.set(upgrade.id, upgrade);
     }

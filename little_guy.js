@@ -20,9 +20,10 @@ export default class LittleGuy {
     // The likelihood this little guy will get into heaven.
     SAINTLY_PCT = 0.95;
 
-    constructor(game, positionInPlanetSpace) {
+    constructor(game, positionInPlanetSpace, immaculate) {
         this.game = game;
         this.planet = game.planet;
+        this.immaculate = immaculate;
 
         this.positionInPlanetSpace = positionInPlanetSpace;
         // This is relative to the center of the planet
@@ -48,7 +49,9 @@ export default class LittleGuy {
 
         this.digsRemaining = game.upgrades.digCount;
 
-        this.saintly = Math.random() < this.SAINTLY_PCT;
+        // Less likely to be saintly if they were not immaculate.
+        let saintlyThreshold = this.immaculate ? this.SAINTLY_PCT : this.SAINTLY_PCT / 1.5;
+        this.saintly = Math.random() < saintlyThreshold;
         if (!this.saintly) {
             console.log("Uh oh, we got a bad one, folks");
         }
@@ -59,6 +62,7 @@ export default class LittleGuy {
     toJSON() {
         return {
             positionInPlanetSpace: this.positionInPlanetSpace,
+            immaculate: this.immaculate,
             orientation: this.orientation,
             previousPositions: this.previousPositions,
             previousDirection: this.previousDirection,
@@ -74,7 +78,11 @@ export default class LittleGuy {
     }
 
     static fromJSON(json, game, pixelBeingDug) {
-        let littleGuy = new LittleGuy(game, Vector.fromJSON(json.positionInPlanetSpace));
+        let littleGuy = new LittleGuy(
+            game,
+            Vector.fromJSON(json.positionInPlanetSpace),
+            json.immaculate
+        );
         littleGuy.orientation = Vector.fromJSON(json.orientation);
         for (const previousPositionJson of json.previousPositions) {
             littleGuy.previousPositions.push(Vector.fromJSON(previousPositionJson));

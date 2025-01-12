@@ -9,16 +9,18 @@ export default class CircularPlanet extends Planet {
     NEW_GOLD_PCT = 5;
     CONTINUE_GOLD_PCT_BOOST = 30;
 
+    DIAMOND_PCT = 4;
+
     constructor(gameBounds, radius) {
         let size = radius * 2;
         super(gameBounds, size, size);
     }
 
-    static fromJSON(json) {
+    static fromJSON(json, upgrades) {
         let planet = new CircularPlanet(Vector.fromJSON(json.gameBounds), json.radius);
         let pixels = [];
         for (const pixelJson of json.pixels) {
-            pixels.push(Pixel.fromJSON(pixelJson));
+            pixels.push(Pixel.fromJSON(pixelJson, upgrades));
         }
         planet.pixels = pixels;
         return planet;
@@ -39,10 +41,17 @@ export default class CircularPlanet extends Planet {
                 if (this.getPixel(position)) {
                     continue;
                 }
-                let threshold =
+                let goldThreshold =
                     this.NEW_GOLD_PCT + (previousWasGold ? this.CONTINUE_GOLD_PCT_BOOST : 0);
-                let isGold = Math.random() * 100 < threshold;
-                let pixel = this.addPixel(position, isGold ? PixelType.GOLD : PixelType.DIRT);
+                let isGold = Math.random() * 100 < goldThreshold;
+                let isDiamond = isGold ? false : Math.random() * 100 < this.DIAMOND_PCT;
+                let pixelType = PixelType.DIRT;
+                if (isGold) {
+                    pixelType = PixelType.GOLD;
+                } else if (isDiamond) {
+                    pixelType = PixelType.DIAMOND;
+                }
+                let pixel = this.addPixel(position, pixelType);
                 previousWasGold = isGold;
                 if (pixel && pixel instanceof PhysicsPixel) {
                     pixel.setActive(false);

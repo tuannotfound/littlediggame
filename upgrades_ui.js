@@ -2,12 +2,14 @@ export default class UpgradesUi {
     constructor() {
         this.container = null;
         this.upgrades = null;
+        this.getCurrentGoldFunc = null;
         this.buttonMap = new Map();
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
             onPurchased: (upgrade) => {
                 this.buttonMap.get(upgrade.id).setAttribute("disabled", true);
                 this.buttonMap.get(upgrade.id).classList.remove("cannot_afford");
+                this.buttonMap.get(upgrade.id).classList.add("purchased");
 
                 if (this.buttonMap.size < this.upgrades.upgradeTree.size) {
                     // New research trees may have been unlocked. Look for any root upgrades that
@@ -18,11 +20,10 @@ export default class UpgradesUi {
                             this.addRootUpgrade(rootUpgrade);
                         }
                     }
+                    this.onGoldChanged(this.getCurrentGoldFunc());
                 }
             },
             onUnlocked: (upgrade) => {
-                // Need to figure out if we have enough gold and add the 'cannot_afford' class
-
                 let button = this.buttonMap.get(upgrade.id);
                 button.removeAttribute("disabled");
                 let upgradeDetailsEl = document.querySelector(
@@ -41,22 +42,30 @@ export default class UpgradesUi {
                 return;
             }
             let upgrade = this.upgrades.upgradeTree.get(id);
+            if (upgrade.purchased) {
+                console.warn("Attempted to purchase " + upgrade.id + " more than once");
+                return;
+            }
             if (this.onPurchaseAttemptFunc) {
                 this.onPurchaseAttemptFunc(upgrade, e.currentTarget);
-            }
-            if (upgrade.purchased) {
-                this.buttonMap.get(id).classList.add("purchased");
             }
         };
     }
 
-    init(container, onPurchaseAttemptFunc, upgrades) {
+    init(container, upgrades, onPurchaseAttemptFunc, getCurrentGoldFunc) {
         this.container = container;
-        this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
         this.upgrades = upgrades;
+        this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
+        this.getCurrentGoldFunc = getCurrentGoldFunc;
         let rootUpgrades = this.getRootUpgrades();
         for (const rootUpgrade of rootUpgrades) {
             this.addRootUpgrade(rootUpgrade);
+        }
+    }
+
+    destroy() {
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.lastChild);
         }
     }
 
@@ -70,7 +79,9 @@ export default class UpgradesUi {
         column.classList.add("column");
         this.container.appendChild(column);
         this.createUpgradeButtonRecursive(rootUpgrade, column);
-        rootUpgrade.unlock();
+        if (!rootUpgrade.purchased) {
+            rootUpgrade.unlock();
+        }
     }
 
     onGoldChanged(gold) {
@@ -106,7 +117,7 @@ export default class UpgradesUi {
     createUpgradeButton(upgrade, column) {
         let buttonInnerHtml = `<div class='upgrade_title'>
                                  <strong>${upgrade.title}</strong>
-                                 <span> (${upgrade.cost}🪙)</span>
+                                 <span class='cost'> (${upgrade.cost}🪙)</span>
                                </div>
                                <div class='upgrade_details hidden'>
                                  <p>${upgrade.desc}</p>
@@ -131,5 +142,11 @@ export default class UpgradesUi {
         button.addEventListener("click", this.clickListener);
         column.appendChild(button);
         this.buttonMap.set(upgrade.id, button);
+        if (upgrade.unlocked) {
+            this.upgradeListener.onUnlocked(upgrade);
+        }
+        if (upgrade.purchased) {
+            this.upgradeListener.onPurchased(upgrade);
+        }
     }
 }

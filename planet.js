@@ -21,6 +21,7 @@ export default class Planet {
         this.pixels = [];
         this.pixelPositions = new Map();
         this.planetSurface = [];
+        this.upgrades = null;
     }
 
     toJSON() {
@@ -33,7 +34,8 @@ export default class Planet {
         };
     }
 
-    init() {
+    init(upgrades) {
+        this.upgrades = upgrades;
         this.layer.initOffscreen();
 
         if (this.pixels.length == 0) {
@@ -63,7 +65,7 @@ export default class Planet {
     }
 
     createPixel(position, type = PixelType.DIRT) {
-        let pixel = new Pixel(position, type);
+        let pixel = new Pixel(position, type, this.upgrades);
         return pixel;
     }
 

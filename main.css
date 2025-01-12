@@ -17,20 +17,37 @@ p {
 
 .upgrades_container {
     display: grid;
-    width: fit-content;
-    grid-auto-flow: column;
+    width: 800px;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 250px));
+    grid-gap: 10px;
 }
 
 button.upgrade {
-    text-wrap: break-word;
+    width: 100%;
+    margin: 5px 0px;
 }
 
-button.upgrade.cannot_afford {
+button.upgrade.cannot_afford:enabled > div.upgrade_title {
     color: red;
 }
 
 button.upgrade.purchased {
     background-color: rgb(188, 214, 188);
+}
+
+button.upgrade > div.upgrade_details {
+    text-align: left;
+}
+
+button.upgrade > div.upgrade_details > ul {
+    margin-block-start: 0px;
+    margin-inline-start: 0.5em;
+    padding-inline-start: 1em;
+}
+
+li:before {
+    content: "";
+    margin-left: -0.4rem;
 }
 
 .pulsing {

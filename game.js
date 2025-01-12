@@ -210,6 +210,15 @@ export default class Game {
             }
             console.log("Debug: " + window.DEBUG);
         });
+        for (let i = 0; i < 4; i++) {
+            let pow = i + 1;
+            let val = 10 ** pow;
+            let plusBtn = document.getElementById("plus_" + val);
+            plusBtn.addEventListener("click", () => {
+                this.gold += val;
+                this.updateGold();
+            });
+        }
     }
 
     initHandlers() {

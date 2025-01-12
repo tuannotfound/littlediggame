@@ -1,8 +1,9 @@
 export default class Upgrade {
-    constructor(id, title, desc, cost, currency, impactFunc) {
+    constructor(id, title, desc, bulletPts, cost, currency, impactFunc) {
         this.id = id;
         this.title = title;
         this.desc = desc;
+        this.bulletPts = bulletPts;
         this.cost = cost;
         this.currency = currency;
         this.impactFunc = impactFunc;

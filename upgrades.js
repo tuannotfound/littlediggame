@@ -1,6 +1,7 @@
 import Upgrade from "./upgrade.js";
 import Currency from "./currency.js";
 import PixelType from "./pixel_type.js";
+import StringUtils from "./string_utils.js";
 
 export default class Upgrades {
     constructor() {
@@ -13,6 +14,8 @@ export default class Upgrades {
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 200;
         this.diamonds = false;
+        this.diamondRadar = false;
+        this.goldRadar = false;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
         this.religion = false;
@@ -26,12 +29,24 @@ export default class Upgrades {
         this.initUpgradeTree();
     }
 
+    static fromJSON(json) {
+        // TBD: Make this work with the new upgrade tree.
+        let upgrades = new Upgrades();
+        Object.assign(upgrades, json);
+        return upgrades;
+    }
+
     initUpgradeTree() {
         // Gold++ tree
         let moreGold1 = new Upgrade(
             "more_gold_1",
             "Elementum amicus",
-            "",
+            StringUtils.dedent(
+                `Your researchers discover that being kind to the soil, caring for it, reading to it
+                at night, and other displays of love result in more of it revealing itself to you
+                during dig operations.`
+            ),
+            ["+100% gold extracted from dirt", "+25% gold extracted from... gold"],
             10,
             Currency.GOLD,
             () => {
@@ -48,7 +63,12 @@ export default class Upgrades {
         let moreGold2 = new Upgrade(
             "more_gold_2",
             "Elementum tormentis",
-            "",
+            StringUtils.dedent(
+                `Perhaps even more surprisingly, your researchers observe that treating the soil
+                cruelly is even more productive. You hope the gold is masochistic and this behavior
+                isn't entirely immoral.`
+            ),
+            ["+50% more gold extracted from dirt", "+10% more gold extracted from gold"],
             50,
             Currency.GOLD,
             () => {
@@ -66,8 +86,11 @@ export default class Upgrades {
         let moreGold3 = new Upgrade(
             "more_gold_3",
             "Venereum elementum",
-            "",
-            200,
+            StringUtils.dedent(
+                `Perhaps it is masochistic, and even sexual in nature. Lean into this.`
+            ),
+            ["-2% more gold extracted from dirt", "-1% more gold extracted from gold"],
+            8,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
@@ -84,8 +107,12 @@ export default class Upgrades {
         let moreGold4 = new Upgrade(
             "more_gold_4",
             "Nefas directionis",
-            "",
-            205,
+            StringUtils.dedent(
+                `Nope, that wasn't it. Let's stop doing that. I think we'll all relieved that's over
+                with.`
+            ),
+            ["+100% more gold extracted from dirt", "+25% gold extracted from gold"],
+            300,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
@@ -102,7 +129,11 @@ export default class Upgrades {
         let graveDigger1 = new Upgrade(
             "grave_digger_1",
             "Dens cadaver",
-            "",
+            StringUtils.dedent(
+                `Tombstones don't have any gold in them, but gold fillings are popular amongst your
+                people, and there's no use letting those go to waste.`
+            ),
+            ["Get 1 gold from digging up tombstones"],
             5,
             Currency.GOLD,
             () => {
@@ -115,8 +146,12 @@ export default class Upgrades {
         let graveDigger2 = new Upgrade(
             "grave_digger_2",
             "Sepulchri furem",
-            "",
-            35,
+            StringUtils.dedent(
+                `Hey, let's check their pockets while we're at it. Can't believe we didn't think of
+                that first.`
+            ),
+            ["Get 5 gold from digging up tombstones"],
+            20,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.TOMBSTONE.name] = 5;
@@ -125,15 +160,32 @@ export default class Upgrades {
         graveDigger2.addPrereq(graveDigger1);
         this.upgradeTree.set(graveDigger2.id, graveDigger2);
 
-        let diamonds = new Upgrade("diamonds", "Scintillare lapis", "", 150, Currency.GOLD, () => {
-            this.diamonds = true;
-        });
+        let diamonds = new Upgrade(
+            "diamonds",
+            "Scintillare lapis",
+            StringUtils.dedent(
+                `Someone with an eye for the finer things notices a bucket of brilliant crystals
+                with exceptional clarity and sparkle being tossed in the garbage at the end of a
+                shift and realizes they could probably be used for something.`
+            ),
+            ["Your populous will now recognize and dig up diamonds"],
+            150,
+            Currency.GOLD,
+            () => {
+                this.diamonds = true;
+            }
+        );
         this.upgradeTree.set(diamonds.id, diamonds);
 
         let diamondDeals = new Upgrade(
             "diamond_deals",
             "Mercator pulchra",
-            "",
+            StringUtils.dedent(
+                `Your friend knows a guy who can get you a better deal on all those diamonds you're
+                finding and selling for a pittance. You just need to cut him in on the sale for a
+                small commission.`
+            ),
+            ["+250% more gold from diamonds"],
             300,
             Currency.GOLD,
             () => {
@@ -148,7 +200,10 @@ export default class Upgrades {
         let bloodDiamonds = new Upgrade(
             "blood_diamonds",
             "Prodita sanguine",
-            "",
+            StringUtils.dedent(
+                `You murder your friend to, quite literally, cut out the middle man.`
+            ),
+            ["+3% more gold from diamonds"],
             30,
             Currency.GOLD,
             () => {
@@ -164,6 +219,7 @@ export default class Upgrades {
             "gold_seeker",
             "Thesaurum sub pede",
             "",
+            ["Your populous are much less likely to walk over gold without stopping to dig it up"],
             75,
             Currency.GOLD,
             () => {
@@ -174,15 +230,30 @@ export default class Upgrades {
         this.upgradeTree.set(goldSeeker.id, goldSeeker);
 
         // Digging++ tree
-        let digSpeed1 = new Upgrade("dig_speed_1", "Duplex trulla", "", 10, Currency.GOLD, () => {
-            this.digSpeed *= 2;
-        });
+        let digSpeed1 = new Upgrade(
+            "dig_speed_1",
+            "Duplex trulla",
+            StringUtils.dedent(
+                `Your researchers whisk off the sheet with some elan to reveal the results of weeks
+                of experimentation: a double-ended shovel. My god. It is beautiful.`
+            ),
+            ["Digging is 2x faster"],
+            10,
+            Currency.GOLD,
+            () => {
+                this.digSpeed *= 2;
+            }
+        );
         this.upgradeTree.set(digSpeed1.id, digSpeed1);
 
         let digSpeed2 = new Upgrade(
             "dig_speed_2",
             "Factum est iterum",
-            "",
+            StringUtils.dedent(
+                `They've only gone and done it again. Somehow, they've managed to fit a third blade
+                on a shovel, and by Jove it works. It really works.`
+            ),
+            ["Digging is 1.5x faster"],
             40,
             Currency.GOLD,
             () => {
@@ -192,22 +263,48 @@ export default class Upgrades {
         digSpeed2.addPrereq(digSpeed1);
         this.upgradeTree.set(digSpeed2.id, digSpeed2);
 
-        let digSpeed3 = new Upgrade("dig_speed_3", "Non potest esse", "", 80, Currency.GOLD, () => {
-            this.digSpeed *= 1.25;
-        });
+        let digSpeed3 = new Upgrade(
+            "dig_speed_3",
+            "Non potest esse",
+            StringUtils.dedent(
+                `You can hardly believe what you're seeing. A quadruple headed shovel. Surely
+                they've gone too far this time, no?`
+            ),
+            ["Digging is 1.25x faster"],
+            80,
+            Currency.GOLD,
+            () => {
+                this.digSpeed *= 1.25;
+            }
+        );
         digSpeed3.addPrereq(digSpeed2);
         this.upgradeTree.set(digSpeed3.id, digSpeed3);
 
-        let digSpeed4 = new Upgrade("dig_speed_4", "Nimis longe", "", 200, Currency.GOLD, () => {
-            this.digSpeed *= 2;
-        });
+        let digSpeed4 = new Upgrade(
+            "dig_speed_4",
+            "Nimis longe",
+            StringUtils.dedent(
+                `They tried. They failed. It simply can't be done. It was the hubris of a prideful
+                fool: You. You are that fool. The researchers in the Shovel Division have all left.
+                But what's this? Scrawled on the blackboard in the forsaken lab, you see: "You can't
+                have more than 4 blades on a shovel. But you CAN force everyone to use two
+                quad-shovels at a time."`
+            ),
+            ["Digging is 2x faster"],
+            200,
+            Currency.GOLD,
+            () => {
+                this.digSpeed *= 2;
+            }
+        );
         digSpeed4.addPrereq(digSpeed3);
         this.upgradeTree.set(digSpeed4.id, digSpeed4);
 
         let digCount1 = new Upgrade(
             "dig_count_1",
             "Salutem et incolumitatem",
-            "",
+            "TBD",
+            ["Digs before death increases by 1"],
             30,
             Currency.GOLD,
             () => {
@@ -219,7 +316,8 @@ export default class Upgrades {
         let digCount2 = new Upgrade(
             "dig_count_2",
             "Salus et sanitas",
-            "",
+            "TBD",
+            ["Digs before death increases by 1"],
             100,
             Currency.GOLD,
             () => {
@@ -232,7 +330,8 @@ export default class Upgrades {
         let digCount3 = new Upgrade(
             "dig_count_3",
             "Ferro pollicem tabernus",
-            "",
+            "TBD",
+            ["Digs before death increases by 2"],
             350,
             Currency.GOLD,
             () => {
@@ -242,41 +341,90 @@ export default class Upgrades {
         digCount3.addPrereq(digCount2);
         this.upgradeTree.set(digCount3.id, digCount3);
 
-        let pop1 = new Upgrade("pop_1", "Opus insumptuosus", "", 20, Currency.GOLD, () => {
-            this.populationPowerScale = 1.75;
-        });
+        let pop1 = new Upgrade(
+            "pop_1",
+            "Opus insumptuosus",
+            "TBD",
+            ["The cost of additional workers scales up slower"],
+            20,
+            Currency.GOLD,
+            () => {
+                this.populationPowerScale = 1.75;
+            }
+        );
         this.upgradeTree.set(pop1.id, pop1);
 
-        let pop2 = new Upgrade("pop_2", "pop_2_tbd", "", 100, Currency.GOLD, () => {
-            this.populationPowerScale = 1.5;
-        });
+        let pop2 = new Upgrade(
+            "pop_2",
+            "pop_2_tbd",
+            "TBD",
+            ["The cost of additional workers scales up slower"],
+            100,
+            Currency.GOLD,
+            () => {
+                this.populationPowerScale = 1.5;
+            }
+        );
         pop2.addPrereq(pop1);
         this.upgradeTree.set(pop2.id, pop2);
 
-        let pop3 = new Upgrade("pop_3", "pop_3_tbd", "", 250, Currency.GOLD, () => {
-            this.populationPowerScale = 1.25;
-        });
+        let pop3 = new Upgrade(
+            "pop_3",
+            "pop_3_tbd",
+            "TBD",
+            ["The cost of additional workers scales up slower"],
+            250,
+            Currency.GOLD,
+            () => {
+                this.populationPowerScale = 1.25;
+            }
+        );
         pop3.addPrereq(pop2);
         this.upgradeTree.set(pop3.id, pop3);
 
-        let pop4 = new Upgrade("pop_4", "pop_4_tbd", "", 1000, Currency.GOLD, () => {
-            this.populationPowerScale = 1;
-        });
+        let pop4 = new Upgrade(
+            "pop_4",
+            "pop_4_tbd",
+            "TBD",
+            ["The cost of additional workers scales up slower"],
+            1000,
+            Currency.GOLD,
+            () => {
+                this.populationPowerScale = 1;
+            }
+        );
         pop4.addPrereq(pop3);
         this.upgradeTree.set(pop4.id, pop4);
 
-        let religion = new Upgrade("religion", "Religio", "", 800, Currency.GOLD, () => {
-            this.religion = true;
-        });
+        let religion = new Upgrade(
+            "religion",
+            "Religio",
+            "TBD",
+            ["Unlock the Religion research wing"],
+            800,
+            Currency.GOLD,
+            () => {
+                this.religion = true;
+                this.initReligionTree();
+            }
+        );
         religion.addPrereq(digSpeed3);
         religion.addPrereq(digCount1);
         this.upgradeTree.set(religion.id, religion);
     }
 
-    static fromJSON(json) {
-        // TBD: Make this work with the new upgrade tree.
-        let upgrades = new Upgrades();
-        Object.assign(upgrades, json);
-        return upgrades;
+    initReligionTree() {
+        let afterlife = new Upgrade(
+            "afterlife",
+            "afterlife",
+            "TBD",
+            ["Death no longer results in tombstones"],
+            1622,
+            Currency.GOLD,
+            () => {
+                this.afterlife = true;
+            }
+        );
+        this.upgradeTree.set(afterlife.id, afterlife);
     }
 }

@@ -31,7 +31,7 @@ document.onreadystatechange = function () {
         if (SaveLoad.saveDataExists()) {
             loadGameBtn.removeAttribute("disabled");
         }
-        // Just for debugging
+        // Just for now, remove later
         newGameBtn.click();
     }
 };

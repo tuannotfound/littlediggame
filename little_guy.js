@@ -245,9 +245,12 @@ export default class LittleGuy {
             this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
                 this.positionInPlanetSpace.copy().sub(this.orientation)
             );
-            if (this.closestSurfacePixel && this.closestSurfacePixel.type == PixelType.GOLD) {
-                forcedToDig = true;
-            }
+            forcedToDig =
+                this.closestSurfacePixel &&
+                // Can always see gold
+                (this.closestSurfacePixel.type == PixelType.GOLD ||
+                    // Only if we have the diamonds upgrade
+                    (this.upgrades.diamonds && this.closestSurfacePixel.type == PixelType.DIAMOND));
         }
         if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
             this.startDigging();

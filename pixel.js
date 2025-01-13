@@ -4,7 +4,11 @@ import MathExtras from "./math_extras.js";
 import Vector from "./vector.js";
 
 export default class Pixel {
-    REVEAL_THRESHOLD = 0.15;
+    // If darkness is higher than this value then this pixel will appear to be dirt.
+    HIDE_THRESHOLD = 0.15;
+    DIAMOND_SHIMMER_PCT = 0.2;
+    DIAMOND_SHIMMER_FRAMES_MAX = 5;
+    DIAMOND_SHIMMER_COLOR_MOD = 1.2;
     constructor(position, type = PixelType.DIRT, upgrades) {
         this.position = position.copy();
         this.type = type;
@@ -13,7 +17,10 @@ export default class Pixel {
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
             : new Color(type.surfaceColor);
+        this.altColor = type.altColor ? type.altColor : null;
         this.initialAlpha = this.color.a;
+        // It's a diamond thing. You wouldn't understand.
+        this.shimmeringFrames = 0;
 
         this.renderPosition = position.copy();
         this.renderPosition.round();
@@ -50,7 +57,7 @@ export default class Pixel {
         let showAsDirt = false;
         if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
             showAsDirt = true;
-        } else if (this.darkness >= this.REVEAL_THRESHOLD && !window.DEBUG) {
+        } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
             if (
                 (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
                 (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar)
@@ -60,6 +67,16 @@ export default class Pixel {
         }
         if (showAsDirt) {
             return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
+        } else if (
+            this.type == PixelType.DIAMOND &&
+            (this.shimmeringFrames > 0 || Math.random() * 100 < this.DIAMOND_SHIMMER_PCT)
+        ) {
+            if (this.shimmeringFrames >= this.DIAMOND_SHIMMER_FRAMES_MAX) {
+                this.shimmeringFrames = 0;
+            } else {
+                this.shimmeringFrames++;
+                return this.altColor;
+            }
         }
         return this.isSurface ? this.surfaceColor : this.color;
     }

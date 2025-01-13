@@ -130,6 +130,7 @@ export default class Game {
                 this.gold -= upgrade.cost;
                 this.updateGold();
                 upgrade.purchase();
+                document.querySelector("span.diamond").parentElement.classList.remove("hidden");
             },
             () => this.gold
         );

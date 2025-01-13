@@ -9,7 +9,15 @@ module.exports = {
     },
     mode: "development", // Set mode to 'development' or 'production'
     devServer: {
-        static: "./", // Serve static files from the current directory
+        static: "./static",
+    },
+    module: {
+        rules: [
+            {
+                test: /\.css$/i,
+                use: ["style-loader", "css-loader"],
+            },
+        ],
     },
     plugins: [
         new HtmlWebpackPlugin({

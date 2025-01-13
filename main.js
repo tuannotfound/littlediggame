@@ -34,5 +34,17 @@ document.onreadystatechange = function () {
         }
         // Just for now, remove later
         newGameBtn.click();
+
+        let upgradesContainer = document.getElementById("upgrades_container");
+        let showUpgradesBtn = document.getElementById("show_upgrades");
+        showUpgradesBtn.addEventListener("click", () => {
+            upgradesContainer.classList.remove("hidden");
+            showUpgradesBtn.classList.add("hidden");
+        });
+        let hideUpgradesBtn = document.getElementById("hide_upgrades");
+        hideUpgradesBtn.addEventListener("click", () => {
+            upgradesContainer.classList.add("hidden");
+            showUpgradesBtn.classList.remove("hidden");
+        });
     }
 };

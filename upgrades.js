@@ -16,6 +16,7 @@ export default class Upgrades {
         this.diamonds = false;
         this.diamondRadar = false;
         this.goldRadar = false;
+        this.freeWorkerCount = 1;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
         this.religion = false;
@@ -93,15 +94,15 @@ export default class Upgrades {
                 at night, and other displays of love result in more of it revealing itself to you
                 during dig operations.`
             ),
-            ["+100% gold extracted from dirt", "+25% gold extracted from... gold"],
+            ["+200% gold extracted from dirt", "+75% gold extracted from... gold"],
             10,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 2
+                    this.goldPer[PixelType.DIRT.name] * 3
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.25
+                    this.goldPer[PixelType.GOLD.name] * 1.75
                 );
             }
         );
@@ -115,15 +116,15 @@ export default class Upgrades {
                 cruelly is even more productive. You hope the gold is masochistic and this behavior
                 isn't entirely immoral.`
             ),
-            ["+50% more gold extracted from dirt", "+10% more gold extracted from gold"],
+            ["+150% more gold extracted from dirt", "+100% more gold extracted from gold"],
             50,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 1.5
+                    this.goldPer[PixelType.DIRT.name] * 2.5
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.1
+                    this.goldPer[PixelType.GOLD.name] * 2
                 );
             }
         );
@@ -158,15 +159,15 @@ export default class Upgrades {
                 `Nope, that wasn't it. Let's stop doing that. I think we'll all relieved that's over
                 with.`
             ),
-            ["+100% more gold extracted from dirt", "+25% gold extracted from gold"],
+            ["+500% more gold extracted from dirt", "+250% gold extracted from gold"],
             300,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 2
+                    this.goldPer[PixelType.DIRT.name] * 6
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.25
+                    this.goldPer[PixelType.GOLD.name] * 3.5
                 );
             }
         );
@@ -180,14 +181,13 @@ export default class Upgrades {
                 `Tombstones don't have any gold in them, but gold fillings are popular amongst your
                 people, and there's no use letting those go to waste.`
             ),
-            ["Get 1 gold from digging up tombstones"],
+            ["Get 2 gold from digging up tombstones"],
             5,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.TOMBSTONE.name] = 1;
+                this.goldPer[PixelType.TOMBSTONE.name] = 2;
             }
         );
-        graveDigger1.addPrereq(moreGold1);
         this.upgradeTree.set(graveDigger1.id, graveDigger1);
 
         let graveDigger2 = new Upgrade(
@@ -197,11 +197,11 @@ export default class Upgrades {
                 `Hey, let's check their pockets while we're at it. Can't believe we didn't think of
                 that first.`
             ),
-            ["Get 5 gold from digging up tombstones"],
+            ["Get 8 gold from digging up tombstones"],
             20,
             Currency.GOLD,
             () => {
-                this.goldPer[PixelType.TOMBSTONE.name] = 5;
+                this.goldPer[PixelType.TOMBSTONE.name] = 8;
             }
         );
         graveDigger2.addPrereq(graveDigger1);
@@ -232,12 +232,12 @@ export default class Upgrades {
                 finding and selling for a pittance. You just need to cut him in on the sale for a
                 small commission.`
             ),
-            ["+250% more gold from diamonds"],
+            ["+175% more gold from diamonds"],
             300,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIAMOND.name] = Math.round(
-                    this.goldPer[PixelType.DIAMOND.name] * 3.5
+                    this.goldPer[PixelType.DIAMOND.name] * 2.75
                 );
             }
         );
@@ -261,6 +261,60 @@ export default class Upgrades {
         );
         bloodDiamonds.addPrereq(diamondDeals);
         this.upgradeTree.set(bloodDiamonds.id, bloodDiamonds);
+
+        let moreGoldDirt = new Upgrade(
+            "more_gold_dirt",
+            "more_gold_dirt_tbd",
+            StringUtils.dedent(`TBD: Dirt propaganda.`),
+            ["The value of dirt is increased by 50%"],
+            500,
+            Currency.GOLD,
+            () => {
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 1.5
+                );
+            }
+        );
+        moreGoldDirt.addPrereq(moreGold4);
+        moreGoldDirt.addPrereq(diamonds);
+        this.upgradeTree.set(moreGoldDirt.id, moreGoldDirt);
+
+        let moreGoldGold = new Upgrade(
+            "more_gold_gold",
+            "more_gold_gold_tbd",
+            StringUtils.dedent(`TBD: Gold propaganda.`),
+            ["The value of gold is increased by 150%"],
+            780,
+            Currency.GOLD,
+            () => {
+                this.goldPer[PixelType.GOLD.name] = Math.round(
+                    this.goldPer[PixelType.GOLD.name] * 2.5
+                );
+            }
+        );
+        moreGoldGold.addPrereq(moreGold4);
+        moreGoldGold.addPrereq(diamonds);
+        this.upgradeTree.set(moreGoldGold.id, moreGoldGold);
+
+        let graveDigger3 = new Upgrade(
+            "grave_digger_3",
+            "grave_digger_3_tbd",
+            StringUtils.dedent(
+                `TBD: Invest in a machine that can crush a casket, body and all, into a beautiful,
+                shining diamond. Well, a diamond-looking lump, anyway.`
+            ),
+            ["Tombstones are now worth 25% of the value of diamonds."],
+            925,
+            Currency.GOLD,
+            () => {
+                this.goldPer[PixelType.TOMBSTONE.name] = Math.round(
+                    this.goldPer[PixelType.DIAMOND.name] * 0.25
+                );
+            }
+        );
+        graveDigger3.addPrereq(graveDigger2);
+        graveDigger3.addPrereq(bloodDiamonds);
+        this.upgradeTree.set(graveDigger3.id, graveDigger3);
 
         let goldSeeker = new Upgrade(
             "gold_seeker",
@@ -392,10 +446,14 @@ export default class Upgrades {
             "pop_1",
             "Opus insumptuosus",
             StringUtils.dedent(`TBD`),
-            ["The cost of additional workers scales up more slowly"],
+            [
+                "The first 2 workers are now free",
+                "The cost of additional workers scales up more slowly",
+            ],
             20,
             Currency.GOLD,
             () => {
+                this.freeWorkerCount = 2;
                 this.populationPowerScale = 1.75;
             }
         );
@@ -405,10 +463,14 @@ export default class Upgrades {
             "pop_2",
             "pop_2_tbd",
             StringUtils.dedent(`TBD`),
-            ["The cost of additional workers scales up more slowly"],
+            [
+                "The first 3 workers are now free",
+                "The cost of additional workers scales up more slowly",
+            ],
             100,
             Currency.GOLD,
             () => {
+                this.freeWorkerCount = 3;
                 this.populationPowerScale = 1.5;
             }
         );
@@ -419,10 +481,14 @@ export default class Upgrades {
             "pop_3",
             "pop_3_tbd",
             StringUtils.dedent(`TBD`),
-            ["The cost of additional workers scales up more slowly"],
+            [
+                "The first 4 workers are now free",
+                "The cost of additional workers scales up more slowly",
+            ],
             250,
             Currency.GOLD,
             () => {
+                this.freeWorkerCount = 4;
                 this.populationPowerScale = 1.25;
             }
         );
@@ -443,6 +509,20 @@ export default class Upgrades {
         pop4.addPrereq(pop3);
         this.upgradeTree.set(pop4.id, pop4);
 
+        let freeWorkers1 = new Upgrade(
+            "free_workers_1",
+            "free_workers_1_tbd",
+            StringUtils.dedent(`TBD`),
+            ["The first 10 workers are now free"],
+            1500,
+            Currency.GOLD,
+            () => {
+                this.freeWorkerCount = 10;
+            }
+        );
+        freeWorkers1.addPrereq(pop3);
+        this.upgradeTree.set(freeWorkers1.id, freeWorkers1);
+
         let religion = new Upgrade(
             "religion",
             "In Deo Omnia Possibilia",
@@ -455,8 +535,13 @@ export default class Upgrades {
                 this.initReligionTree();
             }
         );
-        religion.addPrereq(digSpeed3);
-        religion.addPrereq(digCount1);
+        religion.addPrereq(moreGold4);
+        religion.addPrereq(graveDigger2);
+        religion.addPrereq(diamondDeals);
+        religion.addPrereq(digSpeed4);
+        religion.addPrereq(digCount3);
+        religion.addPrereq(pop4);
+        religion.addPrereq(freeWorkers1);
         this.upgradeTree.set(religion.id, religion);
     }
 
@@ -465,7 +550,7 @@ export default class Upgrades {
             "afterlife",
             "Supra Vita",
             StringUtils.dedent(`TBD`),
-            ["Death no longer results in tombstones"],
+            ["Death no longer results in a tombstone being created"],
             1622,
             Currency.GOLD,
             () => {
@@ -514,5 +599,31 @@ export default class Upgrades {
         );
         spawning3.addPrereq(spawning2);
         this.upgradeTree.set(spawning3.id, spawning3);
+
+        let goldRadar = new Upgrade(
+            "gold_radar",
+            "gold_radar_tbd",
+            StringUtils.dedent(`TBD: Peer into the Earth itself to discover its treasures`),
+            ["All gold is visible to your eyes"],
+            410,
+            Currency.GOLD,
+            () => {
+                this.goldRadar = true;
+            }
+        );
+        this.upgradeTree.set(goldRadar.id, goldRadar);
+        let diamondRadar = new Upgrade(
+            "diamond_radar",
+            "diamond_radar_tbd",
+            StringUtils.dedent(`TBD`),
+            ["All diamond is revealed to you"],
+            640,
+            Currency.GOLD,
+            () => {
+                this.diamondRadar = true;
+            }
+        );
+        diamondRadar.addPrereq(goldRadar);
+        this.upgradeTree.set(diamondRadar.id, diamondRadar);
     }
 }

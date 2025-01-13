@@ -1,47 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width" />
     </head>
     <body>
-        <button id="new_game">New Game</button>
-        <button id="load_game" disabled>Load Game</button>
-        <button id="save_game" disabled>Save Game</button>
-        <div class="info_container">
-            <span><span id="gold"></span>🪙</span>
-            <span class="separator">|</span>
-            <span><span id="little_guy_count"></span>x🧍🏻</span></span>
-            <span class="separator">|</span>
-            <span>+🧍🏻: <span id="spawn_cost"></span>🪙</span>
-            <br/>
-            <br/>
-            <div id="legend">
-                <span><span class="dirt">■</span>/<span class="grass">■</span>: Dirt</span><br/>
-                <span><span class="tombstone">■</span>: Tombstone</span><br/>
-                <span><span class="gold">■</span>: Gold</span><br/>
-                <span class="hidden"><span class="diamond">■</span>: Diamond</span><br/>
+        <div id="header">
+            <button id="new_game">New Game</button>
+            <button id="load_game" disabled>Load Game</button>
+            <button id="save_game" disabled>Save Game</button>
+
+            <button id="zoom_out">-</button>
+            <span><span id="zoom_pct">100</span>%</span>
+            <button id="zoom_in">+</button>
+            <input type="checkbox" id="debug_checkbox" />
+            <label for="debug_checkbox">Debug</label>
+            <div id="debug" class="hidden">
+                <button id="plus_10">+10🪙</button>
+                <button id="plus_100">+100🪙</button>
+                <button id="plus_1000">+1000🪙</button>
+                <button id="plus_10000">+10000🪙</button>
+                <br />
+                <button id="digspeed">Dig Speed++</button>
+                <button id="digcount">Dig Count++</button>
+                <input type="checkbox" id="seek_gold" />
+                <label for="seek_gold">Seek Gold</label>
+                <input type="checkbox" id="afterlife" />
+                <label for="afterlife">Afterlife</label>
             </div>
         </div>
-        <button id="zoom_out">-</button>
-        <span><span id="zoom_pct">100</span>%</span>
-        <button id="zoom_in">+</button>
-        <input type="checkbox" id="debug_checkbox" />
-        <label for="debug_checkbox">Debug</label>
-        <div id="debug" class="hidden">
-            <button id="plus_10">+10🪙</button>
-            <button id="plus_100">+100🪙</button>
-            <button id="plus_1000">+1000🪙</button>
-            <button id="plus_10000">+10000🪙</button>
-            <br/>
-            <button id="digspeed">Dig Speed++</button>
-            <button id="digcount">Dig Count++</button>
-            <input type="checkbox" id="seek_gold" />
-            <label for="seek_gold">Seek Gold</label>
-            <input type="checkbox" id="afterlife" />
-            <label for="afterlife">Afterlife</label>
-        </div>
         <div id="game"></div>
-        <div id="upgrades" class="upgrades_container"></div>
+        <div id="overlay">
+            <div id="info_container">
+                <div><span id="gold"></span><span>🪙</span></div>
+                <div><span id="little_guy_count"></span><span>x🏃‍♂️</span></div>
+                <div><span>+🏃‍♂️:&nbsp;</span><span id="spawn_cost"></span><span>🪙</span></div>
+            </div>
+            <button id="show_upgrades">🛍️</button>
+            <div id="legend">
+                <span
+                    ><span class="dirt">■</span>/<span class="grass">■</span>: Dirt (+<span
+                        id="gold_per_DIRT"
+                    ></span
+                    >🪙)</span
+                ><br />
+                <span
+                    ><span class="tombstone">■</span>: Tombstone (+<span
+                        id="gold_per_TOMBSTONE"
+                    ></span
+                    >🪙)</span
+                ><br />
+                <span><span class="gold">■</span>: Gold (+<span id="gold_per_GOLD"></span>🪙)</span
+                ><br />
+                <span class="hidden"
+                    ><span class="diamond">■</span>: Diamond (+<span id="gold_per_DIAMOND"></span
+                    >🪙)</span
+                >
+            </div>
+        </div>
+        <div id="upgrades_container" class="hidden">
+            <div id="upgrades_header">
+                <h1 id="upgrades_title">Research</h1>
+                <button id="hide_upgrades">✖</button>
+            </div>
+            <div id="upgrades"></div>
+        </div>
 
         <script src="bundle.js"></script>
     </body>

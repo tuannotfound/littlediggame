@@ -118,6 +118,7 @@ export default class Game {
         this.upgradesUi.init(
             document.getElementById("upgrades"),
             this.upgrades,
+            // onPurchase callback
             (upgrade, button) => {
                 let buttonCostEl = document.querySelector(
                     "button#" + button.id + " > div.upgrade_title > span.cost"
@@ -130,7 +131,8 @@ export default class Game {
                 this.gold -= upgrade.cost;
                 this.updateGold();
                 upgrade.purchase();
-                document.querySelector("span.diamond").parentElement.classList.remove("hidden");
+                this.updateSpawnCost();
+                this.updateLegend();
             },
             () => this.gold
         );
@@ -211,6 +213,8 @@ export default class Game {
         this.spawnCostElement = document.getElementById("spawn_cost");
         this.updateSpawnCost();
 
+        this.updateLegend();
+
         let debugCheckbox = document.getElementById("debug_checkbox");
         window.DEBUG = debugCheckbox.checked;
         debugCheckbox.addEventListener("change", () => {
@@ -249,6 +253,16 @@ export default class Game {
     updateGold() {
         this.goldElement.innerHTML = this.gold;
         this.upgradesUi.onGoldChanged(this.gold);
+    }
+
+    updateLegend() {
+        for (const pixelType of Object.values(PixelType)) {
+            document.getElementById("gold_per_" + pixelType.name).innerText =
+                this.upgrades.goldPer[pixelType.name];
+        }
+        if (this.upgrades.diamonds) {
+            document.querySelector("span.diamond").parentElement.classList.remove("hidden");
+        }
     }
 
     zoom(amount) {
@@ -363,6 +377,7 @@ export default class Game {
 
     updateSpawnCost() {
         let maculateCount = this.littleGuys.filter((lg) => !lg.immaculate).length;
+        maculateCount = Math.max(0, maculateCount + 1 - this.upgrades.freeWorkerCount);
         this.spawnCost = Math.floor(maculateCount ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;

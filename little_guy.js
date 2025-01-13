@@ -250,7 +250,8 @@ export default class LittleGuy {
                 // Can always see gold
                 (this.closestSurfacePixel.type == PixelType.GOLD ||
                     // Only if we have the diamonds upgrade
-                    (this.upgrades.diamonds && this.closestSurfacePixel.type == PixelType.DIAMOND));
+                    (this.game.upgrades.diamonds &&
+                        this.closestSurfacePixel.type == PixelType.DIAMOND));
         }
         if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
             this.startDigging();

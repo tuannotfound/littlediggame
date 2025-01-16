@@ -8,6 +8,8 @@ import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
 import UpgradesUi from "./upgrades_ui.js";
 import PixelType from "./pixel_type.js";
+import Particles from "./particles.js";
+import Color from "./color.js";
 
 export default class Game {
     PLANET_RADIUS = 30;
@@ -37,10 +39,39 @@ export default class Game {
         this.planetPosition = null;
 
         this.littleGuys = [];
-        this.knowsDeath = false;
+        this.littleGuyListener = {
+            onDigComplete: (pixel) => {
+                let value = this.upgrades.goldPer[pixel.type.name];
+                if (
+                    (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
+                    (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
+                ) {
+                    // Pretend we dug up some dirt if we haven't researched the real type yet.
+                    value = this.upgrades.goldPer[PixelType.DIRT.name];
+                }
+                this.gold += value;
+                if (!this.knowsDirt) {
+                    this.knowsDirt = true;
+                    this.updateLegend();
+                }
+                this.updateGold();
+                let positionInParticlesSpace = new Vector(
+                    this.particles.layer.width / 2 - this.planet.layer.width / 2,
+                    this.particles.layer.height / 2 - this.planet.layer.height / 2
+                );
+                positionInParticlesSpace.add(pixel.renderPosition);
+                let color = new Color(pixel.getRenderColor());
+                color.a = 255;
+                this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
+                this.particles.coinEffect(positionInParticlesSpace, value);
+            },
+        };
+
+        this.particles = new Particles(width, height);
 
         this.zoomPctElement = null;
 
+        this.knowsDeath = false;
         this.knowsDirt = false;
         this.gold = 0;
         this.goldElement = null;
@@ -51,25 +82,6 @@ export default class Game {
         this.demonCount = 0;
 
         this.lastConceptionTime = 0;
-
-        this.littleGuyListener = {
-            onDigComplete: (pixel) => {
-                if (
-                    (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
-                    (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
-                ) {
-                    // Pretend we dug up some dirt if we haven't researched the real type yet.
-                    this.gold += this.upgrades.goldPer[PixelType.DIRT.name];
-                } else {
-                    this.gold += this.upgrades.goldPer[pixel.type.name];
-                }
-                if (!this.knowsDirt) {
-                    this.knowsDirt = true;
-                    this.updateLegend();
-                }
-                this.updateGold();
-            },
-        };
 
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -178,6 +190,8 @@ export default class Game {
             littleGuy.addListener(this.littleGuyListener);
         }
 
+        this.particles.init();
+
         this.zoom(0);
 
         this.setPaused(false);
@@ -211,6 +225,11 @@ export default class Game {
         afterlifeBtn.addEventListener("change", () => {
             this.upgrades.afterlife = afterlifeBtn.checked;
             console.log("Afterlife: " + afterlifeBtn.checked);
+        });
+        let pauseBtn = document.getElementById("paused");
+        pauseBtn.addEventListener("change", () => {
+            this.setPaused(pauseBtn.checked);
+            console.log("Paused: " + pauseBtn.checked);
         });
 
         let zoomInBtn = document.getElementById("zoom_in");
@@ -477,10 +496,11 @@ export default class Game {
         }
 
         this.stats.begin();
-        this.planet.update();
 
         this.layer.getContext().clearRect(0, 0, this.width, this.height);
 
+        // Planet
+        this.planet.update();
         this.layer.getContext().drawImage(
             this.planet.layer.canvas,
             0, // source x
@@ -492,6 +512,8 @@ export default class Game {
             this.currentPlanetWidth, // destination width
             this.currentPlanetHeight // destination height
         );
+
+        // Little guys
         let inactiveLittleGuys = [];
         for (const littleGuy of this.littleGuys) {
             littleGuy.update();
@@ -532,6 +554,20 @@ export default class Game {
         if (inactiveLittleGuys.length > 0) {
             this.updateSpawnCost();
         }
+
+        // Particles
+        this.particles.update();
+        this.layer.getContext().drawImage(
+            this.particles.layer.canvas,
+            0, // source x
+            0, // source y
+            this.particles.layer.width, // source width
+            this.particles.layer.height, // source height
+            (-this.particles.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
+            (-this.particles.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
+            this.particles.layer.width * this.zoomLevel, // destination width
+            this.particles.layer.height * this.zoomLevel // destination height
+        );
 
         this.stats.end();
     }

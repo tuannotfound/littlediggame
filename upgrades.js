@@ -427,6 +427,7 @@ export default class Upgrades {
             Currency.GOLD,
             () => {
                 this.digSpeed *= 2;
+                console.log("digspeed is now " + this.digSpeed);
             }
         );
         digSpeed4.addPrereq(digSpeed3);

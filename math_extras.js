@@ -18,4 +18,8 @@ export default class MathExtras {
 
         return new Vector(x, y);
     }
+
+    static randomBetween(min, max) {
+        return Math.random() * (max - min) + min;
+    }
 }

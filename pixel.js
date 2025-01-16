@@ -54,21 +54,25 @@ export default class Pixel {
         return pixel;
     }
 
-    getRenderColor() {
-        let showAsDirt = false;
+    actLikeDirt() {
+        let actLikeDirt = false;
         if (this.type == PixelType.GOLD && !this.upgrades.gold && !window.DEBUG) {
-            showAsDirt = true;
+            actLikeDirt = true;
         } else if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
-            showAsDirt = true;
+            actLikeDirt = true;
         } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
             if (
                 (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
                 (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar)
             ) {
-                showAsDirt = true;
+                actLikeDirt = true;
             }
         }
-        if (showAsDirt) {
+        return actLikeDirt;
+    }
+
+    getRenderColor() {
+        if (this.actLikeDirt()) {
             return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
         } else if (
             this.type == PixelType.DIAMOND &&

@@ -87,6 +87,11 @@ Vector.prototype = {
         this.y = Math.round(this.y);
         return this;
     },
+    floor: function () {
+        this.x = Math.floor(this.x);
+        this.y = Math.floor(this.y);
+        return this;
+    },
     limit: function (max) {
         if (this.mag() > max) {
             this.normalize();

@@ -2,6 +2,7 @@ import Layer from "./layer.js";
 import Vector from "./vector.js";
 import Pixel from "./pixel.js";
 import PixelType from "./pixel_type.js";
+import CircularPlanet from "./circular_planet.js";
 
 export default class Planet {
     PLANET_SURFACE_UPDATE_INTERVAL_MS = 500;
@@ -15,7 +16,11 @@ export default class Planet {
         this.height = height;
         this.radius = Math.max(width, height) / 2;
         // Little bit of buffer around the planet
-        this.layer = new Layer("planet", width + 2, height + 2);
+        this.layer = new Layer(
+            "planet",
+            Math.round(width + 2 * (CircularPlanet.MAX_RADIUS_DIFF_PX + 1)),
+            Math.round(height + 2 * (CircularPlanet.MAX_RADIUS_DIFF_PX + 1))
+        );
         console.log("Planet layer size: " + this.layer.width + "x" + this.layer.height + "px");
         this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
         this.pixels = [];
@@ -71,6 +76,14 @@ export default class Planet {
 
     addPixel(position, type = PixelType.DIRT) {
         if (this.getPixel(position)) {
+            return null;
+        }
+        if (
+            position.x < 0 ||
+            position.x >= this.layer.width ||
+            position.y < 0 ||
+            position.y >= this.layer.height
+        ) {
             return null;
         }
         let pixel = this.createPixel(position, type);

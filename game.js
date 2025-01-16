@@ -10,6 +10,7 @@ import UpgradesUi from "./upgrades_ui.js";
 import PixelType from "./pixel_type.js";
 
 export default class Game {
+    PLANET_RADIUS = 30;
     TARGET_FPS = 60;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
@@ -36,9 +37,11 @@ export default class Game {
         this.planetPosition = null;
 
         this.littleGuys = [];
+        this.knowsDeath = false;
 
         this.zoomPctElement = null;
 
+        this.knowsDirt = false;
         this.gold = 0;
         this.goldElement = null;
         this.spawnCost = 0;
@@ -51,11 +54,18 @@ export default class Game {
 
         this.littleGuyListener = {
             onDigComplete: (pixel) => {
-                if (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds) {
-                    // Pretend we dug up some dirt if we haven't researched diamonds yet.
+                if (
+                    (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
+                    (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
+                ) {
+                    // Pretend we dug up some dirt if we haven't researched the real type yet.
                     this.gold += this.upgrades.goldPer[PixelType.DIRT.name];
                 } else {
                     this.gold += this.upgrades.goldPer[pixel.type.name];
+                }
+                if (!this.knowsDirt) {
+                    this.knowsDirt = true;
+                    this.updateLegend();
                 }
                 this.updateGold();
             },
@@ -81,6 +91,8 @@ export default class Game {
             planetPosition: this.planetPosition,
             littleGuys: this.littleGuys,
             gold: this.gold,
+            knowsDirt: this.knowsDirt,
+            knowsDeath: this.knowsDeath,
         };
     }
 
@@ -104,6 +116,8 @@ export default class Game {
             game.littleGuys.push(littleGuy);
         }
         game.gold = json.gold;
+        game.knowsDirt = json.knowsDirt;
+        game.knowsDeath = json.knowsDeath;
 
         return game;
     }
@@ -141,7 +155,7 @@ export default class Game {
         this.initHandlers();
 
         if (!this.planet) {
-            this.planet = new CircularPlanet(this.bounds, 20);
+            this.planet = new CircularPlanet(this.bounds, this.PLANET_RADIUS);
         }
         this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
         this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
@@ -259,6 +273,15 @@ export default class Game {
         for (const pixelType of Object.values(PixelType)) {
             document.getElementById("gold_per_" + pixelType.name).innerText =
                 this.upgrades.goldPer[pixelType.name];
+        }
+        if (this.knowsDirt) {
+            document.querySelector("span.dirt").parentElement.classList.remove("hidden");
+        }
+        if (this.knowsDeath) {
+            document.querySelector("span.tombstone").parentElement.classList.remove("hidden");
+        }
+        if (this.upgrades.gold) {
+            document.querySelector("span.gold").parentElement.classList.remove("hidden");
         }
         if (this.upgrades.diamonds) {
             document.querySelector("span.diamond").parentElement.classList.remove("hidden");
@@ -491,6 +514,10 @@ export default class Game {
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height
             );
+        }
+        if (!this.knowsDeath && inactiveLittleGuys.length > 0) {
+            this.knowsDeath = true;
+            this.updateLegend();
         }
         for (const inactiveLittleGuy of inactiveLittleGuys) {
             if (this.upgrades.afterlife) {

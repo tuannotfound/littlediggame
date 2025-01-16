@@ -9,6 +9,7 @@ export default class Pixel {
     DIAMOND_SHIMMER_PCT = 0.2;
     DIAMOND_SHIMMER_FRAMES_MAX = 5;
     DIAMOND_SHIMMER_COLOR_MOD = 1.2;
+
     constructor(position, type = PixelType.DIRT, upgrades) {
         this.position = position.copy();
         this.type = type;
@@ -55,7 +56,9 @@ export default class Pixel {
 
     getRenderColor() {
         let showAsDirt = false;
-        if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
+        if (this.type == PixelType.GOLD && !this.upgrades.gold && !window.DEBUG) {
+            showAsDirt = true;
+        } else if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
             showAsDirt = true;
         } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
             if (

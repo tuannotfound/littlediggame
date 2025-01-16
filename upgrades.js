@@ -13,6 +13,7 @@ export default class Upgrades {
         this.goldPer[PixelType.GOLD.name] = 10;
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 200;
+        this.gold = false;
         this.diamonds = false;
         this.diamondRadar = false;
         this.goldRadar = false;
@@ -86,6 +87,34 @@ export default class Upgrades {
 
     initUpgradeTree() {
         // Gold++ tree
+        let betterDirt = new Upgrade(
+            "better_dirt",
+            "better_dirt_tbd",
+            StringUtils.dedent(`TBD`),
+            ["+100% gold extracted from dirt"],
+            5,
+            Currency.GOLD,
+            () => {
+                this.goldPer[PixelType.DIRT.name] = Math.round(
+                    this.goldPer[PixelType.DIRT.name] * 2
+                );
+            }
+        );
+        this.upgradeTree.set(betterDirt.id, betterDirt);
+
+        let gold = new Upgrade(
+            "gold",
+            "gold_tbd",
+            StringUtils.dedent(`TBD`),
+            ["Your populous will now recognize and dig up gold"],
+            10,
+            Currency.GOLD,
+            () => {
+                this.gold = true;
+            }
+        );
+        this.upgradeTree.set(gold.id, gold);
+
         let moreGold1 = new Upgrade(
             "more_gold_1",
             "Elementum amicus",
@@ -95,7 +124,7 @@ export default class Upgrades {
                 during dig operations.`
             ),
             ["+200% gold extracted from dirt", "+75% gold extracted from... gold"],
-            10,
+            20,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
@@ -106,6 +135,8 @@ export default class Upgrades {
                 );
             }
         );
+        moreGold1.addPrereq(betterDirt);
+        moreGold1.addPrereq(gold);
         this.upgradeTree.set(moreGold1.id, moreGold1);
 
         let moreGold2 = new Upgrade(
@@ -117,7 +148,7 @@ export default class Upgrades {
                 isn't entirely immoral.`
             ),
             ["+150% more gold extracted from dirt", "+100% more gold extracted from gold"],
-            50,
+            75,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(

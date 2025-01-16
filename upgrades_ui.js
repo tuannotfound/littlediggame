@@ -10,6 +10,10 @@ export default class UpgradesUi {
                 this.buttonMap.get(upgrade.id).setAttribute("disabled", true);
                 this.buttonMap.get(upgrade.id).classList.remove("cannot_afford");
                 this.buttonMap.get(upgrade.id).classList.add("purchased");
+                let upgradeDetailsEl = document.querySelector(
+                    "button#" + upgrade.id + " > div > p.upgrade_desc"
+                );
+                upgradeDetailsEl.classList.add("hidden");
 
                 if (this.buttonMap.size < this.upgrades.upgradeTree.size) {
                     // New research trees may have been unlocked. Look for any root upgrades that
@@ -104,7 +108,8 @@ export default class UpgradesUi {
 
     createUpgradeButtonRecursive(upgrade, column) {
         if (this.buttonMap.has(upgrade.id)) {
-            console.warn("Upgrade with ID " + upgrade.id + " already exists in UI button map");
+            // This happens whenever an upgrade has more than one pre-reqs and thus more than one
+            // upgrade has it in its downstream list.
             return;
         }
         this.createUpgradeButton(upgrade, column);
@@ -120,7 +125,7 @@ export default class UpgradesUi {
                                  <span class='cost'> (${upgrade.cost}🪙)</span>
                                </div>
                                <div class='upgrade_details hidden'>
-                                 <p>${upgrade.desc}</p>
+                                 <p class='upgrade_desc'>${upgrade.desc}</p>
                                  <ul>`;
         for (const bulletPt of upgrade.bulletPts) {
             buttonInnerHtml += `<li>${bulletPt}</li>`;

@@ -56,9 +56,13 @@ export default class Pixel {
 
     actLikeDirt() {
         let actLikeDirt = false;
-        if (this.type == PixelType.GOLD && !this.upgrades.gold && !window.DEBUG) {
+        if (this.type == PixelType.GOLD && !this.upgrades.unlock_gold && !window.DEBUG) {
             actLikeDirt = true;
-        } else if (this.type == PixelType.DIAMOND && !this.upgrades.diamonds && !window.DEBUG) {
+        } else if (
+            this.type == PixelType.DIAMOND &&
+            !this.upgrades.unlock_diamonds &&
+            !window.DEBUG
+        ) {
             actLikeDirt = true;
         } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
             if (

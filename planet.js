@@ -285,7 +285,7 @@ export default class Planet {
         return this.removePixelAt(position);
     }
 
-    getHealth() {
+    get health() {
         return this.pixels.length / this.initialCount;
     }
 }

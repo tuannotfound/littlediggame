@@ -22,7 +22,7 @@ export default class Game {
     AUTO_SAVE_INTERVAL_MS = 30000;
     PLANET_RADIUS = 30;
     TARGET_FPS = 60;
-    FRAME_INTERVAL = 1000 / this.TARGET_FPS;
+    FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
@@ -34,6 +34,7 @@ export default class Game {
         this.now = 0;
         this.then = 0;
         this.upgradesUi = new UpgradesUi();
+        this.gameSpeed = 1;
 
         // Created during init()
         this.containerElement = null;
@@ -311,8 +312,8 @@ export default class Game {
     onDigComplete(pixel) {
         let value = this.upgrades.goldPer[pixel.type.name];
         if (
-            (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
-            (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
+            (pixel.type == PixelType.GOLD && !this.upgrades.unlock_gold) ||
+            (pixel.type == PixelType.DIAMOND && !this.upgrades.unlock_diamonds)
         ) {
             // Pretend we dug up some dirt if we haven't researched the real type yet.
             value = this.upgrades.goldPer[PixelType.DIRT.name];
@@ -370,10 +371,10 @@ export default class Game {
         if (this.knowsDeath) {
             document.querySelector("span.tombstone").parentElement.classList.remove("hidden");
         }
-        if (this.upgrades.gold) {
+        if (this.upgrades.unlock_gold) {
             document.querySelector("span.gold").parentElement.classList.remove("hidden");
         }
-        if (this.upgrades.diamonds) {
+        if (this.upgrades.unlock_diamonds) {
             document.querySelector("span.diamond").parentElement.classList.remove("hidden");
         }
     }
@@ -531,13 +532,21 @@ export default class Game {
 
         requestAnimationFrame(this.tick.bind(this));
         this.now = newtime;
-        let elapsed = this.now - this.then;
+        let elapsedMs = this.now - this.then;
 
-        if (elapsed <= this.FRAME_INTERVAL) {
+        if (elapsedMs <= this.FRAME_INTERVAL_MS) {
             return;
         }
-        this.then = this.now - (elapsed % this.FRAME_INTERVAL);
+        this.then = this.now - (elapsedMs % this.FRAME_INTERVAL_MS);
 
+        this.stats.begin();
+        for (let i = 0; i < this.gameSpeed; i++) {
+            this.runUpdate(elapsedMs);
+        }
+        this.stats.end();
+    }
+
+    runUpdate(elapsedMs) {
         if (
             this.upgrades.conceptionIntervalMs > 0 &&
             this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
@@ -555,12 +564,10 @@ export default class Game {
             this.lastConceptionTime = this.now;
         }
 
-        this.stats.begin();
-
         this.layer.getContext().clearRect(0, 0, this.width, this.height);
 
         // Planet
-        this.planet.update();
+        this.planet.update(elapsedMs);
         this.layer.getContext().drawImage(
             this.planet.layer.canvas,
             0, // source x
@@ -576,7 +583,7 @@ export default class Game {
         // Little guys
         let inactiveLittleGuys = [];
         for (const littleGuy of this.littleGuys) {
-            littleGuy.update();
+            littleGuy.update(elapsedMs);
             if (!littleGuy.active) {
                 inactiveLittleGuys.push(littleGuy);
                 continue;
@@ -616,7 +623,7 @@ export default class Game {
         }
 
         // Particles
-        this.particles.update();
+        this.particles.update(elapsedMs);
         this.layer.getContext().drawImage(
             this.particles.layer.canvas,
             0, // source x
@@ -628,7 +635,5 @@ export default class Game {
             this.particles.layer.width * this.zoomLevel, // destination width
             this.particles.layer.height * this.zoomLevel // destination height
         );
-
-        this.stats.end();
     }
 }

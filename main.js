@@ -2,6 +2,8 @@ import Game from "./game.js";
 import SaveLoad from "./save_load.js";
 import "./main.css";
 
+import Bot from "./testing/bot.js";
+
 const RESIZE_DELAY_MS = 100;
 window.DEBUG = false;
 
@@ -72,5 +74,17 @@ document.onreadystatechange = function () {
             false
         );
         updateUiSizes();
+
+        let botBtn = document.getElementById("bot");
+        const bot = new Bot(game);
+        botBtn.innerText = bot.running ? "Stop bot" : "Start bot";
+        botBtn.addEventListener("click", () => {
+            if (bot.running) {
+                bot.stop();
+            } else {
+                bot.start();
+            }
+            botBtn.innerText = bot.running ? "Stop bot" : "Start bot";
+        });
     }
 };

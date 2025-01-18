@@ -5,13 +5,18 @@
     </head>
     <body>
         <div id="header">
-            <button id="new_game">New Game</button>
-            <button id="load_game" disabled>Load Game</button>
-            <button id="save_game" disabled>Save Game</button>
+            <div>
+                <button id="new_game">New Game</button>
+                <button id="load_game" disabled>Load Game</button>
+                <button id="save_game" disabled>Save Game</button>
 
-            <input type="checkbox" id="debug_checkbox" />
-            <label for="debug_checkbox">Debug</label>
+                <form>
+                    <input type="checkbox" id="debug_checkbox" />
+                    <label for="debug_checkbox">Debug</label>
+                </form>
+            </div>
             <div id="debug" class="hidden">
+                <br />
                 <button id="plus_10">+10🪙</button>
                 <button id="plus_100">+100🪙</button>
                 <button id="plus_1000">+1000🪙</button>
@@ -19,12 +24,15 @@
                 <br />
                 <button id="digspeed">Dig Speed++</button>
                 <button id="digcount">Dig Count++</button>
-                <input type="checkbox" id="seek_gold" />
-                <label for="seek_gold">Seek Gold</label>
-                <input type="checkbox" id="afterlife" />
-                <label for="afterlife">Afterlife</label>
-                <input type="checkbox" id="paused" />
-                <label for="paused">Pause</label>
+
+                <form>
+                    <input type="checkbox" id="seek_gold" />
+                    <label for="seek_gold">Seek Gold</label>
+                    <input type="checkbox" id="afterlife" />
+                    <label for="afterlife">Afterlife</label>
+                    <input type="checkbox" id="paused" />
+                    <label for="paused">Pause</label>
+                </form>
             </div>
         </div>
         <div id="game"></div>

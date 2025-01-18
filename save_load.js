@@ -15,6 +15,7 @@ export default class SaveLoad {
     }
 
     static save(game) {
+        console.log("Saving @ " + new Date().toISOString());
         let json = JSON.stringify(game);
         localStorage.setItem(SaveLoad.KEY, json);
     }

@@ -12,12 +12,14 @@ import Particles from "./particles.js";
 import Color from "./color.js";
 
 export default class Game {
-    MIN_WIDTH = 400;
+    MIN_WIDTH = 350;
     MAX_WIDTH = 1200;
     MIN_HEIGHT = 300;
     MAX_HEIGHT = 900;
-    MIN_ZOOM = 5;
+    MIN_ZOOM = 3.5;
     MAX_ZOOM = 10;
+    MIN_SAVE_INTERVAL_MS = 5000;
+    AUTO_SAVE_INTERVAL_MS = 30000;
     PLANET_RADIUS = 30;
     TARGET_FPS = 60;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
@@ -67,6 +69,8 @@ export default class Game {
         document.body.appendChild(this.stats.dom);
 
         this.paused = true;
+        this.lastSaved = -this.MIN_SAVE_INTERVAL_MS;
+        this.autoSaveTimeout = null;
     }
 
     toJSON() {
@@ -120,19 +124,7 @@ export default class Game {
             this.upgrades,
             // onPurchase callback
             (upgrade, button) => {
-                let buttonCostEl = document.querySelector(
-                    "button#" + button.id + " > div.upgrade_title > span.cost"
-                );
-                if (upgrade.cost > this.gold) {
-                    this.startNotEnoughGoldAnimation(buttonCostEl);
-                    return;
-                }
-                this.stopNotEnoughGoldAnimation(buttonCostEl);
-                this.gold -= upgrade.cost;
-                this.updateGold();
-                upgrade.purchase();
-                this.updateSpawnCost();
-                this.updateLegend();
+                this.onUpgradePurchased(upgrade, button);
             },
             () => this.gold
         );
@@ -243,8 +235,19 @@ export default class Game {
     }
 
     onResize(windowWidth, windowHeight) {
-        this.width = MathExtras.clamp(windowWidth - 30, 400, 1200);
-        this.height = MathExtras.clamp(windowHeight - 90, 300, 900);
+        let header = document.getElementById("header");
+        let styles = window.getComputedStyle(header);
+        let headerMargin = parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
+        let headerHeight = header.offsetHeight + headerMargin;
+        console.log(
+            "header height = " + header.offsetHeight + " + " + headerMargin + " = " + headerHeight
+        );
+        this.width = MathExtras.clamp(windowWidth - 30, this.MIN_WIDTH, this.MAX_WIDTH);
+        this.height = MathExtras.clamp(
+            windowHeight - headerHeight - 30,
+            this.MIN_HEIGHT,
+            this.MAX_HEIGHT
+        );
         this.bounds = new Vector(this.width, this.height);
         // Update zoom
         let smallest = Math.min(this.width, this.height);
@@ -274,6 +277,24 @@ export default class Game {
             oldLayer.destroy();
         }
         this.updatePlanetPosition();
+    }
+
+    maybeSave() {
+        let now = performance.now();
+        if (now - this.lastSaved > this.MIN_SAVE_INTERVAL_MS) {
+            SaveLoad.save(this);
+            this.lastSaved = now;
+            clearTimeout(this.autoSaveTimeout);
+            this.autoSaveTimeout = null;
+        } else {
+            let remainingTime = this.MIN_SAVE_INTERVAL_MS - (now - this.lastSaved);
+            clearTimeout(this.autoSaveTimeout);
+            this.autoSaveTimeout = setTimeout(() => this.maybeSave(), remainingTime);
+            return;
+        }
+        if (!this.autoSaveTimeout && !this.paused) {
+            this.autoSaveTimeout = setTimeout(() => this.maybeSave(), this.AUTO_SAVE_INTERVAL_MS);
+        }
     }
 
     updatePlanetPosition() {
@@ -311,11 +332,31 @@ export default class Game {
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
         this.particles.coinEffect(positionInParticlesSpace, value);
+
+        this.maybeSave();
+    }
+
+    onUpgradePurchased(upgrade, button) {
+        let buttonCostEl = document.querySelector(
+            "button#" + button.id + " > div.upgrade_title > span.cost"
+        );
+        if (upgrade.cost > this.gold) {
+            this.startNotEnoughGoldAnimation(buttonCostEl);
+            return;
+        }
+        this.stopNotEnoughGoldAnimation(buttonCostEl);
+        this.gold -= upgrade.cost;
+        this.updateGold();
+        upgrade.purchase();
+        this.updateSpawnCost();
+        this.updateLegend();
     }
 
     updateGold() {
         this.goldElement.innerHTML = this.gold;
         this.upgradesUi.onGoldChanged(this.gold);
+
+        this.maybeSave();
     }
 
     updateLegend() {
@@ -432,6 +473,7 @@ export default class Game {
         }
         this.updateGold();
         this.updateSpawnCost();
+        this.maybeSave();
     }
 
     updateSpawnCost() {
@@ -473,6 +515,7 @@ export default class Game {
             this.then = window.performance.now();
             this.tick(this.then);
         }
+        this.maybeSave();
     }
 
     destroy() {

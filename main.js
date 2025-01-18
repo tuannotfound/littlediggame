@@ -2,8 +2,7 @@ import Game from "./game.js";
 import SaveLoad from "./save_load.js";
 import "./main.css";
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 600;
+const RESIZE_DELAY_MS = 100;
 window.DEBUG = false;
 
 var game = null;
@@ -16,7 +15,7 @@ document.onreadystatechange = function () {
                 game.destroy();
             }
             console.log("Starting new game");
-            game = new Game(GAME_WIDTH, GAME_HEIGHT);
+            game = new Game(window.innerWidth, window.innerHeight);
             game.init(document.getElementById("game"));
         });
         let loadGameBtn = document.getElementById("load_game");
@@ -46,5 +45,32 @@ document.onreadystatechange = function () {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
         });
+
+        function updateUiSizes() {
+            let widthPx = game.width + "px";
+            let heightPx = game.height + "px";
+            document.querySelector("#header").style.width = widthPx;
+            let overlay = document.querySelector("#overlay");
+            overlay.style.width = widthPx;
+            overlay.style.height = heightPx;
+            let upgradesContainer = document.querySelector("#upgrades_container");
+            upgradesContainer.style.width = widthPx;
+            upgradesContainer.style.height = heightPx;
+        }
+        function doResize() {
+            console.log("Resize: " + window.innerWidth + " x " + window.innerHeight);
+            game.onResize(window.innerWidth, window.innerHeight);
+            updateUiSizes();
+        }
+        var doResizeTimeout;
+        window.addEventListener(
+            "resize",
+            () => {
+                clearTimeout(doResizeTimeout);
+                doResizeTimeout = setTimeout(doResize, RESIZE_DELAY_MS);
+            },
+            false
+        );
+        updateUiSizes();
     }
 };

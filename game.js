@@ -12,24 +12,25 @@ import Particles from "./particles.js";
 import Color from "./color.js";
 
 export default class Game {
+    MIN_WIDTH = 400;
+    MAX_WIDTH = 1200;
+    MIN_HEIGHT = 300;
+    MAX_HEIGHT = 900;
+    MIN_ZOOM = 5;
+    MAX_ZOOM = 10;
     PLANET_RADIUS = 30;
     TARGET_FPS = 60;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
-    constructor(width, height) {
-        this.width = width;
-        this.height = height;
-        this.zoomLevel = 7;
+    constructor(windowWidth, windowHeight) {
+        // Sets 'this' width, height, zoom, and bounds.
+        this.onResize(windowWidth, windowHeight);
 
         // Unset or derived from ctor args
-        this.bounds = new Vector(width, height);
-        this.layer = new Layer("main", this.width, this.height);
         this.now = 0;
         this.then = 0;
-        this.currentPlanetWidth = 0;
-        this.currentPlanetHeight = 0;
         this.upgradesUi = new UpgradesUi();
 
         // Created during init()
@@ -41,35 +42,11 @@ export default class Game {
         this.littleGuys = [];
         this.littleGuyListener = {
             onDigComplete: (pixel) => {
-                let value = this.upgrades.goldPer[pixel.type.name];
-                if (
-                    (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
-                    (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
-                ) {
-                    // Pretend we dug up some dirt if we haven't researched the real type yet.
-                    value = this.upgrades.goldPer[PixelType.DIRT.name];
-                }
-                this.gold += value;
-                if (!this.knowsDirt) {
-                    this.knowsDirt = true;
-                    this.updateLegend();
-                }
-                this.updateGold();
-                let positionInParticlesSpace = new Vector(
-                    this.particles.layer.width / 2 - this.planet.layer.width / 2,
-                    this.particles.layer.height / 2 - this.planet.layer.height / 2
-                );
-                positionInParticlesSpace.add(pixel.renderPosition);
-                let color = new Color(pixel.getRenderColor());
-                color.a = 255;
-                this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
-                this.particles.coinEffect(positionInParticlesSpace, value);
+                this.onDigComplete(pixel);
             },
         };
 
-        this.particles = new Particles(width, height);
-
-        this.zoomPctElement = null;
+        this.particles = new Particles(this.width, this.height);
 
         this.knowsDeath = false;
         this.knowsDirt = false;
@@ -95,9 +72,6 @@ export default class Game {
     toJSON() {
         return {
             className: this.constructor.name,
-            width: this.width,
-            height: this.height,
-            zoomLevel: this.zoomLevel,
             upgrades: this.upgrades,
             planet: this.planet,
             planetPosition: this.planetPosition,
@@ -109,7 +83,7 @@ export default class Game {
     }
 
     static fromJSON(json) {
-        let game = new Game(json.width, json.height);
+        let game = new Game(window.innerWidth, window.innerHeight);
         let upgrades = Upgrades.fromJSON(json.upgrades);
         let planet = CircularPlanet.fromJSON(json.planet, upgrades);
 
@@ -169,13 +143,7 @@ export default class Game {
         if (!this.planet) {
             this.planet = new CircularPlanet(this.bounds, this.PLANET_RADIUS);
         }
-        this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
-        this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
-        this.planetPosition = new Vector(
-            (this.width - this.planet.layer.width * this.zoomLevel) / 2,
-            (this.height - this.planet.layer.height * this.zoomLevel) / 2
-        );
-        console.log("planet position = " + this.planetPosition.toString());
+        this.updatePlanetPosition();
         this.planet.init(this.upgrades);
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
@@ -191,8 +159,6 @@ export default class Game {
         }
 
         this.particles.init();
-
-        this.zoom(0);
 
         this.setPaused(false);
     }
@@ -231,13 +197,6 @@ export default class Game {
             this.setPaused(pauseBtn.checked);
             console.log("Paused: " + pauseBtn.checked);
         });
-
-        let zoomInBtn = document.getElementById("zoom_in");
-        zoomInBtn.addEventListener("click", () => this.zoom(0.25));
-        let zoomOutBtn = document.getElementById("zoom_out");
-        zoomOutBtn.addEventListener("click", () => this.zoom(-0.25));
-
-        this.zoomPctElement = document.getElementById("zoom_pct");
 
         this.goldElement = document.getElementById("gold");
         this.updateGold();
@@ -283,6 +242,77 @@ export default class Game {
         });
     }
 
+    onResize(windowWidth, windowHeight) {
+        this.width = MathExtras.clamp(windowWidth - 30, 400, 1200);
+        this.height = MathExtras.clamp(windowHeight - 90, 300, 900);
+        this.bounds = new Vector(this.width, this.height);
+        // Update zoom
+        let smallest = Math.min(this.width, this.height);
+        this.zoomLevel =
+            this.MIN_ZOOM +
+            ((this.MAX_ZOOM - this.MIN_ZOOM) *
+                (smallest - Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))) /
+                (Math.min(this.MAX_WIDTH, this.MAX_HEIGHT) -
+                    Math.min(this.MIN_WIDTH, this.MIN_HEIGHT));
+
+        console.log(
+            "Setting canvas to " +
+                this.width +
+                " x " +
+                this.height +
+                " w/ zoom of " +
+                this.zoomLevel
+        );
+
+        // Create a new layer because resizing a canvas makes it blurry.
+        let oldLayer = this.layer;
+        this.layer = new Layer("game", this.width, this.height);
+        if (oldLayer) {
+            if (oldLayer.container) {
+                this.layer.initOnscreen(oldLayer.container);
+            }
+            oldLayer.destroy();
+        }
+        this.updatePlanetPosition();
+    }
+
+    updatePlanetPosition() {
+        if (!this.planet || !this.planet.layer) {
+            return;
+        }
+        this.planetPosition = new Vector(
+            (this.width - this.planet.layer.width * this.zoomLevel) / 2,
+            (this.height - this.planet.layer.height * this.zoomLevel) / 2
+        );
+        console.log("planet position = " + this.planetPosition.toString());
+    }
+
+    onDigComplete(pixel) {
+        let value = this.upgrades.goldPer[pixel.type.name];
+        if (
+            (pixel.type == PixelType.GOLD && !this.upgrades.gold) ||
+            (pixel.type == PixelType.DIAMOND && !this.upgrades.diamonds)
+        ) {
+            // Pretend we dug up some dirt if we haven't researched the real type yet.
+            value = this.upgrades.goldPer[PixelType.DIRT.name];
+        }
+        this.gold += value;
+        if (!this.knowsDirt) {
+            this.knowsDirt = true;
+            this.updateLegend();
+        }
+        this.updateGold();
+        let positionInParticlesSpace = new Vector(
+            this.particles.layer.width / 2 - this.planet.layer.width / 2,
+            this.particles.layer.height / 2 - this.planet.layer.height / 2
+        );
+        positionInParticlesSpace.add(pixel.renderPosition);
+        let color = new Color(pixel.getRenderColor());
+        color.a = 255;
+        this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
+        this.particles.coinEffect(positionInParticlesSpace, value);
+    }
+
     updateGold() {
         this.goldElement.innerHTML = this.gold;
         this.upgradesUi.onGoldChanged(this.gold);
@@ -305,19 +335,6 @@ export default class Game {
         if (this.upgrades.diamonds) {
             document.querySelector("span.diamond").parentElement.classList.remove("hidden");
         }
-    }
-
-    zoom(amount) {
-        if (this.zoomLevel + amount < this.MIN_ZOOM) {
-            return;
-        }
-        if (this.zoomLevel + amount > this.MAX_ZOOM) {
-            return;
-        }
-        this.zoomLevel += amount;
-        this.currentPlanetWidth = this.planet.layer.width * this.zoomLevel;
-        this.currentPlanetHeight = this.planet.layer.height * this.zoomLevel;
-        this.zoomPctElement.innerHTML = (this.zoomLevel * 100).toFixed(0);
     }
 
     gameToPlanetCoords(gameCoords) {
@@ -509,8 +526,8 @@ export default class Game {
             this.planet.layer.height, // source height
             this.planetPosition.x, // destination x
             this.planetPosition.y, // destination y
-            this.currentPlanetWidth, // destination width
-            this.currentPlanetHeight // destination height
+            this.planet.layer.width * this.zoomLevel, // destination width
+            this.planet.layer.height * this.zoomLevel // destination height
         );
 
         // Little guys

@@ -36,7 +36,9 @@ export default class Layer {
     }
 
     destroy() {
-        this.container.removeChild(this.canvas);
+        if (this.container) {
+            this.container.removeChild(this.canvas);
+        }
         this.canvas = null;
     }
 }

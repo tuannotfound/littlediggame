@@ -61,6 +61,7 @@ export default class CircularPlanet extends Planet {
             previousRadius = radius;
             typesMap = this.drawRay(radius, theta, typesMap);
         }
+        this.emplaceEgg();
     }
 
     // Returns a {radius : PixelType.name} map for the drawn ray.
@@ -92,5 +93,29 @@ export default class CircularPlanet extends Planet {
             this.addPixel(position, pixelType);
         }
         return typesMap;
+    }
+
+    emplaceEgg() {
+        const eggWidth = 7;
+        const eggHeight = 7;
+        const eggPointiness = 1.2;
+
+        let extent = Math.max(eggWidth, eggHeight) + 2;
+
+        function eggValue(x, y) {
+            return y ** 2 / eggHeight ** 2 + (x ** 2 * (1 + eggPointiness ** -y)) / eggWidth ** 2;
+        }
+        for (let x = -extent; x <= extent; x++) {
+            for (let y = -extent; y <= extent; y++) {
+                if (eggValue(x, y) < 1) {
+                    let coords = new Vector(x + this.center.x, y + this.center.y);
+                    let existing = this.getPixel(coords);
+                    if (existing) {
+                        this.removePixel(existing);
+                    }
+                    this.addPixel(coords, PixelType.EGG);
+                }
+            }
+        }
     }
 }

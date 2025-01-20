@@ -11,13 +11,20 @@ export default class Pixel {
     DIAMOND_SHIMMER_FRAMES_MAX = 5;
     DIAMOND_SHIMMER_COLOR_MOD = 1.2;
     HEALTH_VISUAL_PCT_INTERVAL = 20;
+    EGG_SPECKLE_CHANCE_PCT = 8;
 
     constructor(position, type = PixelType.DIRT, upgrades) {
         this.position = position.copy();
         this.position.round();
         this.type = type;
         this.upgrades = upgrades;
-        this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
+
+        // Maybe introduce a speckle on an egg?
+        if (this.type == PixelType.EGG && 100 * Math.random() < this.EGG_SPECKLE_CHANCE_PCT) {
+            this.color = Color.wiggle(type.altColor, 10);
+        } else {
+            this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
+        }
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
             : new Color(type.surfaceColor);
@@ -70,7 +77,8 @@ export default class Pixel {
         } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
             if (
                 (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
-                (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar)
+                (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar) ||
+                this.type == PixelType.EGG
             ) {
                 actLikeDirt = true;
             }

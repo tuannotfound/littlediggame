@@ -315,7 +315,7 @@ export default class LittleGuy {
                 this.pixelBeingDug = underFoot;
             } else {
                 // This should only happen if we're, like, floating? Flying around? If this little guy
-                // is being a total bird, then we need to fall back to this.
+                // is being a total /bird/, then we need to fall back to this.
                 this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
             }
         }

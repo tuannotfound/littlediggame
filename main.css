@@ -197,6 +197,10 @@ span.diamond {
     color: rgb(155, 232, 250);
 }
 
+span.egg {
+    color: rgb(247, 246, 230);
+}
+
 .pulsing {
     animation: 0.5s ease-in-out 4 alternate pulse;
 }

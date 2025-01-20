@@ -13,6 +13,7 @@ export default class Upgrades {
         this.goldPer[PixelType.GOLD.name] = 5;
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 50;
+        this.goldPer[PixelType.EGG.name] = 0;
         this.unlock_gold = false;
         this.unlock_diamonds = false;
         this.diamondRadar = false;

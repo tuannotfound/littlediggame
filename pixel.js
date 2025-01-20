@@ -28,6 +28,7 @@ export default class Pixel {
         this.isSurface = false;
         // 0-1, where 0 is no change to the color, 1 is fully black
         this.darkness = 0;
+        this.bloodiedColor = null;
     }
 
     toJSON() {
@@ -76,6 +77,9 @@ export default class Pixel {
     }
 
     getRenderColor() {
+        if (this.bloodiedColor) {
+            return this.bloodiedColor;
+        }
         if (this.actLikeDirt()) {
             return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
         } else if (
@@ -119,6 +123,17 @@ export default class Pixel {
         let alpha = MathExtras.clamp(opacity, 0, 1) * this.initialAlpha;
         this.color.a = alpha;
         this.surfaceColor.a = alpha;
+    }
+
+    bloody() {
+        if (this.bloodiedColor) {
+            return;
+        }
+        this.bloodiedColor = Color.wiggle(Color.BLOOD, 10);
+    }
+
+    get isBloodied() {
+        return !!this.bloodiedColor;
     }
 
     // Needed for quad tree

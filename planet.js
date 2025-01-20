@@ -7,11 +7,10 @@ import CircularPlanet from "./circular_planet.js";
 export default class Planet {
     PLANET_SURFACE_UPDATE_INTERVAL_MS = 500;
 
-    constructor(gameBounds, width, height) {
+    constructor(width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
         }
-        this.gameBounds = gameBounds;
         this.width = width;
         this.height = height;
         this.radius = Math.max(width, height) / 2;
@@ -25,13 +24,12 @@ export default class Planet {
         this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
         this.pixels = [];
         this.pixelPositions = new Map();
-        this.planetSurface = [];
+        this.surfacePixels = [];
         this.upgrades = null;
     }
 
     toJSON() {
         return {
-            gameBounds: this.gameBounds,
             width: this.width,
             height: this.height,
             radius: this.radius,
@@ -167,14 +165,14 @@ export default class Planet {
     }
 
     getClosestSurfacePixel(position) {
-        if (this.planetSurface.length === 0) {
+        if (this.surfacePixels.length === 0) {
             return null;
         }
 
         let closestPixel = null;
         let minDistance = Infinity;
 
-        for (const pixel of this.planetSurface) {
+        for (const pixel of this.surfacePixels) {
             const distance = pixel.renderPosition.distSq(position);
 
             if (distance < minDistance) {
@@ -188,7 +186,7 @@ export default class Planet {
 
     updateSurface() {
         if (this.pixels.length === 0) {
-            this.planetSurface = [];
+            this.surfacePixels = [];
             return;
         }
 
@@ -197,7 +195,7 @@ export default class Planet {
         const visited = Array(width)
             .fill(null)
             .map(() => Array(height).fill(false));
-        this.planetSurface = []; // Clear planetSurface directly
+        this.surfacePixels = []; // Clear surfacePixels directly
 
         const isIsland = (x, y) => {
             return (
@@ -238,7 +236,7 @@ export default class Planet {
                 visited[x][y] = true;
                 const pixel = this.getPixel(new Vector(x, y)); // Get pixel only when needed
                 if (isSurface(x, y)) {
-                    this.planetSurface.push(pixel);
+                    this.surfacePixels.push(pixel);
                     pixel.setSurface(true);
                 } else {
                     pixel.setSurface(false);

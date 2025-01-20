@@ -18,6 +18,7 @@ export default class SaveLoad {
         console.log("Saving @ " + new Date().toISOString());
         let json = JSON.stringify(game);
         localStorage.setItem(SaveLoad.KEY, json);
+        window.dispatchEvent(new Event("storage"));
     }
 
     static load() {

@@ -8,6 +8,7 @@ const RESIZE_DELAY_MS = 100;
 window.DEBUG = false;
 
 var game = null;
+var bot = null;
 document.onreadystatechange = function () {
     if (document.readyState == "complete") {
         let newGameBtn = document.getElementById("new_game");
@@ -16,9 +17,15 @@ document.onreadystatechange = function () {
                 console.log("Destroying existing game");
                 game.destroy();
             }
+            if (bot) {
+                bot.stop();
+                updateBotText();
+            }
             console.log("Starting new game");
             game = new Game(window.innerWidth, window.innerHeight);
             game.init(document.getElementById("game"));
+            updateUiVisibility();
+            updateUiSizes();
         });
         let loadGameBtn = document.getElementById("load_game");
         loadGameBtn.addEventListener("click", () => {
@@ -26,15 +33,32 @@ document.onreadystatechange = function () {
                 console.log("Destroying existing game");
                 game.destroy();
             }
+            if (bot) {
+                bot.stop();
+                updateBotText();
+            }
             console.log("Loading game");
             game = SaveLoad.load();
             game.init(document.getElementById("game"));
+            updateUiVisibility();
+            updateUiSizes();
         });
         if (SaveLoad.saveDataExists()) {
             loadGameBtn.removeAttribute("disabled");
         }
-        // Just for now, remove later
-        newGameBtn.click();
+        window.addEventListener("storage", () => {
+            if (SaveLoad.saveDataExists()) {
+                loadGameBtn.removeAttribute("disabled");
+            } else {
+                loadGameBtn.setAttribute("disabled", "");
+            }
+        });
+        // if (SaveLoad.saveDataExists()) {
+        //     loadGameBtn.removeAttribute("disabled");
+        //     loadGameBtn.click();
+        // } else {
+        //     newGameBtn.click();
+        // }
 
         let upgradesContainer = document.getElementById("upgrades_container");
         let showUpgradesBtn = document.getElementById("show_upgrades");
@@ -48,10 +72,24 @@ document.onreadystatechange = function () {
             showUpgradesBtn.classList.remove("hidden");
         });
 
+        function updateUiVisibility() {
+            if (game) {
+                overlay.classList.remove("hidden");
+                // Upgrades container is hidden by default
+            } else {
+                overlay.classList.add("hidden");
+                upgradesContainer.classList.add("hidden");
+            }
+        }
+
         function updateUiSizes() {
+            if (!game) {
+                return;
+            }
             let widthPx = game.width + "px";
             let heightPx = game.height + "px";
-            document.querySelector("#header").style.width = widthPx;
+            let header = document.querySelector("#header");
+            header.style.width = widthPx;
             let overlay = document.querySelector("#overlay");
             overlay.style.width = widthPx;
             overlay.style.height = heightPx;
@@ -60,6 +98,9 @@ document.onreadystatechange = function () {
             upgradesContainer.style.height = heightPx;
         }
         function doResize() {
+            if (!game) {
+                return;
+            }
             console.log("Resize: " + window.innerWidth + " x " + window.innerHeight);
             game.onResize(window.innerWidth, window.innerHeight);
             updateUiSizes();
@@ -73,18 +114,23 @@ document.onreadystatechange = function () {
             },
             false
         );
+        updateUiVisibility();
         updateUiSizes();
 
+        function updateBotText() {
+            let botBtn = document.getElementById("bot");
+            botBtn.innerText = bot && bot.running ? "Stop bot" : "Start bot";
+        }
         let botBtn = document.getElementById("bot");
-        const bot = new Bot(game);
-        botBtn.innerText = bot.running ? "Stop bot" : "Start bot";
+        updateBotText();
         botBtn.addEventListener("click", () => {
-            if (bot.running) {
+            if (bot && bot.running) {
                 bot.stop();
             } else {
+                bot = new Bot(game);
                 bot.start();
             }
-            botBtn.innerText = bot.running ? "Stop bot" : "Start bot";
+            updateBotText();
         });
     }
 };

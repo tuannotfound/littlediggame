@@ -20,10 +20,15 @@ export default class Particles {
 
     spawn(position, color, initialVelocity, gravity, count, delayMs) {
         for (let i = 0; i < count; i++) {
-            setTimeout(() => {
+            if (delayMs > 0) {
+                setTimeout(() => {
+                    let particle = new Particle(position, color, initialVelocity, gravity);
+                    this.particles.push(particle);
+                }, i * delayMs);
+            } else {
                 let particle = new Particle(position, color, initialVelocity, gravity);
                 this.particles.push(particle);
-            }, i * delayMs);
+            }
         }
     }
 
@@ -38,6 +43,20 @@ export default class Particles {
                 MathExtras.randomBetween(minInitialVelocity.y, maxInitialVelocity.y)
             );
             let particle = new Particle(position, color, initialVelocity);
+            this.particles.push(particle);
+        }
+    }
+
+    bloodEffect(position) {
+        let count = 25 * (Math.random() + 1);
+        let minInitialVelocity = new Vector(-0.4, -0.6);
+        let maxInitialVelocity = new Vector(0.4, -0.2);
+        for (let i = 0; i < count; i++) {
+            let initialVelocity = new Vector(
+                MathExtras.randomBetween(minInitialVelocity.x, maxInitialVelocity.x),
+                MathExtras.randomBetween(minInitialVelocity.y, maxInitialVelocity.y)
+            );
+            let particle = new Particle(position, Color.wiggle(Color.BLOOD, 10), initialVelocity);
             this.particles.push(particle);
         }
     }

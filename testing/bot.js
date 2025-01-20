@@ -3,7 +3,7 @@ import Vector from "../vector.js";
 
 export default class Bot {
     TARGET_FPS = 1;
-    GAME_SPEED = 2;
+    GAME_SPEED = 5;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
     TAG = "[BOT] ";
 
@@ -15,9 +15,14 @@ export default class Bot {
         this.then = 0;
 
         this.peakGold = 0;
+        this.mostRecentUpgrade = "";
     }
 
     start() {
+        if (this.running) {
+            return;
+        }
+        console.log(this.TAG + "Starting bot");
         this.running = true;
         this.game.gameSpeed = this.GAME_SPEED;
         this.then = window.performance.now();
@@ -25,12 +30,20 @@ export default class Bot {
     }
 
     stop() {
+        if (!this.running) {
+            return;
+        }
+        console.log(this.TAG + "Stopping bot");
         this.running = false;
+        this.game.particles.particles = [];
         this.game.gameSpeed = 1;
         this.triggerCsvDownload(
             this.generateCsv(),
             "planeteater_bot_" + this.getDateTimeForFileName() + ".csv"
         );
+        this.events = [];
+        this.peakGold = 0;
+        this.mostRecentUpgrade = "";
     }
 
     generateCsv() {
@@ -99,7 +112,8 @@ export default class Bot {
     }
 
     maybeSpawnLittleGuy() {
-        while (this.shouldSpawn()) {
+        let expectedValue = this.calculateExpectedValueOfLittleGuy();
+        while (this.shouldSpawn(expectedValue)) {
             let coords = new Vector(
                 Math.random() * this.game.planet.layer.width - 1,
                 Math.random() * this.game.planet.layer.height - 1
@@ -114,36 +128,22 @@ export default class Bot {
                     closestSurfacePixel.renderPosition.toString() +
                     " for " +
                     this.game.spawnCost +
-                    " gold"
+                    " gold w/ EV of " +
+                    expectedValue
             );
             this.game.spawn(closestSurfacePixel.renderPosition, false);
         }
     }
 
-    shouldSpawn() {
+    shouldSpawn(expectedValue) {
         if (this.game.spawnCost == 0) {
             return true;
         }
         if (this.game.gold < this.game.spawnCost) {
             return false;
         }
-        let spawnCostAsPctOfGold = (100 * this.game.spawnCost) / this.game.gold;
-        if (this.game.gold < 10 && spawnCostAsPctOfGold < 60) {
-            return true;
-        } else if (this.game.gold < 50 && spawnCostAsPctOfGold < 40) {
-            return true;
-        } else if (this.game.gold < 100 && spawnCostAsPctOfGold < 30) {
-            return true;
-        } else if (this.game.gold < 200 && spawnCostAsPctOfGold < 20) {
-            return true;
-        } else if (this.game.gold < 500 && spawnCostAsPctOfGold < 10) {
-            return true;
-        } else if (this.game.gold < 1000 && spawnCostAsPctOfGold < 5) {
-            return true;
-        } else if (this.game.gold >= 1000 && spawnCostAsPctOfGold <= 5) {
-            return true;
-        }
-        return false;
+
+        return 0.75 * expectedValue > this.game.spawnCost;
     }
 
     maybeBuyUpgrade() {
@@ -161,6 +161,7 @@ export default class Bot {
                             " gold"
                     );
                     buyBtn.click();
+                    this.mostRecentUpgrade = cheapestUpgrade.id;
                 }
             }
         }
@@ -170,14 +171,17 @@ export default class Bot {
         let manualLittleGuyCount = this.game.littleGuys.filter((lg) => !lg.immaculate).length;
         let autoLittleGuyCount = this.game.littleGuys.length - manualLittleGuyCount;
         let event = new Event(
-            performance.now() / this.GAME_SPEED,
+            // In minutes
+            (100 * (performance.now() * this.GAME_SPEED)) / (1000 * 60),
             this.game.gold,
             this.peakGold,
             manualLittleGuyCount,
             autoLittleGuyCount,
+            this.calculateExpectedValueOfLittleGuy(),
             this.game.planet.health,
             this.game.upgrades,
-            this.findCheapestUpgrade()
+            this.findCheapestUpgrade(),
+            this.mostRecentUpgrade
         );
         this.events.push(event);
     }
@@ -196,6 +200,33 @@ export default class Bot {
         }
         return cheapestUpgrade;
     }
+
+    calculateExpectedValueOfLittleGuy() {
+        // Looking at the surface of the planet, we can average out the value of each pixel and
+        // multiply that by the number of digs each little guy will perform to get the EV of
+        // spawning a new little guy.
+        let surface = this.game.planet.surfacePixels;
+        if (surface.length == 0) {
+            return 0;
+        }
+        let totalValue = 0;
+        for (let i = 0; i < surface.length; i++) {
+            let surfacePixel = surface[i];
+            if (!surfacePixel) {
+                continue;
+            }
+            let pixelType = surfacePixel.type;
+            if (pixelType == PixelType.GOLD && !this.game.upgrades.unlock_gold) {
+                pixelType = PixelType.DIRT;
+            } else if (pixelType == PixelType.DIAMOND && !this.game.upgrades.unlock_diamonds) {
+                pixelType = PixelType.DIRT;
+            }
+            totalValue += this.game.upgrades.goldPer[pixelType.name];
+        }
+        let avgValue = totalValue / surface.length;
+        let expectedValue = avgValue * this.game.upgrades.digCount;
+        return Math.round(100 * expectedValue) / 100;
+    }
 }
 
 class Event {
@@ -205,15 +236,18 @@ class Event {
         peakGold,
         manualLittleGuyCount,
         autoLittleGuyCount,
+        littleGuyEv,
         worldHealth,
         upgrades,
-        cheapestUpgrade
+        cheapestUpgrade,
+        mostRecentUpgrade
     ) {
         this.timestamp = timestamp;
         this.gold = gold;
         this.peakGold = peakGold;
         this.manualLittleGuyCount = manualLittleGuyCount;
         this.autoLittleGuyCount = autoLittleGuyCount;
+        this.littleGuyEv = littleGuyEv;
 
         this.worldHealth = worldHealth;
 
@@ -222,6 +256,7 @@ class Event {
         this.progressToNextUpgrade = cheapestUpgrade
             ? Math.min(100, (100 * this.gold) / cheapestUpgrade.cost)
             : 100;
+        this.mostRecentUpgrade = mostRecentUpgrade;
     }
 
     setUpgradeState(upgrades) {
@@ -246,15 +281,17 @@ class Event {
 
     static getHeaders() {
         return [
-            "timestamp",
+            "timestamp_minutes",
             "gold",
             "peakGold",
             "manualLittleGuyCount",
             "autoLittleGuyCount",
+            "littleGuyEv",
             "worldHealth",
             "upgradeCount",
             "cheapestUpgradeCost",
             "progressToNextUpgrade",
+            "mostRecentUpgrade",
             "goldPerDirt",
             "goldPerTombstone",
             "goldPerGold",
@@ -274,10 +311,12 @@ class Event {
         data.push(this.peakGold);
         data.push(this.manualLittleGuyCount);
         data.push(this.autoLittleGuyCount);
+        data.push(this.littleGuyEv);
         data.push(this.worldHealth);
         data.push(this.upgradeCount);
         data.push(this.cheapestUpgradeCost);
         data.push(this.progressToNextUpgrade);
+        data.push(this.mostRecentUpgrade);
         data.push(this.goldPerDirt);
         data.push(this.goldPerTombstone);
         data.push(this.goldPerGold);

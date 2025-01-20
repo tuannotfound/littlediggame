@@ -19,15 +19,15 @@ export default class CircularPlanet extends Planet {
     // Percent chance that a given pixel will be a diamond.
     DIAMOND_PCT = 4;
 
-    constructor(gameBounds, radius) {
+    constructor(radius) {
         let size = radius * 2;
-        super(gameBounds, size, size);
+        super(size, size);
         this.maxRadius = this.radius + CircularPlanet.MAX_RADIUS_DIFF_PX;
         this.minRadius = this.radius - CircularPlanet.MAX_RADIUS_DIFF_PX;
     }
 
     static fromJSON(json, upgrades) {
-        let planet = new CircularPlanet(Vector.fromJSON(json.gameBounds), json.radius);
+        let planet = new CircularPlanet(json.radius);
         let pixels = [];
         for (const pixelJson of json.pixels) {
             pixels.push(Pixel.fromJSON(pixelJson, upgrades));

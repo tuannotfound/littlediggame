@@ -1,6 +1,8 @@
 import MathExtras from "./math_extras.js";
 
 export default class Color {
+    static BLOOD = new Color(168, 37, 37);
+
     constructor(r, g, b, a) {
         if (
             arguments.length === 1 &&
@@ -55,7 +57,7 @@ export default class Color {
         color.a = Color.clampValue(color.a);
     }
 
-    static wiggle(color, maxChange) {
+    static wiggle(color, maxChange = 5) {
         let wiggled = new Color(color);
         wiggled.r += Math.round((Math.random() * 2 - 1) * maxChange);
         wiggled.g += Math.round((Math.random() * 2 - 1) * maxChange);

@@ -72,6 +72,8 @@ export default class Game {
         this.paused = true;
         this.lastSaved = -this.MIN_SAVE_INTERVAL_MS;
         this.autoSaveTimeout = null;
+
+        this.initialized = false;
     }
 
     toJSON() {
@@ -114,6 +116,7 @@ export default class Game {
     }
 
     init(containerElement) {
+        console.log("Initializing game");
         this.containerElement = containerElement;
         this.layer.initOnscreen(containerElement);
 
@@ -134,7 +137,7 @@ export default class Game {
         this.initHandlers();
 
         if (!this.planet) {
-            this.planet = new CircularPlanet(this.bounds, this.PLANET_RADIUS);
+            this.planet = new CircularPlanet(this.PLANET_RADIUS);
         }
         this.updatePlanetPosition();
         this.planet.init(this.upgrades);
@@ -153,6 +156,7 @@ export default class Game {
 
         this.particles.init();
 
+        this.initialized = true;
         this.setPaused(false);
     }
 
@@ -189,6 +193,11 @@ export default class Game {
         pauseBtn.addEventListener("change", () => {
             this.setPaused(pauseBtn.checked);
             console.log("Paused: " + pauseBtn.checked);
+        });
+        let bloodBtn = document.getElementById("blood");
+        bloodBtn.addEventListener("change", () => {
+            this.blood = bloodBtn.checked;
+            console.log("Blood: " + bloodBtn.checked);
         });
 
         this.goldElement = document.getElementById("gold");
@@ -281,6 +290,9 @@ export default class Game {
     }
 
     maybeSave() {
+        if (!this.initialized) {
+            return;
+        }
         let now = performance.now();
         if (now - this.lastSaved > this.MIN_SAVE_INTERVAL_MS) {
             SaveLoad.save(this);
@@ -324,17 +336,22 @@ export default class Game {
             this.updateLegend();
         }
         this.updateGold();
-        let positionInParticlesSpace = new Vector(
-            this.particles.layer.width / 2 - this.planet.layer.width / 2,
-            this.particles.layer.height / 2 - this.planet.layer.height / 2
-        );
-        positionInParticlesSpace.add(pixel.renderPosition);
+        let positionInParticlesSpace = this.planetToParticleSpace(pixel.renderPosition);
         let color = new Color(pixel.getRenderColor());
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
         this.particles.coinEffect(positionInParticlesSpace, value);
 
         this.maybeSave();
+    }
+
+    planetToParticleSpace(planetCoords) {
+        let particleCoords = new Vector(
+            this.particles.layer.width / 2 - this.planet.layer.width / 2,
+            this.particles.layer.height / 2 - this.planet.layer.height / 2
+        );
+        particleCoords.add(planetCoords);
+        return particleCoords;
     }
 
     onUpgradePurchased(upgrade, button) {
@@ -365,18 +382,18 @@ export default class Game {
             document.getElementById("gold_per_" + pixelType.name).innerText =
                 this.upgrades.goldPer[pixelType.name];
         }
-        if (this.knowsDirt) {
-            document.querySelector("span.dirt").parentElement.classList.remove("hidden");
-        }
-        if (this.knowsDeath) {
-            document.querySelector("span.tombstone").parentElement.classList.remove("hidden");
-        }
-        if (this.upgrades.unlock_gold) {
-            document.querySelector("span.gold").parentElement.classList.remove("hidden");
-        }
-        if (this.upgrades.unlock_diamonds) {
-            document.querySelector("span.diamond").parentElement.classList.remove("hidden");
-        }
+        let updateHidden = function (type, show) {
+            let element = document.querySelector("span." + type.name.toLowerCase()).parentElement;
+            if (show) {
+                element.classList.remove("hidden");
+            } else {
+                element.classList.add("hidden");
+            }
+        };
+        updateHidden(PixelType.DIRT, this.knowsDirt);
+        updateHidden(PixelType.TOMBSTONE, this.knowsDeath);
+        updateHidden(PixelType.GOLD, this.upgrades.unlock_gold);
+        updateHidden(PixelType.DIAMOND, this.upgrades.unlock_diamonds);
     }
 
     gameToPlanetCoords(gameCoords) {
@@ -507,6 +524,28 @@ export default class Game {
         this.planet.removePixelsAt(toRemove);
     }
 
+    // Center is in planet space
+    bloodyAround(center) {
+        if (!this.blood) {
+            return;
+        }
+        let radius = Math.floor(2 * (Math.random() + 1));
+        this.particles.bloodEffect(this.planetToParticleSpace(center));
+        for (let x = center.x - radius; x < center.x + radius; x++) {
+            for (let y = center.y - radius; y < center.y + radius; y++) {
+                let dist = new Vector(center.x - x, center.y - y).mag();
+                if (dist > radius) {
+                    continue;
+                }
+                let pixel = this.planet.getPixel(new Vector(x, y));
+                if (!pixel || !pixel.isSurface || pixel.isBloodied) {
+                    continue;
+                }
+                pixel.bloody();
+            }
+        }
+    }
+
     setPaused(paused) {
         if (this.paused == paused) {
             return;
@@ -616,6 +655,7 @@ export default class Game {
                     this.demonCount++;
                 }
             }
+            this.bloodyAround(inactiveLittleGuy.positionInPlanetSpace);
             this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
         }
         if (inactiveLittleGuys.length > 0) {
@@ -623,17 +663,20 @@ export default class Game {
         }
 
         // Particles
-        this.particles.update(elapsedMs);
-        this.layer.getContext().drawImage(
-            this.particles.layer.canvas,
-            0, // source x
-            0, // source y
-            this.particles.layer.width, // source width
-            this.particles.layer.height, // source height
-            (-this.particles.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
-            (-this.particles.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
-            this.particles.layer.width * this.zoomLevel, // destination width
-            this.particles.layer.height * this.zoomLevel // destination height
-        );
+        // Don't do particles on higher game speeds (used for testing only)
+        if (this.gameSpeed == 1) {
+            this.particles.update(elapsedMs);
+            this.layer.getContext().drawImage(
+                this.particles.layer.canvas,
+                0, // source x
+                0, // source y
+                this.particles.layer.width, // source width
+                this.particles.layer.height, // source height
+                (-this.particles.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
+                (-this.particles.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
+                this.particles.layer.width * this.zoomLevel, // destination width
+                this.particles.layer.height * this.zoomLevel // destination height
+            );
+        }
     }
 }

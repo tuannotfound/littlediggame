@@ -10,9 +10,9 @@ export default class Upgrades {
         this.digCount = 2;
         this.goldPer = {};
         this.goldPer[PixelType.DIRT.name] = 1;
-        this.goldPer[PixelType.GOLD.name] = 10;
+        this.goldPer[PixelType.GOLD.name] = 5;
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
-        this.goldPer[PixelType.DIAMOND.name] = 200;
+        this.goldPer[PixelType.DIAMOND.name] = 50;
         this.unlock_gold = false;
         this.unlock_diamonds = false;
         this.diamondRadar = false;
@@ -125,15 +125,15 @@ export default class Upgrades {
                 at night, and other displays of love result in more of it revealing itself to you
                 during dig operations.`
             ),
-            ["+200% gold extracted from dirt", "+75% gold extracted from... gold"],
-            20,
+            ["+100% gold extracted from dirt", "+25% gold extracted from... gold"],
+            30,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 3
+                    this.goldPer[PixelType.DIRT.name] * 2
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.75
+                    this.goldPer[PixelType.GOLD.name] * 1.25
                 );
             }
         );
@@ -149,15 +149,15 @@ export default class Upgrades {
                 cruelly is even more productive. You hope the gold is masochistic and this behavior
                 isn't entirely immoral.`
             ),
-            ["+150% more gold extracted from dirt", "+100% more gold extracted from gold"],
-            75,
+            ["+75% more gold extracted from dirt", "+50% more gold extracted from gold"],
+            675,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 2.5
+                    this.goldPer[PixelType.DIRT.name] * 1.75
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 2
+                    this.goldPer[PixelType.GOLD.name] * 1.5
                 );
             }
         );
@@ -189,18 +189,18 @@ export default class Upgrades {
             "more_gold_4",
             "Nefas directionis",
             StringUtils.dedent(
-                `Nope, that wasn't it. Let's stop doing that. I think we'll all relieved that's over
-                with.`
+                `Nope, that wasn't it. Let's stop doing that. I think we're all relieved that's over
+                with, the dirt included.`
             ),
-            ["+500% more gold extracted from dirt", "+250% gold extracted from gold"],
-            300,
+            ["+60% more gold extracted from dirt", "+75% gold extracted from gold"],
+            3000,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 6
+                    this.goldPer[PixelType.DIRT.name] * 1.6
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 3.5
+                    this.goldPer[PixelType.GOLD.name] * 1.75
                 );
             }
         );
@@ -231,7 +231,7 @@ export default class Upgrades {
                 that first.`
             ),
             ["Get 8 gold from digging up tombstones"],
-            20,
+            50,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.TOMBSTONE.name] = 8;
@@ -249,12 +249,13 @@ export default class Upgrades {
                 shift and realizes they could probably be used for something.`
             ),
             ["Your populous will now recognize and dig up diamonds"],
-            150,
+            250,
             Currency.GOLD,
             () => {
                 this.unlock_diamonds = true;
             }
         );
+        unlock_diamonds.addPrereq(unlock_gold);
         this.upgradeTree.set(unlock_diamonds.id, unlock_diamonds);
 
         let diamondDeals = new Upgrade(
@@ -265,12 +266,12 @@ export default class Upgrades {
                 finding and selling for a pittance. You just need to cut him in on the sale for a
                 small commission.`
             ),
-            ["+175% more gold from diamonds"],
-            300,
+            ["+75% more gold from diamonds"],
+            2300,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIAMOND.name] = Math.round(
-                    this.goldPer[PixelType.DIAMOND.name] * 2.75
+                    this.goldPer[PixelType.DIAMOND.name] * 1.75
                 );
             }
         );
@@ -284,7 +285,7 @@ export default class Upgrades {
                 `You murder your friend to, quite literally, cut out the middle man.`
             ),
             ["+3% more gold from diamonds"],
-            30,
+            1200,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIAMOND.name] = Math.round(
@@ -300,7 +301,7 @@ export default class Upgrades {
             "more_gold_dirt_tbd",
             StringUtils.dedent(`TBD: Dirt propaganda.`),
             ["The value of dirt is increased by 50%"],
-            500,
+            1500,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.DIRT.name] = Math.round(
@@ -316,12 +317,12 @@ export default class Upgrades {
             "more_gold_gold",
             "more_gold_gold_tbd",
             StringUtils.dedent(`TBD: Gold propaganda.`),
-            ["The value of gold is increased by 150%"],
-            780,
+            ["The value of gold is increased by 80%"],
+            1780,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 2.5
+                    this.goldPer[PixelType.GOLD.name] * 1.8
                 );
             }
         );
@@ -337,7 +338,7 @@ export default class Upgrades {
                 shining diamond. Well, a diamond-looking lump, anyway.`
             ),
             ["Tombstones are now worth 25% of the value of diamonds."],
-            925,
+            1925,
             Currency.GOLD,
             () => {
                 this.goldPer[PixelType.TOMBSTONE.name] = Math.round(
@@ -354,7 +355,7 @@ export default class Upgrades {
             "Thesaurum sub pede",
             "",
             ["Your populous are much less likely to walk over gold without stopping to dig it up"],
-            75,
+            275,
             Currency.GOLD,
             () => {
                 this.goldSeeker = true;
@@ -388,7 +389,7 @@ export default class Upgrades {
                 on a shovel, and by Jove it works. It really works.`
             ),
             ["Digging is 1.5x faster"],
-            40,
+            60,
             Currency.GOLD,
             () => {
                 this.digSpeed *= 1.5;
@@ -405,7 +406,7 @@ export default class Upgrades {
                 they've gone too far this time, no?`
             ),
             ["Digging is 1.25x faster"],
-            80,
+            220,
             Currency.GOLD,
             () => {
                 this.digSpeed *= 1.25;
@@ -425,7 +426,7 @@ export default class Upgrades {
                 quad-shovels at a time."`
             ),
             ["Digging is 2x faster"],
-            200,
+            900,
             Currency.GOLD,
             () => {
                 this.digSpeed *= 2;
@@ -453,7 +454,7 @@ export default class Upgrades {
             "Salus et sanitas",
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
-            100,
+            400,
             Currency.GOLD,
             () => {
                 this.digCount++;
@@ -467,7 +468,7 @@ export default class Upgrades {
             "Ferro pollicem tabernus",
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 2"],
-            350,
+            2350,
             Currency.GOLD,
             () => {
                 this.digCount += 2;
@@ -501,7 +502,7 @@ export default class Upgrades {
                 "The first 3 workers are now free",
                 "The cost of additional workers scales up more slowly",
             ],
-            100,
+            500,
             Currency.GOLD,
             () => {
                 this.freeWorkerCount = 3;
@@ -519,7 +520,7 @@ export default class Upgrades {
                 "The first 4 workers are now free",
                 "The cost of additional workers scales up more slowly",
             ],
-            250,
+            1550,
             Currency.GOLD,
             () => {
                 this.freeWorkerCount = 4;
@@ -534,7 +535,7 @@ export default class Upgrades {
             "pop_4_tbd",
             StringUtils.dedent(`TBD`),
             ["The cost of additional workers scales up more slowly"],
-            1000,
+            3000,
             Currency.GOLD,
             () => {
                 this.populationPowerScale = 1.6;
@@ -548,7 +549,7 @@ export default class Upgrades {
             "free_workers_1_tbd",
             StringUtils.dedent(`TBD`),
             ["The first 10 workers are now free"],
-            1500,
+            6500,
             Currency.GOLD,
             () => {
                 this.freeWorkerCount = 10;
@@ -562,7 +563,7 @@ export default class Upgrades {
             "In Deo Omnia Possibilia",
             StringUtils.dedent(`TBD`),
             ["Unlock the Religion research wing"],
-            800,
+            9999,
             Currency.GOLD,
             () => {
                 this.religion = true;

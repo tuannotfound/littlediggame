@@ -14,7 +14,6 @@ export default class LittleGuy {
     // The likelihood this little guy will wander in a given frame.
     MOVE_PROBABILITY_PCT = 2;
     DIG_PROBABILITY_PCT = 0.005;
-    DIG_VISUAL_PROGRESS_PCT_INTERVAL = 20;
     // The likelihood that we'll continue moving in the direction we were already moving in.
     DIRECTION_PERSISTENCE_FACTOR = 0.9;
     // The likelihood this little guy will get into heaven.
@@ -40,7 +39,6 @@ export default class LittleGuy {
         this.closestSurfacePixel = null;
         this.digging = false;
         this.pixelBeingDug = null;
-        this.digProgressPct = 0;
         // Whether we're dead or alive.
         this.alive = true;
         this.ascentionProgressPct = 0;
@@ -263,7 +261,7 @@ export default class LittleGuy {
         this.active = false;
         let tombstonePosition = null;
         if (this.pixelBeingDug) {
-            tombstonePosition = this.pixelBeingDug.renderPosition;
+            tombstonePosition = this.pixelBeingDug.position;
         } else {
             tombstonePosition = this.positionInPlanetSpace.copy();
             tombstonePosition.add(this.orientation);
@@ -303,8 +301,24 @@ export default class LittleGuy {
             return;
         }
         this.digging = true;
-        this.digProgressPct = 0;
-        this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+        // Look directly at our feet first
+        let underFoot = this.planet.getPixel(this.positionInPlanetSpace);
+        if (underFoot && underFoot.isSurface) {
+            this.pixelBeingDug = underFoot;
+        } else {
+            // Look just below our feet next. Note: I don't know why this isn't always the best
+            // option, but sometimes there's a pixel right @ positionInPlaceSpace that we need to
+            // set as the highest priority. Life is full of mysteries.
+            let underFootCoords = Vector.sub(this.positionInPlanetSpace, this.orientation);
+            underFoot = this.planet.getPixel(underFootCoords);
+            if (underFoot && underFoot.isSurface) {
+                this.pixelBeingDug = underFoot;
+            } else {
+                // This should only happen if we're, like, floating? Flying around? If this little guy
+                // is being a total bird, then we need to fall back to this.
+                this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+            }
+        }
         if (this.pixelBeingDug == null) {
             this.digging = false;
             return;
@@ -318,7 +332,7 @@ export default class LittleGuy {
         }
         this.digging = false;
         if (this.pixelBeingDug != null) {
-            this.planet.removePixelAt(this.pixelBeingDug.renderPosition);
+            this.planet.removePixelAt(this.pixelBeingDug.position);
             this.notifyDigComplete(this.pixelBeingDug);
         }
         this.goToNearestSurfacePixel();
@@ -337,7 +351,7 @@ export default class LittleGuy {
             this.alive = false;
             return;
         }
-        this.positionInPlanetSpace = newSurfacePixel.renderPosition;
+        this.positionInPlanetSpace = newSurfacePixel.position;
         // This is relative to the center of the planet
         this.position = this.toLocalSpace(this.positionInPlanetSpace);
         let angle = Math.atan2(this.position.y, this.position.x);
@@ -352,7 +366,7 @@ export default class LittleGuy {
             return;
         }
         // Make sure the pixel we're digging at is still present
-        if (!this.pixelBeingDug || !this.planet.getPixel(this.pixelBeingDug.renderPosition)) {
+        if (!this.pixelBeingDug || !this.planet.getPixel(this.pixelBeingDug.position)) {
             // Update our position and get a new pixel to work on
             this.goToNearestSurfacePixel();
             this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
@@ -363,13 +377,8 @@ export default class LittleGuy {
             }
         }
 
-        this.digProgressPct += this.game.upgrades.digSpeed;
-        // Only make visual progress in jumps, fits better with the look of the game.
-        let roundedDigProgressPct = Math.round(this.digProgressPct);
-        if (roundedDigProgressPct % this.DIG_VISUAL_PROGRESS_PCT_INTERVAL == 0) {
-            this.pixelBeingDug.setOpacity(1 - roundedDigProgressPct / 100);
-        }
-        if (this.digProgressPct >= 100) {
+        this.pixelBeingDug.damage(this.game.upgrades.digSpeed);
+        if (this.pixelBeingDug.getHealth() <= 0) {
             this.finishDigging();
         }
     }
@@ -457,7 +466,7 @@ export default class LittleGuy {
         for (let pixel of surfacePixels) {
             let pEdges = [];
             for (let d of toCheck) {
-                let edgePos = pixel.renderPosition.copy();
+                let edgePos = pixel.position.copy();
                 edgePos.add(d);
                 if (this.planet.getPixel(edgePos)) {
                     continue;
@@ -472,7 +481,7 @@ export default class LittleGuy {
         for (const [pixel, pEdges] of edges.entries()) {
             //console.log(v);
             for (const edge of pEdges) {
-                let candidate = pixel.renderPosition.copy();
+                let candidate = pixel.position.copy();
                 candidate.add(edge);
                 if (
                     candidate.x == positionInPlanetSpace.x &&

@@ -45,7 +45,7 @@ export default class Planet {
             this.createPlanetData();
         }
         for (const pixel of this.pixels) {
-            this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
+            this.pixelPositions.set(pixel.position.toString(), pixel);
         }
         this.initialCount = this.pixels.length;
         this.updateSurface();
@@ -64,7 +64,7 @@ export default class Planet {
 
     updatePixel(pixel, imageData) {
         pixel.render(imageData);
-        this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
+        this.pixelPositions.set(pixel.position.toString(), pixel);
     }
 
     createPixel(position, type = PixelType.DIRT) {
@@ -86,7 +86,7 @@ export default class Planet {
         }
         let pixel = this.createPixel(position, type);
         this.pixels.push(pixel);
-        this.pixelPositions.set(pixel.renderPosition.toString(), pixel);
+        this.pixelPositions.set(pixel.position.toString(), pixel);
         return pixel;
     }
 
@@ -116,7 +116,7 @@ export default class Planet {
         let index = this.pixels.indexOf(pixel);
         if (index > -1) {
             this.pixels.splice(index, 1);
-            this.pixelPositions.delete(pixel.renderPosition.toString());
+            this.pixelPositions.delete(pixel.position.toString());
             return true;
         }
         return false;
@@ -173,7 +173,7 @@ export default class Planet {
         let minDistance = Infinity;
 
         for (const pixel of this.surfacePixels) {
-            const distance = pixel.renderPosition.distSq(position);
+            const distance = pixel.position.distSq(position);
 
             if (distance < minDistance) {
                 minDistance = distance;
@@ -250,8 +250,8 @@ export default class Planet {
         };
 
         for (const pixel of this.pixels) {
-            const x = pixel.renderPosition.x;
-            const y = pixel.renderPosition.y;
+            const x = pixel.position.x;
+            const y = pixel.position.y;
             if (!visited[x][y]) {
                 dfs(x, y);
             }
@@ -262,12 +262,12 @@ export default class Planet {
 
     updateDarkness() {
         for (const pixel of this.pixels) {
-            let nearestSurfacePixel = this.getClosestSurfacePixel(pixel.renderPosition);
+            let nearestSurfacePixel = this.getClosestSurfacePixel(pixel.position);
             if (!nearestSurfacePixel) {
                 pixel.setDarkness(0);
                 continue;
             }
-            let distanceToSurface = nearestSurfacePixel.renderPosition.dist(pixel.renderPosition);
+            let distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
             pixel.setDarkness(1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2);
         }
     }

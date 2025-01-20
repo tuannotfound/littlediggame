@@ -22,4 +22,8 @@ export default class MathExtras {
     static randomBetween(min, max) {
         return Math.random() * (max - min) + min;
     }
+
+    static ceilToNearest(nearest, value) {
+        return Math.ceil(value / nearest) * nearest;
+    }
 }

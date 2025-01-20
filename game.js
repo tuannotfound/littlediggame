@@ -12,11 +12,11 @@ import Particles from "./particles.js";
 import Color from "./color.js";
 
 export default class Game {
-    MIN_WIDTH = 350;
+    MIN_WIDTH = 300;
     MAX_WIDTH = 1200;
     MIN_HEIGHT = 300;
     MAX_HEIGHT = 900;
-    MIN_ZOOM = 3.5;
+    MIN_ZOOM = 3.25;
     MAX_ZOOM = 10;
     MIN_SAVE_INTERVAL_MS = 5000;
     AUTO_SAVE_INTERVAL_MS = 30000;
@@ -100,9 +100,7 @@ export default class Game {
         for (let littleGuyJson of json.littleGuys) {
             let pixelBeingDug = null;
             if (littleGuyJson.pixelBeingDug) {
-                let pixelBeingDugPosition = Vector.fromJSON(
-                    littleGuyJson.pixelBeingDug.renderPosition
-                );
+                let pixelBeingDugPosition = Vector.fromJSON(littleGuyJson.pixelBeingDug.position);
                 pixelBeingDug = planet.getPixel(pixelBeingDugPosition);
             }
             let littleGuy = LittleGuy.fromJSON(littleGuyJson, game, pixelBeingDug);
@@ -336,7 +334,7 @@ export default class Game {
             this.updateLegend();
         }
         this.updateGold();
-        let positionInParticlesSpace = this.planetToParticleSpace(pixel.renderPosition);
+        let positionInParticlesSpace = this.planetToParticleSpace(pixel.position);
         let color = new Color(pixel.getRenderColor());
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
@@ -434,7 +432,7 @@ export default class Game {
         if (!closestSurfacePixel) {
             return;
         }
-        this.spawn(closestSurfacePixel.renderPosition, false);
+        this.spawn(closestSurfacePixel.position, false);
     }
 
     startNotEnoughGoldAnimation(other) {
@@ -597,7 +595,7 @@ export default class Game {
             );
             let closestSurfacePixel = this.planet.getClosestSurfacePixel(planetCoords);
             if (closestSurfacePixel) {
-                this.spawn(closestSurfacePixel.renderPosition, true);
+                this.spawn(closestSurfacePixel.position, true);
             }
 
             this.lastConceptionTime = this.now;

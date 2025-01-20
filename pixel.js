@@ -3,28 +3,30 @@ import Color from "./color.js";
 import MathExtras from "./math_extras.js";
 import Vector from "./vector.js";
 
+// Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {
     // If darkness is higher than this value then this pixel will appear to be dirt.
     HIDE_THRESHOLD = 0.15;
     DIAMOND_SHIMMER_PCT = 0.2;
     DIAMOND_SHIMMER_FRAMES_MAX = 5;
     DIAMOND_SHIMMER_COLOR_MOD = 1.2;
+    HEALTH_VISUAL_PCT_INTERVAL = 20;
 
     constructor(position, type = PixelType.DIRT, upgrades) {
         this.position = position.copy();
+        this.position.round();
         this.type = type;
         this.upgrades = upgrades;
         this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
             : new Color(type.surfaceColor);
+        this.health = type.health;
         this.altColor = type.altColor ? type.altColor : null;
         this.initialAlpha = this.color.a;
         // It's a diamond thing. You wouldn't understand.
         this.shimmeringFrames = 0;
 
-        this.renderPosition = position.copy();
-        this.renderPosition.round();
         this.isSurface = false;
         // 0-1, where 0 is no change to the color, 1 is fully black
         this.darkness = 0;
@@ -37,7 +39,7 @@ export default class Pixel {
             typeName: this.type.name,
             color: this.color,
             surfaceColor: this.surfaceColor,
-            renderPosition: this.renderPosition,
+            health: this.health,
             isSurface: this.isSurface,
             darkness: this.darkness,
         };
@@ -49,7 +51,7 @@ export default class Pixel {
         let pixel = new Pixel(position, type, upgrades);
         pixel.color = json.color;
         pixel.surfaceColor = json.surfaceColor;
-        pixel.renderPosition = Vector.fromJSON(json.renderPosition);
+        pixel.health = json.health;
         pixel.isSurface = json.isSurface;
         pixel.darkness = json.darkness;
         return pixel;
@@ -96,19 +98,55 @@ export default class Pixel {
         return this.isSurface ? this.surfaceColor : this.color;
     }
 
+    getRenderAlpha() {
+        let maxAlpha = this.initialAlpha;
+        let actLikeDirtDiff = this.actLikeDirt() ? this.type.health - PixelType.DIRT.health : 0;
+        let healthPct =
+            (100 * (this.health - actLikeDirtDiff)) / (this.type.health - actLikeDirtDiff);
+        healthPct = MathExtras.ceilToNearest(this.HEALTH_VISUAL_PCT_INTERVAL, healthPct);
+        return (maxAlpha * healthPct) / 100;
+    }
+
     render(imageData) {
-        if (this.renderPosition.x < 0 || this.renderPosition.x >= imageData.width) {
+        if (this.position.x < 0 || this.position.x >= imageData.width) {
             return;
         }
-        if (this.renderPosition.y < 0 || this.renderPosition.y >= imageData.height) {
+        if (this.position.y < 0 || this.position.y >= imageData.height) {
             return;
         }
-        let pixelIndex = (this.renderPosition.x + this.renderPosition.y * imageData.width) * 4;
+        let pixelIndex = (this.position.x + this.position.y * imageData.width) * 4;
         let color = this.getRenderColor();
         imageData.data[pixelIndex] = Math.round(color.r * (1 - this.darkness)); // Red
         imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - this.darkness)); // Green
         imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - this.darkness)); // Blue
-        imageData.data[pixelIndex + 3] = Math.round(color.a); // Alpha
+        let alpha = this.getRenderAlpha();
+        if (this.health < this.type.health) {
+            console.log(
+                "Pixel w/ type " +
+                    this.type.name +
+                    " has health: " +
+                    this.getHealth() +
+                    " (raw health: " +
+                    this.health +
+                    "), and alpha: " +
+                    alpha
+            );
+        }
+        imageData.data[pixelIndex + 3] = Math.round(alpha); // Alpha
+    }
+
+    damage(damage) {
+        this.health = Math.max(0, this.health - damage);
+    }
+
+    // Accounts for if we're acting like dirt.
+    getHealth() {
+        let actLikeDirt = this.actLikeDirt();
+        if (!actLikeDirt) {
+            return this.health;
+        }
+        let actLikeDirtDiff = this.type.health - PixelType.DIRT.health;
+        return Math.max(0, this.health - actLikeDirtDiff);
     }
 
     setSurface(isSurface) {
@@ -138,11 +176,11 @@ export default class Pixel {
 
     // Needed for quad tree
     get x() {
-        return this.renderPosition.x;
+        return this.position.x;
     }
 
     get y() {
-        return this.renderPosition.y;
+        return this.position.y;
     }
 
     get width() {

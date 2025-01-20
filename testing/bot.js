@@ -125,13 +125,13 @@ export default class Bot {
             console.log(
                 this.TAG +
                     "Spawning little guy at " +
-                    closestSurfacePixel.renderPosition.toString() +
+                    closestSurfacePixel.position.toString() +
                     " for " +
                     this.game.spawnCost +
                     " gold w/ EV of " +
                     expectedValue
             );
-            this.game.spawn(closestSurfacePixel.renderPosition, false);
+            this.game.spawn(closestSurfacePixel.position, false);
         }
     }
 

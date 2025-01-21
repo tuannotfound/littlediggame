@@ -26,4 +26,22 @@ export default class MathExtras {
     static ceilToNearest(nearest, value) {
         return Math.ceil(value / nearest) * nearest;
     }
+
+    // Scales 'value', which lies between 'fromRangeMin' and 'fromRangeMax', into the corresponding
+    // position between 'toRangeMin' and 'toRangeMax'.
+    // e.g. for:
+    //   * value = 5
+    //   * fromRangeMin = 0
+    //   * fromRangeMax = 10
+    //   * toRangeMin = 100
+    //   * toRangeMax = 200
+    // The output would be 150, because 5 is halfway between the 'from range' values -> so the
+    // output is halfway between the 'to range' values.
+    static scaleBetween(value, fromRangeMin, fromRangeMax, toRangeMin, toRangeMax) {
+        value = MathExtras.clamp(value, fromRangeMin, fromRangeMax);
+        return (
+            ((value - fromRangeMin) / (fromRangeMax - fromRangeMin)) * (toRangeMax - toRangeMin) +
+            toRangeMin
+        );
+    }
 }

@@ -10,6 +10,7 @@ import UpgradesUi from "./upgrades_ui.js";
 import PixelType from "./pixel_type.js";
 import Particles from "./particles.js";
 import Color from "./color.js";
+import Serpent from "./serpent.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -41,6 +42,18 @@ export default class Game {
         this.upgrades = null;
         this.planet = null;
         this.planetPosition = null;
+
+        this.serpent = new Serpent(
+            16,
+            new Vector(
+                this.layer.width / this.zoomLevel,
+                this.layer.height / this.zoomLevel
+            ).round(),
+            new Vector(
+                this.layer.width / (this.zoomLevel * 2),
+                this.layer.height / (this.zoomLevel * 2)
+            ).round()
+        );
 
         this.littleGuys = [];
         this.littleGuyListener = {
@@ -167,15 +180,9 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
-        let digSpeedBtn = document.getElementById("digspeed");
-        digSpeedBtn.addEventListener("click", () => {
-            this.upgrades.digSpeed += 1;
-            console.log("Dig speed: " + this.upgrades.digSpeed);
-        });
-        let digCountBtn = document.getElementById("digcount");
-        digCountBtn.addEventListener("click", () => {
-            this.upgrades.digCount += 1;
-            console.log("Dig count: " + this.upgrades.digCount);
+        let serpentBtn = document.getElementById("serpent");
+        serpentBtn.addEventListener("click", () => {
+            this.spawnSerpent();
         });
         let seekGoldBtn = document.getElementById("seek_gold");
         seekGoldBtn.addEventListener("change", () => {
@@ -207,21 +214,6 @@ export default class Game {
 
         this.updateLegend();
 
-        let debugCheckbox = document.getElementById("debug_checkbox");
-        window.DEBUG = debugCheckbox.checked;
-        debugCheckbox.addEventListener("change", () => {
-            if (window.DEBUG == debugCheckbox.checked) {
-                return;
-            }
-            window.DEBUG = debugCheckbox.checked;
-            let debugDiv = document.getElementById("debug");
-            if (window.DEBUG) {
-                debugDiv.classList.remove("hidden");
-            } else {
-                debugDiv.classList.add("hidden");
-            }
-            console.log("Debug: " + window.DEBUG);
-        });
         for (let i = 0; i < 4; i++) {
             let pow = i + 1;
             let val = 10 ** pow;
@@ -283,6 +275,11 @@ export default class Game {
                 this.layer.initOnscreen(oldLayer.container);
             }
             oldLayer.destroy();
+        }
+        if (this.serpent) {
+            this.serpent.onResize(
+                new Vector(this.bounds.x / this.zoomLevel, this.bounds.x / this.zoomLevel).round()
+            );
         }
         this.updatePlanetPosition();
     }
@@ -500,26 +497,11 @@ export default class Game {
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
     }
 
-    addAround(planetCoords, radius, count) {
-        for (let i = 0; i < count; i++) {
-            this.planet.addPixel(
-                MathExtras.getRandomPointInCircle(planetCoords, radius),
-                new Color(255, 0, 0, 255)
-            );
+    spawnSerpent() {
+        if (this.serpent.initialized) {
+            return;
         }
-    }
-
-    removeAround(center, radius) {
-        let toRemove = [];
-        for (let x = center.x - radius; x < center.x + radius; x++) {
-            for (let y = center.y - radius; y < center.y + radius; y++) {
-                let dist = new Vector(center.x - x, center.y - y).mag();
-                if (dist < radius) {
-                    toRemove.push(new Vector(x, y));
-                }
-            }
-        }
-        this.planet.removePixelsAt(toRemove);
+        this.serpent.init();
     }
 
     // Center is in planet space
@@ -542,6 +524,20 @@ export default class Game {
                 pixel.bloody();
             }
         }
+    }
+
+    handleDeath(littleGuy) {
+        if (this.upgrades.afterlife) {
+            if (inactiveLittleGuy.saintly) {
+                this.angelCount++;
+            } else {
+                this.demonCount++;
+            }
+            this.gold += this.upgrades.goldPer[PixelType.TOMBSTONE];
+            this.updateGold();
+        }
+        this.bloodyAround(inactiveLittleGuy.positionInPlanetSpace);
+        this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
     }
 
     setPaused(paused) {
@@ -646,21 +642,29 @@ export default class Game {
             this.updateLegend();
         }
         for (const inactiveLittleGuy of inactiveLittleGuys) {
-            if (this.upgrades.afterlife) {
-                if (inactiveLittleGuy.saintly) {
-                    this.angelCount++;
-                } else {
-                    this.demonCount++;
-                }
-            }
-            this.bloodyAround(inactiveLittleGuy.positionInPlanetSpace);
-            this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
+            this.handleDeath(inactiveLittleGuy);
         }
         if (inactiveLittleGuys.length > 0) {
             this.updateSpawnCost();
         }
 
+        this.serpent.update();
+        if (this.serpent.initialized) {
+            this.layer.getContext().drawImage(
+                this.serpent.layer.canvas,
+                0, // source x
+                0, // source y
+                this.serpent.layer.width, // source width
+                this.serpent.layer.height, // source height
+                (-this.serpent.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
+                (-this.serpent.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
+                this.serpent.layer.width * this.zoomLevel, // destination width
+                this.serpent.layer.height * this.zoomLevel // destination height
+            );
+        }
+
         // Particles
+        // Render them last as they go on top of everything else.
         // Don't do particles on higher game speeds (used for testing only)
         if (this.gameSpeed == 1) {
             this.particles.update(elapsedMs);

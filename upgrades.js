@@ -14,6 +14,7 @@ export default class Upgrades {
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 50;
         this.goldPer[PixelType.EGG.name] = 0;
+        this.goldPer[PixelType.SERPENT.name] = 5555;
         this.unlock_gold = false;
         this.unlock_diamonds = false;
         this.diamondRadar = false;
@@ -586,7 +587,10 @@ export default class Upgrades {
             "afterlife",
             "Supra Vita",
             StringUtils.dedent(`TBD`),
-            ["Death no longer results in a tombstone being created"],
+            [
+                "Death no longer results in a tombstone being created",
+                "Tombstone gold granted immediately upon death",
+            ],
             1622,
             Currency.GOLD,
             () => {

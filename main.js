@@ -60,6 +60,22 @@ document.onreadystatechange = function () {
         //     newGameBtn.click();
         // }
 
+        let debugCheckbox = document.getElementById("debug_checkbox");
+        window.DEBUG = debugCheckbox.checked;
+        debugCheckbox.addEventListener("change", () => {
+            if (window.DEBUG == debugCheckbox.checked) {
+                return;
+            }
+            window.DEBUG = debugCheckbox.checked;
+            let debugDiv = document.getElementById("debug");
+            if (window.DEBUG) {
+                debugDiv.classList.remove("hidden");
+            } else {
+                debugDiv.classList.add("hidden");
+            }
+            console.log("Debug: " + window.DEBUG);
+        });
+
         let upgradesContainer = document.getElementById("upgrades_container");
         let showUpgradesBtn = document.getElementById("show_upgrades");
         showUpgradesBtn.addEventListener("click", () => {

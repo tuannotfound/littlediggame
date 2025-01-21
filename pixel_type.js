@@ -37,7 +37,15 @@ const PixelType = {
         color: new Color(247, 246, 230).immutableCopy(),
         surfaceColor: new Color(130, 126, 109).immutableCopy(),
         altColor: new Color(196, 188, 159).immutableCopy(),
-        health: 2000,
+        health: 10000,
+        variableColor: true,
+    }),
+    SERPENT: Object.freeze({
+        name: "SERPENT",
+        color: new Color(160, 90, 184).immutableCopy(),
+        surfaceColor: new Color(85, 51, 97).immutableCopy(),
+        altColor: new Color(134, 250, 57).immutableCopy(),
+        health: 100000,
         variableColor: true,
     }),
 };

@@ -153,6 +153,7 @@ Vector.sub = function (v1, v2) {
 Vector.add = function (v1, v2) {
     return new Vector(v1.x + v2.x, v1.y + v2.y);
 };
+// Second arg can be either a Vector or a scalar
 Vector.mult = function (v1, v2) {
     if (typeof v2 === "number") {
         return new Vector(v1.x * v2, v1.y * v2);
@@ -165,6 +166,15 @@ Vector.fromAngle = function (angle) {
     v.x = Math.cos(angle);
     v.y = Math.sin(angle);
     return v;
+};
+Vector.equals = function (v1, v2) {
+    if (v1 == null && v2 == null) {
+        return true;
+    }
+    if (v1 == null || v2 == null) {
+        return false;
+    }
+    return v1.x == v2.x && v1.y == v2.y;
 };
 Vector.random2D = function () {
     return Vector.fromAngle(Math.random() * Math.PI * 180);

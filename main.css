@@ -24,7 +24,7 @@ body {
 canvas {
     image-rendering: pixelated;
     border: 1px solid #000;
-    touch-action: none;
+    touch-action: manipulation;
 }
 
 p {
@@ -199,6 +199,10 @@ span.diamond {
 
 span.egg {
     color: rgb(247, 246, 230);
+}
+
+span.serpent {
+    color: rgb(160, 90, 184);
 }
 
 .pulsing {

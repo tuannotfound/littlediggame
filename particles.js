@@ -62,6 +62,9 @@ export default class Particles {
     }
 
     coinEffect(position, value) {
+        if (value == 0) {
+            return;
+        }
         // TBD: Could probably use some tweaking.
         let count = MathExtras.clamp(value / 50, 1, 10);
         for (let i = 0; i < count; i++) {

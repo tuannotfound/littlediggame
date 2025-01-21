@@ -115,31 +115,20 @@ export default class Pixel {
         return (maxAlpha * healthPct) / 100;
     }
 
-    render(imageData) {
-        if (this.position.x < 0 || this.position.x >= imageData.width) {
+    render(imageData, offset) {
+        let renderPosition = offset ? Vector.add(this.position, offset) : this.position;
+        if (renderPosition.x < 0 || renderPosition.x >= imageData.width) {
             return;
         }
-        if (this.position.y < 0 || this.position.y >= imageData.height) {
+        if (renderPosition.y < 0 || renderPosition.y >= imageData.height) {
             return;
         }
-        let pixelIndex = (this.position.x + this.position.y * imageData.width) * 4;
+        let pixelIndex = (renderPosition.x + renderPosition.y * imageData.width) * 4;
         let color = this.getRenderColor();
         imageData.data[pixelIndex] = Math.round(color.r * (1 - this.darkness)); // Red
         imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - this.darkness)); // Green
         imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - this.darkness)); // Blue
         let alpha = this.getRenderAlpha();
-        if (this.health < this.type.health) {
-            console.log(
-                "Pixel w/ type " +
-                    this.type.name +
-                    " has health: " +
-                    this.getHealth() +
-                    " (raw health: " +
-                    this.health +
-                    "), and alpha: " +
-                    alpha
-            );
-        }
         imageData.data[pixelIndex + 3] = Math.round(alpha); // Alpha
     }
 

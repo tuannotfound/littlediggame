@@ -1,7 +1,9 @@
 import MathExtras from "./math_extras.js";
 
 export default class Color {
-    static BLOOD = new Color(168, 37, 37);
+    static BLOOD = new Color(168, 37, 37).immutableCopy();
+    static FIRE_START = new Color(237, 65, 7).immutableCopy();
+    static FIRE_END = new Color(252, 244, 91).immutableCopy();
 
     constructor(r, g, b, a) {
         if (
@@ -42,6 +44,10 @@ export default class Color {
         Color.clamp(this);
     }
 
+    copy() {
+        return new Color(this);
+    }
+
     immutableCopy() {
         return Object.freeze(new Color(this));
     }
@@ -64,5 +70,9 @@ export default class Color {
         wiggled.b += Math.round((Math.random() * 2 - 1) * maxChange);
         wiggled.clamp();
         return wiggled;
+    }
+
+    static diff(c1, c2) {
+        return new Color(c2.r - c1.r, c2.g - c1.g, c2.b - c1.b, c2.a - c1.a);
     }
 }

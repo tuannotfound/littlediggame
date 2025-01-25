@@ -13,8 +13,13 @@ export default function Vector(x, y) {
 Vector.prototype = {
     add: function (x, y) {
         if (arguments.length === 1) {
-            this.x += x.x;
-            this.y += x.y;
+            if (typeof x === "number") {
+                this.x += x;
+                this.y += x;
+            } else {
+                this.x += x.x;
+                this.y += x.y;
+            }
         } else if (arguments.length === 2) {
             this.x += x;
             this.y += y;
@@ -23,8 +28,13 @@ Vector.prototype = {
     },
     sub: function (x, y) {
         if (arguments.length === 1) {
-            this.x -= x.x;
-            this.y -= x.y;
+            if (typeof x === "number") {
+                this.x -= x;
+                this.y -= x;
+            } else {
+                this.x -= x.x;
+                this.y -= x.y;
+            }
         } else if (arguments.length === 2) {
             this.x -= x;
             this.y -= y;
@@ -148,18 +158,23 @@ Vector.distSq = function (v1, v2) {
     return v1.distSq(v2);
 };
 Vector.sub = function (v1, v2) {
+    if (typeof v2 === "number") {
+        return new Vector(v1.x - v2, v1.y - v2);
+    }
     return new Vector(v1.x - v2.x, v1.y - v2.y);
 };
 Vector.add = function (v1, v2) {
+    if (typeof v2 === "number") {
+        return new Vector(v1.x + v2, v1.y + v2);
+    }
     return new Vector(v1.x + v2.x, v1.y + v2.y);
 };
 // Second arg can be either a Vector or a scalar
 Vector.mult = function (v1, v2) {
     if (typeof v2 === "number") {
         return new Vector(v1.x * v2, v1.y * v2);
-    } else {
-        return new Vector(v1.x * v2.x, v1.y * v2.y);
     }
+    return new Vector(v1.x * v2.x, v1.y * v2.y);
 };
 Vector.fromAngle = function (angle) {
     let v = new Vector(0, 0);
@@ -181,4 +196,7 @@ Vector.random2D = function () {
 };
 Vector.fromJSON = function (json) {
     return Object.assign(new Vector(), json);
+};
+Vector.swapXY = function (v) {
+    return new Vector(v.y, v.x);
 };

@@ -14,7 +14,7 @@ export default class Serpent {
         bounds,
         initialPosition,
         initialDirection = new Vector(0, -1),
-        speed = 1
+        speed = 0.25
     ) {
         this.segmentCount = segmentCount;
         this.bounds = bounds;
@@ -112,7 +112,7 @@ export default class Serpent {
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 5;
+    MAX_TURN_CHANCE_PCT = 0; //5;
     constructor(size, bounds, position, direction, speed, upgrades) {
         this.size = Math.round(size);
         this.bounds = bounds;
@@ -125,7 +125,7 @@ class Segment {
         this.renderPositionChangesSinceLastTurn = 0;
 
         this.history = [];
-        this.historySize = Math.ceil(this.size / this.speed);
+        this.historySize = Math.ceil(this.size);
         for (let i = 0; i < this.historySize; i++) {
             this.history.push({
                 renderPosition: this.renderPosition.copy(),
@@ -167,13 +167,6 @@ class Segment {
     }
 
     update() {
-        this.history.push({
-            renderPosition: this.renderPosition.copy(),
-            direction: this.direction.copy(),
-        });
-        if (this.history.length > this.historySize) {
-            this.history.shift();
-        }
         if (!this.foreSegment) {
             // We're a head segment, decide if we're going to turn
             let forcedToTurn = !this.canMoveForward();
@@ -231,23 +224,55 @@ class Segment {
             this.position.add(Vector.mult(this.direction, this.speed));
             this.renderPosition.set(this.position);
             this.renderPosition.round();
-
-            if (!Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
-                // Not all updates result in a new render position. At slow speeds, we can go many
-                // updates before we visually move, but we don't want this to count towards our
-                // time since last turn.
-                this.renderPositionChangesSinceLastTurn++;
-            }
             if (window.DEBUG) {
                 console.log(Serpent.TAG + "Head segment @ " + this.renderPosition.toString());
             }
         } else {
             // This almost works, but the difference in size between segments causes gaps to appear
-            // bewteen segments. Need to account for that somehow.
+            // between segments. Need to account for that somehow.
             let foreState = this.foreSegment.oldestState;
-            this.position = foreState.renderPosition;
-            this.renderPosition = foreState.renderPosition;
             this.direction = foreState.direction;
+
+            let forePosition = foreState.renderPosition;
+            let foreCenter = Vector.add(forePosition, this.foreSegment.size / 2);
+            let foreConnectionPosition = Vector.add(
+                foreCenter,
+                Vector.mult(foreState.direction, this.foreSegment.size / 2)
+            );
+            let offsetPosition = foreConnectionPosition.copy();
+
+            if (this.direction.x == 1) {
+                offsetPosition.sub(this.size, 0);
+                offsetPosition.sub(0, this.size / 2);
+            } else if (this.direction.y == 1) {
+                offsetPosition.sub(0, this.size);
+                offsetPosition.sub(this.size / 2, 0);
+            } else if (this.direction.y == -1) {
+                offsetPosition.sub(this.size / 2, 0);
+            } else if (this.direction.x == -1) {
+                offsetPosition.sub(0, this.size / 2);
+            }
+
+            // offsetPosition.add(this.foreSegment.size / 2 - this.size / 2);
+            // offsetPosition.add(Vector.mult(this.direction, this.foreSegment.size - this.size));
+            this.position = offsetPosition;
+            this.renderPosition = offsetPosition.copy();
+            this.renderPosition.round();
+        }
+
+        if (!Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
+            // Not all updates result in a new render position. At slow speeds, we can go many
+            // updates before we visually move, but we don't want this to count towards our
+            // time since last turn.
+            this.renderPositionChangesSinceLastTurn++;
+
+            this.history.push({
+                renderPosition: this.renderPosition.copy(),
+                direction: this.direction.copy(),
+            });
+            if (this.history.length > this.historySize) {
+                this.history.shift();
+            }
         }
     }
 

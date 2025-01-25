@@ -2,6 +2,7 @@ import Particle from "./particle.js";
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import Color from "./color.js";
+import Gradient from "./gradient.js";
 import MathExtras from "./math_extras.js";
 import PixelType from "./pixel_type.js";
 
@@ -58,6 +59,45 @@ export default class Particles {
             );
             let particle = new Particle(position, Color.wiggle(Color.BLOOD, 10), initialVelocity);
             this.particles.push(particle);
+        }
+    }
+
+    fireEffect(position) {
+        let count = MathExtras.scaleBetween(Math.random(), 0, 1, 15, 20);
+        let smokeCount = Math.round(count * 0.4);
+        let smokeGradient = new Gradient(new Color(190, 190, 190, 150), new Color(40, 40, 40, 200));
+        let fireCount = count - smokeCount;
+        let fireGradient = new Gradient(Color.FIRE_START, Color.FIRE_END);
+        for (let i = 0; i < count; i++) {
+            let color;
+            let fadeSpeed;
+            if (i < smokeCount) {
+                color = smokeGradient.get((100 * i) / smokeCount);
+                fadeSpeed = 6;
+            } else {
+                color = fireGradient.get((100 * (i - smokeCount)) / fireCount);
+                fadeSpeed = 10;
+            }
+            setTimeout(() => {
+                // Causes the fire to shift left/right over time
+                let xShift = Math.floor(MathExtras.scaleBetween(Math.random(), 0, 1, 0, 3)) - 1;
+                for (let j = 0; j < 2; j++) {
+                    let particlePosition = position.copy();
+                    particlePosition.x += j - 1 + xShift;
+                    if (j == 1) {
+                        particlePosition.y -= 1;
+                    } else {
+                        particlePosition.y += 2;
+                    }
+                    let particle = new Particle(
+                        particlePosition,
+                        color,
+                        new Vector(0.1 * (j - 1), -0.8)
+                    );
+                    particle.fadeSpeed = fadeSpeed;
+                    this.particles.push(particle);
+                }
+            }, i * 20);
         }
     }
 

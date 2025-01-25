@@ -16,6 +16,7 @@ export default class Bot {
 
         this.peakGold = 0;
         this.mostRecentUpgrade = "";
+        this.lastUpgradeTimestamp = 0;
     }
 
     start() {
@@ -162,6 +163,7 @@ export default class Bot {
                     );
                     buyBtn.click();
                     this.mostRecentUpgrade = cheapestUpgrade.id;
+                    this.lastUpgradeTimestamp = performance.now();
                 }
             }
         }
@@ -170,9 +172,11 @@ export default class Bot {
     recordState() {
         let manualLittleGuyCount = this.game.littleGuys.filter((lg) => !lg.immaculate).length;
         let autoLittleGuyCount = this.game.littleGuys.length - manualLittleGuyCount;
+        let timeSinceLastUpgradeMs =
+            (performance.now() - this.lastUpgradeTimestamp) * this.GAME_SPEED;
         let event = new Event(
             // In minutes
-            (100 * (performance.now() * this.GAME_SPEED)) / (1000 * 60),
+            (performance.now() * this.GAME_SPEED) / (1000 * 60),
             this.game.gold,
             this.peakGold,
             manualLittleGuyCount,
@@ -181,7 +185,8 @@ export default class Bot {
             this.game.planet.health,
             this.game.upgrades,
             this.findCheapestUpgrade(),
-            this.mostRecentUpgrade
+            this.mostRecentUpgrade,
+            timeSinceLastUpgradeMs / (1000 * 60)
         );
         this.events.push(event);
     }
@@ -231,7 +236,7 @@ export default class Bot {
 
 class Event {
     constructor(
-        timestamp,
+        timestampMinutes,
         gold,
         peakGold,
         manualLittleGuyCount,
@@ -240,9 +245,10 @@ class Event {
         worldHealth,
         upgrades,
         cheapestUpgrade,
-        mostRecentUpgrade
+        mostRecentUpgrade,
+        timeSinceLastUpgradeMinutes
     ) {
-        this.timestamp = timestamp;
+        this.timestampMinutes = timestampMinutes;
         this.gold = gold;
         this.peakGold = peakGold;
         this.manualLittleGuyCount = manualLittleGuyCount;
@@ -257,6 +263,7 @@ class Event {
             ? Math.min(100, (100 * this.gold) / cheapestUpgrade.cost)
             : 100;
         this.mostRecentUpgrade = mostRecentUpgrade;
+        this.timeSinceLastUpgradeMinutes = timeSinceLastUpgradeMinutes;
     }
 
     setUpgradeState(upgrades) {
@@ -281,7 +288,7 @@ class Event {
 
     static getHeaders() {
         return [
-            "timestamp_minutes",
+            "timestampMinutes",
             "gold",
             "peakGold",
             "manualLittleGuyCount",
@@ -292,6 +299,7 @@ class Event {
             "cheapestUpgradeCost",
             "progressToNextUpgrade",
             "mostRecentUpgrade",
+            "timeSinceLastUpgradeMinutes",
             "goldPerDirt",
             "goldPerTombstone",
             "goldPerGold",
@@ -306,7 +314,7 @@ class Event {
 
     asRow() {
         let data = [];
-        data.push(this.timestamp.toFixed(2));
+        data.push(this.timestampMinutes.toFixed(2));
         data.push(this.gold);
         data.push(this.peakGold);
         data.push(this.manualLittleGuyCount);
@@ -317,6 +325,7 @@ class Event {
         data.push(this.cheapestUpgradeCost);
         data.push(this.progressToNextUpgrade);
         data.push(this.mostRecentUpgrade);
+        data.push(this.timeSinceLastUpgradeMinutes);
         data.push(this.goldPerDirt);
         data.push(this.goldPerTombstone);
         data.push(this.goldPerGold);

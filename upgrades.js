@@ -10,7 +10,7 @@ export default class Upgrades {
         this.digCount = 2;
         this.goldPer = {};
         this.goldPer[PixelType.DIRT.name] = 1;
-        this.goldPer[PixelType.GOLD.name] = 5;
+        this.goldPer[PixelType.GOLD.name] = 8;
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 50;
         this.goldPer[PixelType.EGG.name] = 0;
@@ -151,7 +151,7 @@ export default class Upgrades {
                 cruelly is even more productive. You hope the gold is masochistic and this behavior
                 isn't entirely immoral.`
             ),
-            ["+75% more gold extracted from dirt", "+50% more gold extracted from gold"],
+            ["+75% more gold extracted from dirt", "+60% more gold extracted from gold"],
             675,
             Currency.GOLD,
             () => {
@@ -159,7 +159,7 @@ export default class Upgrades {
                     this.goldPer[PixelType.DIRT.name] * 1.75
                 );
                 this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.5
+                    this.goldPer[PixelType.GOLD.name] * 1.6
                 );
             }
         );

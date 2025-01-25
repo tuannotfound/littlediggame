@@ -528,7 +528,7 @@ export default class Game {
 
     handleDeath(littleGuy) {
         if (this.upgrades.afterlife) {
-            if (inactiveLittleGuy.saintly) {
+            if (littleGuy.saintly) {
                 this.angelCount++;
             } else {
                 this.demonCount++;
@@ -536,8 +536,8 @@ export default class Game {
             this.gold += this.upgrades.goldPer[PixelType.TOMBSTONE];
             this.updateGold();
         }
-        this.bloodyAround(inactiveLittleGuy.positionInPlanetSpace);
-        this.littleGuys.splice(this.littleGuys.indexOf(inactiveLittleGuy), 1);
+        this.bloodyAround(littleGuy.positionInPlanetSpace);
+        this.littleGuys.splice(this.littleGuys.indexOf(littleGuy), 1);
     }
 
     setPaused(paused) {

@@ -7,6 +7,7 @@ import Vector from "./vector.js";
 export default class Pixel {
     // If darkness is higher than this value then this pixel will appear to be dirt.
     HIDE_THRESHOLD = 0.15;
+    HIDE_THRESHOLD_EGG = 0.3;
     DIAMOND_SHIMMER_PCT = 0.2;
     DIAMOND_SHIMMER_FRAMES_MAX = 5;
     DIAMOND_SHIMMER_COLOR_MOD = 1.2;
@@ -25,6 +26,8 @@ export default class Pixel {
         } else {
             this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
         }
+        this.hideThreshold =
+            this.type == PixelType.EGG ? this.HIDE_THRESHOLD_EGG : this.HIDE_THRESHOLD;
         this.surfaceColor = type.variableColor
             ? Color.wiggle(type.surfaceColor, 10)
             : new Color(type.surfaceColor);
@@ -74,7 +77,7 @@ export default class Pixel {
             !window.DEBUG
         ) {
             actLikeDirt = true;
-        } else if (this.darkness >= this.HIDE_THRESHOLD && !window.DEBUG) {
+        } else if (this.darkness >= this.hideThreshold && !window.DEBUG) {
             if (
                 (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
                 (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar) ||
@@ -125,9 +128,10 @@ export default class Pixel {
         }
         let pixelIndex = (renderPosition.x + renderPosition.y * imageData.width) * 4;
         let color = this.getRenderColor();
-        imageData.data[pixelIndex] = Math.round(color.r * (1 - this.darkness)); // Red
-        imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - this.darkness)); // Green
-        imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - this.darkness)); // Blue
+        let darkness = window.DEBUG ? 0 : this.darkness;
+        imageData.data[pixelIndex] = Math.round(color.r * (1 - darkness)); // Red
+        imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - darkness)); // Green
+        imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - darkness)); // Blue
         let alpha = this.getRenderAlpha();
         imageData.data[pixelIndex + 3] = Math.round(alpha); // Alpha
     }

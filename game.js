@@ -60,11 +60,18 @@ export default class Game {
             onDigComplete: (pixel) => {
                 this.onDigComplete(pixel);
             },
+            onDeath: (littleGuy) => {
+                this.handleDeath(littleGuy);
+            },
+            onInactive: (littleGuy) => {
+                this.handleInactive(littleGuy);
+            },
         };
 
         this.particles = new Particles(this.width, this.height);
 
         this.knowsDeath = false;
+        this.knowsEggDeath = false;
         this.knowsDirt = false;
         this.gold = 0;
         this.goldElement = null;
@@ -377,6 +384,7 @@ export default class Game {
             document.getElementById("gold_per_" + pixelType.name).innerText =
                 this.upgrades.goldPer[pixelType.name];
         }
+
         let updateHidden = function (type, show) {
             let element = document.querySelector("span." + type.name.toLowerCase()).parentElement;
             if (show) {
@@ -389,6 +397,14 @@ export default class Game {
         updateHidden(PixelType.TOMBSTONE, this.knowsDeath);
         updateHidden(PixelType.GOLD, this.upgrades.unlock_gold);
         updateHidden(PixelType.DIAMOND, this.upgrades.unlock_diamonds);
+        updateHidden(PixelType.EGG, this.knowsEggDeath || this.upgrades.eggHandling);
+
+        let eggSpan = document.querySelector(
+            "span#" + PixelType.EGG.name.toLowerCase() + "_legend_title"
+        );
+        if (this.upgrades.eggHandling) {
+            eggSpan.innerText = "Egg";
+        }
     }
 
     gameToPlanetCoords(gameCoords) {
@@ -527,17 +543,30 @@ export default class Game {
     }
 
     handleDeath(littleGuy) {
+        if (!this.knowsDeath) {
+            this.knowsDeath = true;
+            this.updateLegend();
+        }
         if (this.upgrades.afterlife) {
             if (littleGuy.saintly) {
                 this.angelCount++;
             } else {
                 this.demonCount++;
             }
-            this.gold += this.upgrades.goldPer[PixelType.TOMBSTONE];
+            this.gold += this.upgrades.goldPer[PixelType.TOMBSTONE.name];
             this.updateGold();
         }
+        if (littleGuy.deathByEgg) {
+            this.knowsEggDeath = true;
+            this.particles.fireEffect(this.planetToParticleSpace(littleGuy.positionInPlanetSpace));
+            this.updateLegend();
+        }
         this.bloodyAround(littleGuy.positionInPlanetSpace);
+    }
+
+    handleInactive(littleGuy) {
         this.littleGuys.splice(this.littleGuys.indexOf(littleGuy), 1);
+        this.updateSpawnCost();
     }
 
     setPaused(paused) {
@@ -614,11 +643,9 @@ export default class Game {
         );
 
         // Little guys
-        let inactiveLittleGuys = [];
         for (const littleGuy of this.littleGuys) {
             littleGuy.update(elapsedMs);
             if (!littleGuy.active) {
-                inactiveLittleGuys.push(littleGuy);
                 continue;
             }
             this.layer.getContext().drawImage(
@@ -636,16 +663,6 @@ export default class Game {
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height
             );
-        }
-        if (!this.knowsDeath && inactiveLittleGuys.length > 0) {
-            this.knowsDeath = true;
-            this.updateLegend();
-        }
-        for (const inactiveLittleGuy of inactiveLittleGuys) {
-            this.handleDeath(inactiveLittleGuy);
-        }
-        if (inactiveLittleGuys.length > 0) {
-            this.updateSpawnCost();
         }
 
         this.serpent.update();

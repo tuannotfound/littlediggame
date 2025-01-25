@@ -5,7 +5,7 @@ import StringUtils from "./string_utils.js";
 
 export default class Upgrades {
     constructor() {
-        // Pct pts increase per frame towards a complete dig.
+        // Base
         this.digSpeed = 0.5;
         this.digCount = 2;
         this.goldPer = {};
@@ -13,7 +13,7 @@ export default class Upgrades {
         this.goldPer[PixelType.GOLD.name] = 8;
         this.goldPer[PixelType.TOMBSTONE.name] = 0;
         this.goldPer[PixelType.DIAMOND.name] = 50;
-        this.goldPer[PixelType.EGG.name] = 0;
+        this.goldPer[PixelType.EGG.name] = 393;
         this.goldPer[PixelType.SERPENT.name] = 5555;
         this.unlock_gold = false;
         this.unlock_diamonds = false;
@@ -22,11 +22,17 @@ export default class Upgrades {
         this.freeWorkerCount = 1;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
+
+        // Religion
         this.religion = false;
         this.afterlife = false;
         this.conceptionIntervalMs = -1;
         this.heavenRevealed = false;
         this.hellRevealed = false;
+
+        // Serpent
+        this.eggHandling = false;
+
         this.upgradeTree = new Map();
         this.initUpgradeTree();
     }
@@ -628,7 +634,7 @@ export default class Upgrades {
 
         let spawning3 = new Upgrade(
             "spawning_3",
-            "Beati Lumbi",
+            "spawning_3_tbd",
             StringUtils.dedent(`TBD`),
             ["You are blessed with thrice as many new members joining your efforts"],
             10323,
@@ -665,5 +671,36 @@ export default class Upgrades {
         );
         diamondRadar.addPrereq(goldRadar);
         this.upgradeTree.set(diamondRadar.id, diamondRadar);
+
+        let serpent = new Upgrade(
+            "serpent",
+            "serpent_tbd",
+            StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
+            ["Unlocks the Serpent research wing"],
+            1,
+            Currency.GOLD,
+            () => {
+                this.serpent = true;
+                this.initSerpentTree();
+            }
+        );
+        serpent.addPrereq(spawning3);
+        serpent.addPrereq(afterlife);
+        this.upgradeTree.set(serpent.id, serpent);
+    }
+
+    initSerpentTree() {
+        let eggHandling = new Upgrade(
+            "egg_handling",
+            "egg_handling_tbd",
+            StringUtils.dedent(`TBD`),
+            ["Allows workers to exist near the Egg."],
+            1,
+            Currency.GOLD,
+            () => {
+                this.eggHandling = true;
+            }
+        );
+        this.upgradeTree.set(eggHandling.id, eggHandling);
     }
 }

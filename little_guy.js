@@ -53,6 +53,7 @@ export default class LittleGuy {
         if (!this.saintly) {
             console.log("Uh oh, we got a bad one, folks");
         }
+        this.deathByEgg = false;
 
         this.listeners = [];
     }
@@ -72,6 +73,7 @@ export default class LittleGuy {
             active: this.active,
             digsRemaining: this.digsRemaining,
             saintly: this.saintly,
+            deathByEgg: this.deathByEgg,
         };
     }
 
@@ -94,6 +96,7 @@ export default class LittleGuy {
         littleGuy.active = json.active;
         littleGuy.digsRemaining = json.digsRemaining;
         littleGuy.saintly = json.saintly;
+        littleGuy.deathByEgg = json.deathByEgg;
         return littleGuy;
     }
 
@@ -108,6 +111,18 @@ export default class LittleGuy {
     notifyDigComplete(pixel) {
         for (const listener of this.listeners) {
             listener.onDigComplete(pixel);
+        }
+    }
+
+    notifyDeath() {
+        for (const listener of this.listeners) {
+            listener.onDeath(this);
+        }
+    }
+
+    notifyInactive() {
+        for (const listener of this.listeners) {
+            listener.onInactive(this);
         }
     }
 
@@ -243,6 +258,13 @@ export default class LittleGuy {
             this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
                 this.positionInPlanetSpace.copy().sub(this.orientation)
             );
+            if (this.closestSurfacePixel.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
+                // This doesn't quiiiiite work and will disallow guys from standing on some non-egg
+                // pixels too close to the egg for some reason.
+                this.deathByEgg = true;
+                this.die();
+                return;
+            }
             forcedToDig =
                 this.closestSurfacePixel &&
                 ((this.game.upgrades.unlock_gold &&
@@ -258,7 +280,6 @@ export default class LittleGuy {
     }
 
     bury() {
-        this.active = false;
         let tombstonePosition = null;
         if (this.pixelBeingDug) {
             tombstonePosition = this.pixelBeingDug.position;
@@ -272,6 +293,8 @@ export default class LittleGuy {
         } else {
             this.planet.updateSurface();
         }
+        this.active = false;
+        this.notifyInactive();
     }
 
     ascend() {
@@ -293,6 +316,7 @@ export default class LittleGuy {
         this.updateRenderData();
         if (this.ascentionProgressPct >= 100 || this.distToCenter < 0.2) {
             this.active = false;
+            this.notifyInactive();
         }
     }
 
@@ -341,14 +365,19 @@ export default class LittleGuy {
 
         this.digsRemaining--;
         if (this.digsRemaining <= 0) {
-            this.alive = false;
+            this.die();
         }
+    }
+
+    die() {
+        this.alive = false;
+        this.notifyDeath();
     }
 
     goToNearestSurfacePixel() {
         let newSurfacePixel = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
         if (!newSurfacePixel) {
-            this.alive = false;
+            this.die();
             return;
         }
         this.positionInPlanetSpace = newSurfacePixel.position;
@@ -359,6 +388,11 @@ export default class LittleGuy {
         this.position.add(this.orientation);
         this.previousPositions = [];
         this.closestSurfacePixel = newSurfacePixel;
+        if (this.closestSurfacePixel.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
+            this.deathByEgg = true;
+            this.die();
+            return;
+        }
     }
 
     dig() {
@@ -375,6 +409,12 @@ export default class LittleGuy {
                 this.digging = false;
                 return;
             }
+        }
+
+        if (this.pixelBeingDug.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
+            this.deathByEgg = true;
+            this.die();
+            return;
         }
 
         this.pixelBeingDug.damage(this.game.upgrades.digSpeed);
@@ -683,6 +723,6 @@ export default class LittleGuy {
         this.positionInPlanetSpace = this.toPlanetSpace(this.position);
         this.addPreviousPosition(this.positionInPlanetSpace);
         this.updateRenderData();
-        this.closestSurfacePixel = null;
+        this.closestSurfacePixel = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
     }
 }

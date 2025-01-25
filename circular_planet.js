@@ -12,12 +12,14 @@ export default class CircularPlanet extends Planet {
     MAX_RADIUS_DELTA_PER_STEP = 0.015;
 
     // Percent chance that a given pixel will be gold.
-    NEW_GOLD_PCT = 4;
+    NEW_GOLD_PCT_MIN = 6;
+    NEW_GOLD_PCT_MAX = 8;
     // Added to the above percent chance if the previous pixel at that radius was gold.
     CONTINUE_GOLD_PCT_BOOST = 65;
 
     // Percent chance that a given pixel will be a diamond.
-    DIAMOND_PCT = 4;
+    DIAMOND_PCT_MIN = 3;
+    DIAMOND_PCT_MAX = 40;
 
     constructor(radius) {
         let size = radius * 2;
@@ -79,9 +81,22 @@ export default class CircularPlanet extends Planet {
             let previousType = previousTypeMap.get(r);
             let previousWasGold = previousType == PixelType.GOLD.name;
             let goldThreshold =
-                this.NEW_GOLD_PCT + (previousWasGold ? this.CONTINUE_GOLD_PCT_BOOST : 0);
+                MathExtras.scaleBetween(
+                    radius - r,
+                    0,
+                    radius,
+                    this.NEW_GOLD_PCT_MIN,
+                    this.NEW_GOLD_PCT_MAX
+                ) + (previousWasGold ? this.CONTINUE_GOLD_PCT_BOOST : 0);
             let isGold = Math.random() * 100 < goldThreshold;
-            let isDiamond = isGold ? false : Math.random() * 100 < this.DIAMOND_PCT;
+            let diamondThreshold = MathExtras.scaleBetween(
+                radius - r,
+                0,
+                radius,
+                this.DIAMOND_PCT_MIN,
+                this.DIAMOND_PCT_MAX
+            );
+            let isDiamond = isGold ? false : Math.random() * 100 < diamondThreshold;
             let pixelType = PixelType.DIRT;
             if (isGold) {
                 pixelType = PixelType.GOLD;

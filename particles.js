@@ -4,7 +4,7 @@ import Vector from "./vector.js";
 import Color from "./color.js";
 import Gradient from "./gradient.js";
 import MathExtras from "./math_extras.js";
-import PixelType from "./pixel_type.js";
+import Gold from "./diggables/gold.js";
 
 export default class Particles {
     constructor(width, height) {
@@ -109,7 +109,7 @@ export default class Particles {
         let count = MathExtras.clamp(value / 50, 1, 10);
         for (let i = 0; i < count; i++) {
             setTimeout(() => {
-                let particle = new Particle(position, PixelType.GOLD.color, new Vector(0, -0.8));
+                let particle = new Particle(position, Gold.COLOR, new Vector(0, -0.8));
                 particle.fadeSpeed = 10;
                 this.particles.push(particle);
             }, i * 100);

@@ -1,6 +1,6 @@
 import Upgrade from "./upgrade.js";
 import Currency from "./currency.js";
-import PixelType from "./pixel_type.js";
+import PixelType from "./diggables/pixel_type.js";
 import StringUtils from "./string_utils.js";
 
 export default class Upgrades {

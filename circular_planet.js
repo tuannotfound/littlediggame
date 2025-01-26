@@ -1,7 +1,7 @@
 import Planet from "./planet.js";
-import PixelType from "./pixel_type.js";
+import PixelType from "./diggables/pixel_type.js";
 import Vector from "./vector.js";
-import Pixel from "./pixel.js";
+import Pixel from "./diggables/pixel.js";
 import MathExtras from "./math_extras.js";
 
 export default class CircularPlanet extends Planet {

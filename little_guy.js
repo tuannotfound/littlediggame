@@ -1,6 +1,6 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
-import PixelType from "./pixel_type.js";
+import PixelType from "./diggables/pixel_type.js";
 
 export default class LittleGuy {
     DEFAULT_HEAD_COLOR = { r: 242, g: 222, b: 187, a: 255 };

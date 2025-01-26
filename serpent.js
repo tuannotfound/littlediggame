@@ -1,8 +1,8 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import MathExtras from "./math_extras.js";
-import Pixel from "./pixel.js";
-import PixelType from "./pixel_type.js";
+import PixelFactory from "./diggables/pixel_factory.js";
+import PixelType from "./diggables/pixel_type.js";
 
 export default class Serpent {
     static TAG = "[SERP] ";
@@ -144,7 +144,7 @@ class Segment {
         // Temporary: just make a square with edge length = size
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
-                let pixel = new Pixel(new Vector(x, y), PixelType.SERPENT, this.upgrades);
+                let pixel = PixelFactory.create(new Vector(x, y), this.upgrades, PixelType.SERPENT);
                 if (x == 0 || x == this.size - 1 || y == 0 || y == this.size - 1) {
                     pixel.setSurface(true);
                 }

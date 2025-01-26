@@ -1,7 +1,7 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
-import Pixel from "./pixel.js";
-import PixelType from "./pixel_type.js";
+import PixelFactory from "./diggables/pixel_factory.js";
+import PixelType from "./diggables/pixel_type.js";
 import CircularPlanet from "./circular_planet.js";
 
 export default class Planet {
@@ -68,7 +68,7 @@ export default class Planet {
     }
 
     createPixel(position, type = PixelType.DIRT) {
-        let pixel = new Pixel(position, type, this.upgrades);
+        let pixel = PixelFactory.create(position, this.upgrades, type);
         return pixel;
     }
 
@@ -264,11 +264,11 @@ export default class Planet {
         for (const pixel of this.pixels) {
             let nearestSurfacePixel = this.getClosestSurfacePixel(pixel.position);
             if (!nearestSurfacePixel) {
-                pixel.setDarkness(0);
+                pixel.darkness = 0;
                 continue;
             }
             let distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
-            pixel.setDarkness(1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2);
+            pixel.darkness = 1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2;
         }
     }
 

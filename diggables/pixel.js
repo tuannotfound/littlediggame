@@ -1,45 +1,28 @@
 import PixelType from "./pixel_type.js";
-import Color from "./color.js";
-import MathExtras from "./math_extras.js";
-import Vector from "./vector.js";
+import Color from "../color.js";
+import MathExtras from "../math_extras.js";
+import Vector from "../vector.js";
+import Constants from "./constants.js";
 
 // Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {
-    // If darkness is higher than this value then this pixel will appear to be dirt.
-    HIDE_THRESHOLD = 0.15;
-    HIDE_THRESHOLD_EGG = 0.3;
-    DIAMOND_SHIMMER_PCT = 0.2;
-    DIAMOND_SHIMMER_FRAMES_MAX = 5;
-    DIAMOND_SHIMMER_COLOR_MOD = 1.2;
     HEALTH_VISUAL_PCT_INTERVAL = 20;
-    EGG_SPECKLE_CHANCE_PCT = 8;
 
-    constructor(position, type = PixelType.DIRT, upgrades) {
+    constructor(position, upgrades, type, initialHealth, initialAlpha = 255) {
         this.position = position.copy();
         this.position.round();
-        this.type = type;
         this.upgrades = upgrades;
+        this.type = type;
+        this.initialHealth = initialHealth;
+        this.health = initialHealth;
+        this.initialAlpha = initialAlpha;
 
-        // Maybe introduce a speckle on an egg?
-        if (this.type == PixelType.EGG && 100 * Math.random() < this.EGG_SPECKLE_CHANCE_PCT) {
-            this.color = Color.wiggle(type.altColor, 10);
-        } else {
-            this.color = type.variableColor ? Color.wiggle(type.color, 10) : new Color(type.color);
-        }
-        this.hideThreshold =
-            this.type == PixelType.EGG ? this.HIDE_THRESHOLD_EGG : this.HIDE_THRESHOLD;
-        this.surfaceColor = type.variableColor
-            ? Color.wiggle(type.surfaceColor, 10)
-            : new Color(type.surfaceColor);
-        this.health = type.health;
-        this.altColor = type.altColor ? type.altColor : null;
-        this.initialAlpha = this.color.a;
-        // It's a diamond thing. You wouldn't understand.
-        this.shimmeringFrames = 0;
+        this._color = null;
+        this._surfaceColor = null;
 
         this.isSurface = false;
         // 0-1, where 0 is no change to the color, 1 is fully black
-        this.darkness = 0;
+        this._darkness = 0;
         this.bloodiedColor = null;
     }
 
@@ -47,8 +30,8 @@ export default class Pixel {
         return {
             position: this.position,
             typeName: this.type.name,
-            color: this.color,
-            surfaceColor: this.surfaceColor,
+            color: this._color,
+            surfaceColor: this._surfaceColor,
             health: this.health,
             isSurface: this.isSurface,
             darkness: this.darkness,
@@ -58,7 +41,7 @@ export default class Pixel {
     static fromJSON(json, upgrades) {
         let position = Vector.fromJSON(json.position);
         let type = PixelType[json.typeName];
-        let pixel = new Pixel(position, type, upgrades);
+        let pixel = PixelFactory.create(position, upgrades, type);
         pixel.color = json.color;
         pixel.surfaceColor = json.surfaceColor;
         pixel.health = json.health;
@@ -68,25 +51,7 @@ export default class Pixel {
     }
 
     actLikeDirt() {
-        let actLikeDirt = false;
-        if (this.type == PixelType.GOLD && !this.upgrades.unlock_gold && !window.DEBUG) {
-            actLikeDirt = true;
-        } else if (
-            this.type == PixelType.DIAMOND &&
-            !this.upgrades.unlock_diamonds &&
-            !window.DEBUG
-        ) {
-            actLikeDirt = true;
-        } else if (this.darkness >= this.hideThreshold && !window.DEBUG) {
-            if (
-                (this.type == PixelType.GOLD && !this.upgrades.goldRadar) ||
-                (this.type == PixelType.DIAMOND && !this.upgrades.diamondRadar) ||
-                this.type == PixelType.EGG
-            ) {
-                actLikeDirt = true;
-            }
-        }
-        return actLikeDirt;
+        throw Exception("Must be implemented by child class");
     }
 
     getRenderColor() {
@@ -94,26 +59,18 @@ export default class Pixel {
             return this.bloodiedColor;
         }
         if (this.actLikeDirt()) {
-            return this.isSurface ? PixelType.DIRT.surfaceColor : PixelType.DIRT.color;
-        } else if (
-            this.type == PixelType.DIAMOND &&
-            (this.shimmeringFrames > 0 || Math.random() * 100 < this.DIAMOND_SHIMMER_PCT)
-        ) {
-            if (this.shimmeringFrames >= this.DIAMOND_SHIMMER_FRAMES_MAX) {
-                this.shimmeringFrames = 0;
-            } else {
-                this.shimmeringFrames++;
-                return this.altColor;
-            }
+            return this.isSurface ? Constants.DIRT_SURFACE_COLOR : Constants.DIRT_COLOR;
         }
         return this.isSurface ? this.surfaceColor : this.color;
     }
 
     getRenderAlpha() {
         let maxAlpha = this.initialAlpha;
-        let actLikeDirtDiff = this.actLikeDirt() ? this.type.health - PixelType.DIRT.health : 0;
+        let actLikeDirtDiff = this.actLikeDirt()
+            ? this.initialHealth - Constants.DIRT_INITIAL_HEALTH
+            : 0;
         let healthPct =
-            (100 * (this.health - actLikeDirtDiff)) / (this.type.health - actLikeDirtDiff);
+            (100 * (this.health - actLikeDirtDiff)) / (this.initialHealth - actLikeDirtDiff);
         healthPct = MathExtras.ceilToNearest(this.HEALTH_VISUAL_PCT_INTERVAL, healthPct);
         return (maxAlpha * healthPct) / 100;
     }
@@ -142,20 +99,15 @@ export default class Pixel {
 
     // Accounts for if we're acting like dirt.
     getHealth() {
-        let actLikeDirt = this.actLikeDirt();
-        if (!actLikeDirt) {
+        if (!this.actLikeDirt()) {
             return this.health;
         }
-        let actLikeDirtDiff = this.type.health - PixelType.DIRT.health;
+        let actLikeDirtDiff = this.initialHealth - Constants.DIRT_INITIAL_HEALTH;
         return Math.max(0, this.health - actLikeDirtDiff);
     }
 
     setSurface(isSurface) {
         this.isSurface = isSurface;
-    }
-
-    setDarkness(darkness) {
-        this.darkness = MathExtras.clamp(darkness, 0, 1);
     }
 
     setOpacity(opacity) {
@@ -169,6 +121,30 @@ export default class Pixel {
             return;
         }
         this.bloodiedColor = Color.wiggle(Color.BLOOD, 10);
+    }
+
+    get darkness() {
+        return this._darkness;
+    }
+
+    set darkness(darkness) {
+        this._darkness = MathExtras.clamp(darkness, 0, 1);
+    }
+
+    get color() {
+        return this._color;
+    }
+
+    set color(color) {
+        this._color = color;
+    }
+
+    get surfaceColor() {
+        return this._surfaceColor;
+    }
+
+    set surfaceColor(surfaceColor) {
+        this._surfaceColor = surfaceColor;
     }
 
     get isBloodied() {

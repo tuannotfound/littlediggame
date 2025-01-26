@@ -1,4 +1,4 @@
-import Pixel from "../pixel.js";
+import Pixel from "../diggables/pixel.js";
 import Vector from "../vector.js";
 
 export default class PhysicsPixel extends Pixel {

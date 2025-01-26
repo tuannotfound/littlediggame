@@ -1,4 +1,4 @@
-import PixelType from "../pixel_type.js";
+import PixelType from "../diggables/pixel_type.js";
 import Vector from "../vector.js";
 
 export default class Bot {

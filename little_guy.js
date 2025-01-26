@@ -253,24 +253,28 @@ export default class LittleGuy {
                 return;
             }
         }
+        this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
+            this.positionInPlanetSpace.copy()
+        );
+        if (!this.closestSurfacePixel) {
+            this.die();
+            return;
+        } else if (
+            this.closestSurfacePixel.type == PixelType.EGG &&
+            !this.game.upgrades.eggHandling
+        ) {
+            this.deathByEgg = true;
+            this.die();
+            return;
+        }
+
         let forcedToDig = false;
-        if (this.game.upgrades.goldSeeker && !this.closestSurfacePixel) {
-            this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
-                this.positionInPlanetSpace.copy().sub(this.orientation)
-            );
-            if (this.closestSurfacePixel.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
-                // This doesn't quiiiiite work and will disallow guys from standing on some non-egg
-                // pixels too close to the egg for some reason.
-                this.deathByEgg = true;
-                this.die();
-                return;
-            }
+        if (this.game.upgrades.goldSeeker) {
             forcedToDig =
-                this.closestSurfacePixel &&
-                ((this.game.upgrades.unlock_gold &&
+                (this.game.upgrades.unlock_gold &&
                     this.closestSurfacePixel.type == PixelType.GOLD) ||
-                    (this.game.upgrades.unlock_diamonds &&
-                        this.closestSurfacePixel.type == PixelType.DIAMOND));
+                (this.game.upgrades.unlock_diamonds &&
+                    this.closestSurfacePixel.type == PixelType.DIAMOND);
         }
         if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
             this.startDigging();
@@ -388,11 +392,6 @@ export default class LittleGuy {
         this.position.add(this.orientation);
         this.previousPositions = [];
         this.closestSurfacePixel = newSurfacePixel;
-        if (this.closestSurfacePixel.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
-            this.deathByEgg = true;
-            this.die();
-            return;
-        }
     }
 
     dig() {
@@ -403,18 +402,12 @@ export default class LittleGuy {
         if (!this.pixelBeingDug || !this.planet.getPixel(this.pixelBeingDug.position)) {
             // Update our position and get a new pixel to work on
             this.goToNearestSurfacePixel();
-            this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+            this.pixelBeingDug = this.closestSurfacePixel;
             if (this.pixelBeingDug == null) {
                 // Just give up. Who cares? Whatever. Not me.
                 this.digging = false;
                 return;
             }
-        }
-
-        if (this.pixelBeingDug.type == PixelType.EGG && !this.game.upgrades.eggHandling) {
-            this.deathByEgg = true;
-            this.die();
-            return;
         }
 
         this.pixelBeingDug.damage(this.game.upgrades.digSpeed);

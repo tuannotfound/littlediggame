@@ -19,14 +19,14 @@ export default class LittleGuy {
     // The likelihood this little guy will get into heaven.
     SAINTLY_PCT = 0.95;
 
-    constructor(game, positionInPlanetSpace, immaculate) {
-        this.game = game;
-        this.planet = game.planet;
+    constructor(pixelBody, positionInPixelBodySpace, upgrades, immaculate) {
+        this.pixelBody = pixelBody;
+        this.positionInPixelBodySpace = positionInPixelBodySpace;
+        this.upgrades = upgrades;
         this.immaculate = immaculate;
 
-        this.positionInPlanetSpace = positionInPlanetSpace;
-        // This is relative to the center of the planet
-        this.position = this.toLocalSpace(this.positionInPlanetSpace);
+        // This is relative to the center of the pixelBody
+        this.position = this.toLocalSpace(this.positionInPixelBodySpace);
 
         let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
@@ -45,7 +45,7 @@ export default class LittleGuy {
         // Whether we should do anything at all, which is different than being alive or dead.
         this.active = true;
 
-        this.digsRemaining = game.upgrades.digCount;
+        this.digsRemaining = this.upgrades.digCount;
 
         // Less likely to be saintly if they were not immaculate.
         let saintlyThreshold = this.immaculate ? this.SAINTLY_PCT : this.SAINTLY_PCT / 1.5;
@@ -60,7 +60,7 @@ export default class LittleGuy {
 
     toJSON() {
         return {
-            positionInPlanetSpace: this.positionInPlanetSpace,
+            positionInPixelBodySpace: this.positionInPixelBodySpace,
             immaculate: this.immaculate,
             orientation: this.orientation,
             previousPositions: this.previousPositions,
@@ -77,10 +77,11 @@ export default class LittleGuy {
         };
     }
 
-    static fromJSON(json, game, pixelBeingDug) {
+    static fromJSON(json, pixelBody, upgrades, pixelBeingDug) {
         let littleGuy = new LittleGuy(
-            game,
-            Vector.fromJSON(json.positionInPlanetSpace),
+            pixelBody,
+            Vector.fromJSON(json.positionInPixelBodySpace),
+            upgrades,
             json.immaculate
         );
         littleGuy.orientation = Vector.fromJSON(json.orientation);
@@ -104,7 +105,7 @@ export default class LittleGuy {
         this.layer.initOffscreen();
 
         this.position.add(this.orientation);
-        this.addPreviousPosition(this.positionInPlanetSpace);
+        this.addPreviousPosition(this.positionInPixelBodySpace);
         this.updateRenderData();
     }
 
@@ -137,8 +138,8 @@ export default class LittleGuy {
         }
     }
 
-    addPreviousPosition(positionInPlanetSpace) {
-        this.previousPositions.push(positionInPlanetSpace);
+    addPreviousPosition(positionInPixelBodySpace) {
+        this.previousPositions.push(positionInPixelBodySpace);
         // Limit it to the 4 most recent positions
         if (this.previousPositions.length > 4) {
             this.previousPositions.shift();
@@ -146,17 +147,17 @@ export default class LittleGuy {
     }
 
     toLocalSpace(positionInPlaceSpace) {
-        let positionInLocalSpace = this.planet.center.copy();
+        let positionInLocalSpace = this.pixelBody.center.copy();
         positionInLocalSpace.sub(positionInPlaceSpace);
         positionInLocalSpace.x = -positionInLocalSpace.x;
         positionInLocalSpace.y = -positionInLocalSpace.y;
         return positionInLocalSpace;
     }
 
-    toPlanetSpace(position) {
-        let positionInPlanetSpace = this.planet.center.copy();
-        positionInPlanetSpace.add(position);
-        return positionInPlanetSpace;
+    toPixelBodySpace(position) {
+        let positionInPixelBodySpace = this.pixelBody.center.copy();
+        positionInPixelBodySpace.add(position);
+        return positionInPixelBodySpace;
     }
 
     updateRenderData() {
@@ -181,7 +182,7 @@ export default class LittleGuy {
         let bodyPosition = new Vector(1, 1);
         let bodyIndex = (bodyPosition.x + bodyPosition.y * imageData.width) * 4;
         let bodyColor = this.digging ? this.DIGGING_BODY_COLOR : this.DEFAULT_BODY_COLOR;
-        if (!this.alive && this.game.upgrades.afterlife) {
+        if (!this.alive && this.upgrades.afterlife) {
             if (this.saintly) {
                 // Don thy heavenly robes
                 bodyColor = this.ASCENDING_BODY_COLOR;
@@ -245,7 +246,7 @@ export default class LittleGuy {
             return;
         }
         if (!this.alive) {
-            if (this.game.upgrades.afterlife) {
+            if (this.upgrades.afterlife) {
                 this.ascend();
                 return;
             } else {
@@ -253,27 +254,23 @@ export default class LittleGuy {
                 return;
             }
         }
-        this.closestSurfacePixel = this.planet.getClosestSurfacePixel(
-            this.positionInPlanetSpace.copy()
+        this.closestSurfacePixel = this.pixelBody.getClosestSurfacePixel(
+            this.positionInPixelBodySpace.copy()
         );
         if (!this.closestSurfacePixel) {
             this.die();
             return;
-        } else if (
-            this.closestSurfacePixel.type == PixelType.EGG &&
-            !this.game.upgrades.eggHandling
-        ) {
+        } else if (this.closestSurfacePixel.type == PixelType.EGG && !this.upgrades.eggHandling) {
             this.deathByEgg = true;
             this.die();
             return;
         }
 
         let forcedToDig = false;
-        if (this.game.upgrades.goldSeeker) {
+        if (this.upgrades.goldSeeker) {
             forcedToDig =
-                (this.game.upgrades.unlockGold &&
-                    this.closestSurfacePixel.type == PixelType.GOLD) ||
-                (this.game.upgrades.unlockDiamonds &&
+                (this.upgrades.unlockGold && this.closestSurfacePixel.type == PixelType.GOLD) ||
+                (this.upgrades.unlockDiamonds &&
                     this.closestSurfacePixel.type == PixelType.DIAMOND);
         }
         if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
@@ -288,14 +285,14 @@ export default class LittleGuy {
         if (this.pixelBeingDug) {
             tombstonePosition = this.pixelBeingDug.position;
         } else {
-            tombstonePosition = this.positionInPlanetSpace.copy();
+            tombstonePosition = this.positionInPixelBodySpace.copy();
             tombstonePosition.add(this.orientation);
         }
-        let added = this.planet.addPixel(tombstonePosition, PixelType.TOMBSTONE);
+        let added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
         if (!added) {
             console.error("Failed to add pixel on decompose @ " + tombstonePosition.toString());
         } else {
-            this.planet.updateSurface();
+            this.pixelBody.updateSurface();
         }
         this.active = false;
         this.notifyInactive();
@@ -315,7 +312,7 @@ export default class LittleGuy {
             distToCenter -= 0.1;
         }
         this.position = new Vector(distToCenter * Math.cos(angle), distToCenter * Math.sin(angle));
-        this.positionInPlanetSpace = this.toPlanetSpace(this.position);
+        this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
         this.ascentionProgressPct += 1;
         this.updateRenderData();
         if (this.ascentionProgressPct >= 100 || this.distToCenter < 0.2) {
@@ -330,21 +327,23 @@ export default class LittleGuy {
         }
         this.digging = true;
         // Look directly at our feet first
-        let underFoot = this.planet.getPixel(this.positionInPlanetSpace);
+        let underFoot = this.pixelBody.getPixel(this.positionInPixelBodySpace);
         if (underFoot && underFoot.isSurface) {
             this.pixelBeingDug = underFoot;
         } else {
             // Look just below our feet next. Note: I don't know why this isn't always the best
             // option, but sometimes there's a pixel right @ positionInPlaceSpace that we need to
             // set as the highest priority. Life is full of mysteries.
-            let underFootCoords = Vector.sub(this.positionInPlanetSpace, this.orientation);
-            underFoot = this.planet.getPixel(underFootCoords);
+            let underFootCoords = Vector.sub(this.positionInPixelBodySpace, this.orientation);
+            underFoot = this.pixelBody.getPixel(underFootCoords);
             if (underFoot && underFoot.isSurface) {
                 this.pixelBeingDug = underFoot;
             } else {
                 // This should only happen if we're, like, floating? Flying around? If this little guy
                 // is being a total /bird/, then we need to fall back to this.
-                this.pixelBeingDug = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+                this.pixelBeingDug = this.pixelBody.getClosestSurfacePixel(
+                    this.positionInPixelBodySpace
+                );
             }
         }
         if (this.pixelBeingDug == null) {
@@ -360,7 +359,7 @@ export default class LittleGuy {
         }
         this.digging = false;
         if (this.pixelBeingDug != null) {
-            this.planet.removePixelAt(this.pixelBeingDug.position);
+            this.pixelBody.removePixelAt(this.pixelBeingDug.position);
             this.notifyDigComplete(this.pixelBeingDug);
         }
         this.goToNearestSurfacePixel();
@@ -379,14 +378,14 @@ export default class LittleGuy {
     }
 
     goToNearestSurfacePixel() {
-        let newSurfacePixel = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+        let newSurfacePixel = this.pixelBody.getClosestSurfacePixel(this.positionInPixelBodySpace);
         if (!newSurfacePixel) {
             this.die();
             return;
         }
-        this.positionInPlanetSpace = newSurfacePixel.position;
-        // This is relative to the center of the planet
-        this.position = this.toLocalSpace(this.positionInPlanetSpace);
+        this.positionInPixelBodySpace = newSurfacePixel.position;
+        // This is relative to the center of the pixelBody
+        this.position = this.toLocalSpace(this.positionInPixelBodySpace);
         let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
         this.position.add(this.orientation);
@@ -399,7 +398,7 @@ export default class LittleGuy {
             return;
         }
         // Make sure the pixel we're digging at is still present
-        if (!this.pixelBeingDug || !this.planet.getPixel(this.pixelBeingDug.position)) {
+        if (!this.pixelBeingDug || !this.pixelBody.getPixel(this.pixelBeingDug.position)) {
             // Update our position and get a new pixel to work on
             this.goToNearestSurfacePixel();
             this.pixelBeingDug = this.closestSurfacePixel;
@@ -410,7 +409,7 @@ export default class LittleGuy {
             }
         }
 
-        this.pixelBeingDug.damage(this.game.upgrades.digSpeed);
+        this.pixelBeingDug.damage(this.upgrades.digSpeed);
         if (this.pixelBeingDug.getHealth() <= 0) {
             this.finishDigging();
         }
@@ -435,14 +434,12 @@ export default class LittleGuy {
         this.move(Math.random() > threshold ? 1 : -1);
     }
 
-    // This is insanity and needs to be cleaned up, badly. But we'll get to that later.
+    // This is insanity and needs to be cleaned up, badly. But we'll get to that later (never).
     move(direction) {
         if (this.previousDirection != direction) {
             this.previousPositions = [];
             this.previousDirection = direction;
         }
-        let selfToPlanetVec = this.planet.center.copy();
-        selfToPlanetVec.sub(this.position);
 
         function orientationVecToArrow(orientation) {
             let direction = "?";
@@ -458,24 +455,23 @@ export default class LittleGuy {
             return direction;
         }
 
-        // let angle = Math.atan2(selfToPlanetVec.y, selfToPlanetVec.x);
-        // // Increment the angle either CW or CCW until we find another surface pixel
-        // // TBD
-
         // 1. Get the surrounding pixels
-        let positionInPlanetSpace = this.planet.center.copy();
-        positionInPlanetSpace.add(this.position);
+        let positionInPixelBodySpace = this.pixelBody.center.copy();
+        positionInPixelBodySpace.add(this.position);
         if (window.DEBUG) {
             console.log(
                 "Current position: " +
-                    positionInPlanetSpace +
+                    positionInPixelBodySpace +
                     " (" +
                     orientationVecToArrow(this.orientation) +
                     ")"
             );
         }
 
-        let surroundingPixels = this.planet.getSurroundingPixels(positionInPlanetSpace, false);
+        let surroundingPixels = this.pixelBody.getSurroundingPixels(
+            positionInPixelBodySpace,
+            false
+        );
         if (surroundingPixels.size == 0) {
             this.goToNearestSurfacePixel();
             return;
@@ -488,7 +484,7 @@ export default class LittleGuy {
                 surfacePixels.push(pixel);
             }
         }
-        // 3. Get the possible EDGEs that we can stand on. A given surface may have up to 4 surfaces
+        // 3. Get the possible EDGEs that we can stand on. A given surface may have up to 4 edges
         //    to stand on.
         let edges = new Map();
         // top edge:    ( 0, -1)
@@ -501,7 +497,7 @@ export default class LittleGuy {
             for (let d of toCheck) {
                 let edgePos = pixel.position.copy();
                 edgePos.add(d);
-                if (this.planet.getPixel(edgePos)) {
+                if (this.pixelBody.getPixel(edgePos)) {
                     continue;
                 }
                 pEdges.push(d);
@@ -517,8 +513,8 @@ export default class LittleGuy {
                 let candidate = pixel.position.copy();
                 candidate.add(edge);
                 if (
-                    candidate.x == positionInPlanetSpace.x &&
-                    candidate.y == positionInPlanetSpace.y
+                    candidate.x == positionInPixelBodySpace.x &&
+                    candidate.y == positionInPixelBodySpace.y
                 ) {
                     continue;
                 }
@@ -539,7 +535,7 @@ export default class LittleGuy {
                             " (" +
                             orientationVecToArrow(edge) +
                             "), dist = " +
-                            candidate.dist(positionInPlanetSpace)
+                            candidate.dist(positionInPixelBodySpace)
                     );
                 }
                 candidates.push({ position: candidate, orientation: edge });
@@ -561,29 +557,29 @@ export default class LittleGuy {
             return new Vector(vector.y, width - 1 - vector.x);
         }
 
-        let rotatedPositionInPlanetSpace = positionInPlanetSpace.copy();
+        let rotatedPositionInPixelBodySpace = positionInPixelBodySpace.copy();
         if (this.orientation.x == 0 && this.orientation.y == -1) {
             // ↑, no rotation needed
         } else if (this.orientation.x == 0 && this.orientation.y == 1) {
             // ↓, need to rotate 180 deg
-            rotatedPositionInPlanetSpace = rotateVector180(
-                positionInPlanetSpace,
-                this.planet.layer.width,
-                this.planet.layer.height
+            rotatedPositionInPixelBodySpace = rotateVector180(
+                positionInPixelBodySpace,
+                this.pixelBody.layer.width,
+                this.pixelBody.layer.height
             );
         } else if (this.orientation.x == -1 && this.orientation.y == 0) {
             // ←, need to rotate 90 deg CW
-            rotatedPositionInPlanetSpace = rotateVector90CW(
-                positionInPlanetSpace,
-                this.planet.layer.width,
-                this.planet.layer.height
+            rotatedPositionInPixelBodySpace = rotateVector90CW(
+                positionInPixelBodySpace,
+                this.pixelBody.layer.width,
+                this.pixelBody.layer.height
             );
         } else if (this.orientation.x == 1 && this.orientation.y == 0) {
             // →, need to rotate 90 deg CCW
-            rotatedPositionInPlanetSpace = rotateVector90CCW(
-                positionInPlanetSpace,
-                this.planet.layer.width,
-                this.planet.layer.height
+            rotatedPositionInPixelBodySpace = rotateVector90CCW(
+                positionInPixelBodySpace,
+                this.pixelBody.layer.width,
+                this.pixelBody.layer.height
             );
         }
 
@@ -600,8 +596,8 @@ export default class LittleGuy {
                 rotatedCandidates.push({
                     rotatedPosition: rotateVector180(
                         candidate.position,
-                        this.planet.layer.width,
-                        this.planet.layer.height
+                        this.pixelBody.layer.width,
+                        this.pixelBody.layer.height
                     ),
                     original: candidate,
                 });
@@ -610,8 +606,8 @@ export default class LittleGuy {
                 rotatedCandidates.push({
                     rotatedPosition: rotateVector90CW(
                         candidate.position,
-                        this.planet.layer.width,
-                        this.planet.layer.height
+                        this.pixelBody.layer.width,
+                        this.pixelBody.layer.height
                     ),
                     original: candidate,
                 });
@@ -620,15 +616,15 @@ export default class LittleGuy {
                 rotatedCandidates.push({
                     rotatedPosition: rotateVector90CCW(
                         candidate.position,
-                        this.planet.layer.width,
-                        this.planet.layer.height
+                        this.pixelBody.layer.width,
+                        this.pixelBody.layer.height
                     ),
                     original: candidate,
                 });
             }
         }
         let selected = rotatedCandidates[0];
-        let currentDist = Math.max(this.planet.layer.width, this.planet.layer.height);
+        let currentDist = Math.max(this.pixelBody.layer.width, this.pixelBody.layer.height);
         if (direction < 0) {
             for (let i = 0; i < rotatedCandidates.length; i++) {
                 // Only consider candidates to the left of us, post rotation.
@@ -638,12 +634,12 @@ export default class LittleGuy {
                         "Looking at candidate @ " +
                             rotatedCandidates[i].rotatedPosition.toString() +
                             " relative to " +
-                            rotatedPositionInPlanetSpace.toString() +
+                            rotatedPositionInPixelBodySpace.toString() +
                             " at distance " +
-                            rotatedCandidates[i].original.position.dist(positionInPlanetSpace)
+                            rotatedCandidates[i].original.position.dist(positionInPixelBodySpace)
                     );
                 }
-                let newDist = rotatedCandidates[i].original.position.dist(positionInPlanetSpace);
+                let newDist = rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
                 if (
                     newDist < currentDist ||
                     (newDist == currentDist &&
@@ -670,12 +666,12 @@ export default class LittleGuy {
                         "Looking at candidate @ " +
                             rotatedCandidates[i].rotatedPosition.toString() +
                             " relative to " +
-                            rotatedPositionInPlanetSpace.toString() +
+                            rotatedPositionInPixelBodySpace.toString() +
                             " at distance " +
-                            rotatedCandidates[i].original.position.dist(positionInPlanetSpace)
+                            rotatedCandidates[i].original.position.dist(positionInPixelBodySpace)
                     );
                 }
-                let newDist = rotatedCandidates[i].original.position.dist(positionInPlanetSpace);
+                let newDist = rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
                 if (
                     newDist < currentDist ||
                     (newDist == currentDist &&
@@ -711,11 +707,13 @@ export default class LittleGuy {
                     ")"
             );
         }
-        newPosition.sub(this.planet.center);
+        newPosition.sub(this.pixelBody.center);
         this.position.set(newPosition);
-        this.positionInPlanetSpace = this.toPlanetSpace(this.position);
-        this.addPreviousPosition(this.positionInPlanetSpace);
+        this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
+        this.addPreviousPosition(this.positionInPixelBodySpace);
         this.updateRenderData();
-        this.closestSurfacePixel = this.planet.getClosestSurfacePixel(this.positionInPlanetSpace);
+        this.closestSurfacePixel = this.pixelBody.getClosestSurfacePixel(
+            this.positionInPixelBodySpace
+        );
     }
 }

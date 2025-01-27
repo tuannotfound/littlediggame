@@ -124,7 +124,7 @@ export default class Game {
                 let pixelBeingDugPosition = Vector.fromJSON(littleGuyJson.pixelBeingDug.position);
                 pixelBeingDug = planet.getPixel(pixelBeingDugPosition);
             }
-            let littleGuy = LittleGuy.fromJSON(littleGuyJson, game, pixelBeingDug);
+            let littleGuy = LittleGuy.fromJSON(littleGuyJson, planet, upgrades, pixelBeingDug);
             game.littleGuys.push(littleGuy);
         }
         game.gold = json.gold;
@@ -503,7 +503,7 @@ export default class Game {
             this.stopNotEnoughGoldAnimation(this.spawnCostElement.parentElement);
         }
 
-        let littleGuy = new LittleGuy(this, position, immaculate);
+        let littleGuy = new LittleGuy(this.planet, position, this.upgrades, immaculate);
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
         this.littleGuys.push(littleGuy);

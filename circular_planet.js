@@ -22,10 +22,10 @@ export default class CircularPlanet extends Planet {
     DIAMOND_PCT_MAX = 40;
 
     constructor(radius) {
-        let size = radius * 2;
-        super(size, size);
-        this.maxRadius = this.radius + CircularPlanet.MAX_RADIUS_DIFF_PX;
-        this.minRadius = this.radius - CircularPlanet.MAX_RADIUS_DIFF_PX;
+        let size = Math.round(2 * (radius + CircularPlanet.MAX_RADIUS_DIFF_PX + 1));
+        super(size, size, "circular_planet");
+        this.maxRadius = radius + CircularPlanet.MAX_RADIUS_DIFF_PX;
+        this.minRadius = radius - CircularPlanet.MAX_RADIUS_DIFF_PX;
     }
 
     static fromJSON(json, upgrades) {
@@ -38,7 +38,7 @@ export default class CircularPlanet extends Planet {
         return planet;
     }
 
-    createPlanetData() {
+    createInitialPixels() {
         const thetaIncrement = 0.8 / this.maxRadius;
         let previousRadius = this.radius;
 
@@ -70,7 +70,7 @@ export default class CircularPlanet extends Planet {
     drawRay(radius, theta, previousTypeMap) {
         let typesMap = new Map();
         for (let r = 0; r < radius; r += 0.7) {
-            let position = this.polarToCartesian(r, theta);
+            let position = MathExtras.polarToCartesian(r, theta, this.center);
             position.round();
             let existingPixel = this.getPixel(position);
             if (existingPixel) {

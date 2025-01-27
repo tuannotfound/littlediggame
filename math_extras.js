@@ -44,4 +44,24 @@ export default class MathExtras {
             toRangeMin
         );
     }
+
+    static polarToCartesian(r, theta, center = new Vector(0, 0)) {
+        return new Vector(
+            Math.round(center.x + r * Math.cos(theta)),
+            Math.round(center.y + r * Math.sin(theta))
+        );
+    }
+
+    static cartesianToPolar(cartesianPosition, center = new Vector(0, 0)) {
+        return {
+            r: Math.sqrt(
+                Math.pow(cartesianPosition.x - center.x, 2) +
+                    Math.pow(cartesianPosition.y - center.y / 2, 2)
+            ),
+            theta: Math.atan2(
+                cartesianPosition.y - center.y / 2,
+                cartesianPosition.x - center.x / 2
+            ),
+        };
+    }
 }

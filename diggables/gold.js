@@ -21,7 +21,7 @@ export default class Gold extends Pixel {
         if (window.DEBUG || this.upgrades.goldRadar) {
             return false;
         }
-        if (!this.upgrades.unlock_gold) {
+        if (!this.upgrades.unlockGold) {
             return true;
         }
         return this.darkness >= Gold.DARKNESS_HIDE_THRESHOLD;

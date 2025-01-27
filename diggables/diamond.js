@@ -27,7 +27,7 @@ export default class Diamond extends Pixel {
         if (window.DEBUG || this.upgrades.diamondRadar) {
             return false;
         }
-        if (!this.upgrades.unlock_diamonds) {
+        if (!this.upgrades.unlockDiamonds) {
             return true;
         }
         return this.darkness >= Diamond.DARKNESS_HIDE_THRESHOLD;

@@ -15,8 +15,8 @@ export default class Upgrades {
         this.goldPer[PixelType.DIAMOND.name] = 50;
         this.goldPer[PixelType.EGG.name] = 393;
         this.goldPer[PixelType.SERPENT.name] = 5555;
-        this.unlock_gold = false;
-        this.unlock_diamonds = false;
+        this.unlockGold = false;
+        this.unlockDiamonds = false;
         this.diamondRadar = false;
         this.goldRadar = false;
         this.freeWorkerCount = 1;
@@ -46,8 +46,8 @@ export default class Upgrades {
             digSpeed: this.digSpeed,
             digCount: this.digCount,
             goldPer: this.goldPer,
-            unlock_gold: this.unlock_gold,
-            unlock_diamonds: this.unlock_diamonds,
+            unlockGold: this.unlockGold,
+            unlockDiamonds: this.unlockDiamonds,
             diamondRadar: this.diamondRadar,
             goldRadar: this.goldRadar,
             populationPowerScale: this.populationPowerScale,
@@ -66,8 +66,8 @@ export default class Upgrades {
         upgrades.digSpeed = json.digSpeed;
         upgrades.digCount = json.digCount;
         upgrades.goldPer = json.goldPer;
-        upgrades.unlock_gold = json.unlock_gold;
-        upgrades.unlock_diamonds = json.unlock_diamonds;
+        upgrades.unlockGold = json.unlockGold;
+        upgrades.unlockDiamonds = json.unlockDiamonds;
         upgrades.diamondRadar = json.diamondRadar;
         upgrades.goldRadar = json.goldRadar;
         upgrades.populationPowerScale = json.populationPowerScale;
@@ -112,18 +112,18 @@ export default class Upgrades {
         );
         this.upgradeTree.set(betterDirt.id, betterDirt);
 
-        let unlock_gold = new Upgrade(
-            "unlock_gold",
+        let unlockGold = new Upgrade(
+            "unlockGold",
             "gold_tbd",
             StringUtils.dedent(`TBD`),
             ["Your populous will now recognize and dig up gold"],
             10,
             Currency.GOLD,
             () => {
-                this.unlock_gold = true;
+                this.unlockGold = true;
             }
         );
-        this.upgradeTree.set(unlock_gold.id, unlock_gold);
+        this.upgradeTree.set(unlockGold.id, unlockGold);
 
         let moreGold1 = new Upgrade(
             "more_gold_1",
@@ -146,7 +146,7 @@ export default class Upgrades {
             }
         );
         moreGold1.addPrereq(betterDirt);
-        moreGold1.addPrereq(unlock_gold);
+        moreGold1.addPrereq(unlockGold);
         this.upgradeTree.set(moreGold1.id, moreGold1);
 
         let moreGold2 = new Upgrade(
@@ -248,8 +248,8 @@ export default class Upgrades {
         graveDigger2.addPrereq(graveDigger1);
         this.upgradeTree.set(graveDigger2.id, graveDigger2);
 
-        let unlock_diamonds = new Upgrade(
-            "unlock_diamonds",
+        let unlockDiamonds = new Upgrade(
+            "unlockDiamonds",
             "Scintillare lapis",
             StringUtils.dedent(
                 `Someone with an eye for the finer things notices a bucket of brilliant crystals
@@ -260,11 +260,11 @@ export default class Upgrades {
             250,
             Currency.GOLD,
             () => {
-                this.unlock_diamonds = true;
+                this.unlockDiamonds = true;
             }
         );
-        unlock_diamonds.addPrereq(unlock_gold);
-        this.upgradeTree.set(unlock_diamonds.id, unlock_diamonds);
+        unlockDiamonds.addPrereq(unlockGold);
+        this.upgradeTree.set(unlockDiamonds.id, unlockDiamonds);
 
         let diamondDeals = new Upgrade(
             "diamond_deals",
@@ -283,7 +283,7 @@ export default class Upgrades {
                 );
             }
         );
-        diamondDeals.addPrereq(unlock_diamonds);
+        diamondDeals.addPrereq(unlockDiamonds);
         this.upgradeTree.set(diamondDeals.id, diamondDeals);
 
         let bloodDiamonds = new Upgrade(
@@ -318,7 +318,7 @@ export default class Upgrades {
             }
         );
         moreGoldDirt.addPrereq(moreGold4);
-        moreGoldDirt.addPrereq(unlock_diamonds);
+        moreGoldDirt.addPrereq(unlockDiamonds);
         this.upgradeTree.set(moreGoldDirt.id, moreGoldDirt);
 
         let moreGoldGold = new Upgrade(
@@ -335,7 +335,7 @@ export default class Upgrades {
             }
         );
         moreGoldGold.addPrereq(moreGold4);
-        moreGoldGold.addPrereq(unlock_diamonds);
+        moreGoldGold.addPrereq(unlockDiamonds);
         this.upgradeTree.set(moreGoldGold.id, moreGoldGold);
 
         let graveDigger3 = new Upgrade(
@@ -369,8 +369,37 @@ export default class Upgrades {
                 this.goldSeeker = true;
             }
         );
-        goldSeeker.addPrereq(unlock_diamonds);
+        goldSeeker.addPrereq(unlockDiamonds);
         this.upgradeTree.set(goldSeeker.id, goldSeeker);
+
+        let goldRadar = new Upgrade(
+            "gold_radar",
+            "gold_radar_tbd",
+            StringUtils.dedent(`TBD: Peer into the Earth itself to discover its treasures`),
+            ["All gold is visible to your eyes"],
+            410,
+            Currency.GOLD,
+            () => {
+                this.goldRadar = true;
+            }
+        );
+        goldRadar.addPrereq(goldSeeker);
+        this.upgradeTree.set(goldRadar.id, goldRadar);
+
+        let diamondRadar = new Upgrade(
+            "diamond_radar",
+            "diamond_radar_tbd",
+            StringUtils.dedent(`TBD`),
+            ["All diamond is revealed to you"],
+            640,
+            Currency.GOLD,
+            () => {
+                this.diamondRadar = true;
+            }
+        );
+        diamondRadar.addPrereq(unlockDiamonds);
+        diamondRadar.addPrereq(goldRadar);
+        this.upgradeTree.set(diamondRadar.id, diamondRadar);
 
         // Digging++ tree
         let digSpeed1 = new Upgrade(
@@ -595,7 +624,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             [
                 "Death no longer results in a tombstone being created",
-                "Tombstone gold granted immediately upon death",
+                "Tombstone gold is granted immediately upon death",
             ],
             1622,
             Currency.GOLD,
@@ -645,32 +674,6 @@ export default class Upgrades {
         );
         spawning3.addPrereq(spawning2);
         this.upgradeTree.set(spawning3.id, spawning3);
-
-        let goldRadar = new Upgrade(
-            "gold_radar",
-            "gold_radar_tbd",
-            StringUtils.dedent(`TBD: Peer into the Earth itself to discover its treasures`),
-            ["All gold is visible to your eyes"],
-            410,
-            Currency.GOLD,
-            () => {
-                this.goldRadar = true;
-            }
-        );
-        this.upgradeTree.set(goldRadar.id, goldRadar);
-        let diamondRadar = new Upgrade(
-            "diamond_radar",
-            "diamond_radar_tbd",
-            StringUtils.dedent(`TBD`),
-            ["All diamond is revealed to you"],
-            640,
-            Currency.GOLD,
-            () => {
-                this.diamondRadar = true;
-            }
-        );
-        diamondRadar.addPrereq(goldRadar);
-        this.upgradeTree.set(diamondRadar.id, diamondRadar);
 
         let serpent = new Upgrade(
             "serpent",

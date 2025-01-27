@@ -271,9 +271,9 @@ export default class LittleGuy {
         let forcedToDig = false;
         if (this.game.upgrades.goldSeeker) {
             forcedToDig =
-                (this.game.upgrades.unlock_gold &&
+                (this.game.upgrades.unlockGold &&
                     this.closestSurfacePixel.type == PixelType.GOLD) ||
-                (this.game.upgrades.unlock_diamonds &&
+                (this.game.upgrades.unlockDiamonds &&
                     this.closestSurfacePixel.type == PixelType.DIAMOND);
         }
         if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {

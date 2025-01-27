@@ -221,10 +221,13 @@ export default class Bot {
                 continue;
             }
             let pixelType = surfacePixel.type;
-            if (pixelType == PixelType.GOLD && !this.game.upgrades.unlock_gold) {
+            if (pixelType == PixelType.GOLD && !this.game.upgrades.unlockGold) {
                 pixelType = PixelType.DIRT;
-            } else if (pixelType == PixelType.DIAMOND && !this.game.upgrades.unlock_diamonds) {
+            } else if (pixelType == PixelType.DIAMOND && !this.game.upgrades.unlockDiamonds) {
                 pixelType = PixelType.DIRT;
+            } else if (pixelType == PixelType.EGG && !this.game.upgrades.eggHandling) {
+                // Can't dig this yet, so it effectively contributes 0 value.
+                continue;
             }
             totalValue += this.game.upgrades.goldPer[pixelType.name];
         }
@@ -275,8 +278,8 @@ class Event {
         }
         this.goldPerDirt = upgrades.goldPer[PixelType.DIRT.name];
         this.goldPerTombstone = upgrades.goldPer[PixelType.TOMBSTONE.name];
-        this.goldPerGold = upgrades.unlock_gold ? upgrades.goldPer[PixelType.GOLD.name] : 0;
-        this.goldPerDiamond = upgrades.unlock_diamonds
+        this.goldPerGold = upgrades.unlockGold ? upgrades.goldPer[PixelType.GOLD.name] : 0;
+        this.goldPerDiamond = upgrades.unlockDiamonds
             ? upgrades.goldPer[PixelType.DIAMOND.name]
             : 0;
         this.populationPowerScale = upgrades.populationPowerScale;

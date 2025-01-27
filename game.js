@@ -21,7 +21,7 @@ export default class Game {
     MAX_ZOOM = 10;
     MIN_SAVE_INTERVAL_MS = 5000;
     AUTO_SAVE_INTERVAL_MS = 30000;
-    PLANET_RADIUS = 30;
+    PLANET_RADIUS = 35;
     TARGET_FPS = 60;
     FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
@@ -75,6 +75,7 @@ export default class Game {
         this.knowsDirt = false;
         this.gold = 0;
         this.goldElement = null;
+        this.planetHealthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
 
@@ -151,9 +152,6 @@ export default class Game {
             () => this.gold
         );
 
-        this.initUi();
-        this.initHandlers();
-
         if (!this.planet) {
             this.planet = new CircularPlanet(this.PLANET_RADIUS);
         }
@@ -174,6 +172,9 @@ export default class Game {
 
         this.particles.init();
 
+        this.initUi();
+        this.initHandlers();
+
         this.initialized = true;
         this.setPaused(false);
     }
@@ -187,7 +188,7 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
-        let serpentBtn = document.getElementById("serpent");
+        let serpentBtn = document.getElementById("spawn_serpent");
         serpentBtn.addEventListener("click", () => {
             this.spawnSerpent();
         });
@@ -211,6 +212,9 @@ export default class Game {
             this.blood = bloodBtn.checked;
             console.log("Blood: " + bloodBtn.checked);
         });
+
+        this.planetHealthElement = document.getElementById("planet_health");
+        this.updateHealth();
 
         this.goldElement = document.getElementById("gold");
         this.updateGold();
@@ -326,8 +330,8 @@ export default class Game {
     onDigComplete(pixel) {
         let value = this.upgrades.goldPer[pixel.type.name];
         if (
-            (pixel.type == PixelType.GOLD && !this.upgrades.unlock_gold) ||
-            (pixel.type == PixelType.DIAMOND && !this.upgrades.unlock_diamonds)
+            (pixel.type == PixelType.GOLD && !this.upgrades.unlockGold) ||
+            (pixel.type == PixelType.DIAMOND && !this.upgrades.unlockDiamonds)
         ) {
             // Pretend we dug up some dirt if we haven't researched the real type yet.
             value = this.upgrades.goldPer[PixelType.DIRT.name];
@@ -343,6 +347,8 @@ export default class Game {
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
         this.particles.coinEffect(positionInParticlesSpace, value);
+
+        this.updateHealth();
 
         this.maybeSave();
     }
@@ -379,6 +385,10 @@ export default class Game {
         this.maybeSave();
     }
 
+    updateHealth() {
+        this.planetHealthElement.innerHTML = (100 * this.planet.health).toFixed(1);
+    }
+
     updateLegend() {
         for (const pixelType of Object.values(PixelType)) {
             document.getElementById("gold_per_" + pixelType.name).innerText =
@@ -395,8 +405,8 @@ export default class Game {
         };
         updateHidden(PixelType.DIRT, this.knowsDirt);
         updateHidden(PixelType.TOMBSTONE, this.knowsDeath);
-        updateHidden(PixelType.GOLD, this.upgrades.unlock_gold);
-        updateHidden(PixelType.DIAMOND, this.upgrades.unlock_diamonds);
+        updateHidden(PixelType.GOLD, this.upgrades.unlockGold);
+        updateHidden(PixelType.DIAMOND, this.upgrades.unlockDiamonds);
         updateHidden(PixelType.EGG, this.knowsEggDeath || this.upgrades.eggHandling);
 
         let eggSpan = document.querySelector(

@@ -372,35 +372,6 @@ export default class Upgrades {
         goldSeeker.addPrereq(unlockDiamonds);
         this.upgradeTree.set(goldSeeker.id, goldSeeker);
 
-        let goldRadar = new Upgrade(
-            "gold_radar",
-            "gold_radar_tbd",
-            StringUtils.dedent(`TBD: Peer into the Earth itself to discover its treasures`),
-            ["All gold is visible to your eyes"],
-            410,
-            Currency.GOLD,
-            () => {
-                this.goldRadar = true;
-            }
-        );
-        goldRadar.addPrereq(goldSeeker);
-        this.upgradeTree.set(goldRadar.id, goldRadar);
-
-        let diamondRadar = new Upgrade(
-            "diamond_radar",
-            "diamond_radar_tbd",
-            StringUtils.dedent(`TBD`),
-            ["All diamond is revealed to you"],
-            640,
-            Currency.GOLD,
-            () => {
-                this.diamondRadar = true;
-            }
-        );
-        diamondRadar.addPrereq(unlockDiamonds);
-        diamondRadar.addPrereq(goldRadar);
-        this.upgradeTree.set(diamondRadar.id, diamondRadar);
-
         // Digging++ tree
         let digSpeed1 = new Upgrade(
             "dig_speed_1",
@@ -594,6 +565,36 @@ export default class Upgrades {
         );
         freeWorkers1.addPrereq(pop3);
         this.upgradeTree.set(freeWorkers1.id, freeWorkers1);
+
+        let goldRadar = new Upgrade(
+            "gold_radar",
+            "gold_radar_tbd",
+            StringUtils.dedent(`TBD: Peer into the planet itself to discover its treasures`),
+            ["All gold is visible to your eyes"],
+            410,
+            Currency.GOLD,
+            () => {
+                this.goldRadar = true;
+            }
+        );
+        goldRadar.addPrereq(goldSeeker);
+        goldRadar.addPrereq(digSpeed4);
+        this.upgradeTree.set(goldRadar.id, goldRadar);
+
+        let diamondRadar = new Upgrade(
+            "diamond_radar",
+            "diamond_radar_tbd",
+            StringUtils.dedent(`TBD`),
+            ["All diamond is revealed to you"],
+            640,
+            Currency.GOLD,
+            () => {
+                this.diamondRadar = true;
+            }
+        );
+        diamondRadar.addPrereq(bloodDiamonds);
+        diamondRadar.addPrereq(goldRadar);
+        this.upgradeTree.set(diamondRadar.id, diamondRadar);
 
         let religion = new Upgrade(
             "religion",

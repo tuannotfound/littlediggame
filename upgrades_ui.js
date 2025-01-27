@@ -2,7 +2,7 @@ export default class UpgradesUi {
     constructor() {
         this.container = null;
         this.upgrades = null;
-        this.getCurrentGoldFunc = null;
+        this.getCurrentAspisFunc = null;
         this.buttonMap = new Map();
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
@@ -24,7 +24,7 @@ export default class UpgradesUi {
                             this.addRootUpgrade(rootUpgrade);
                         }
                     }
-                    this.onGoldChanged(this.getCurrentGoldFunc());
+                    this.onAspisChanged(this.getCurrentAspisFunc());
                 }
             },
             onUnlocked: (upgrade) => {
@@ -56,11 +56,11 @@ export default class UpgradesUi {
         };
     }
 
-    init(container, upgrades, onPurchaseAttemptFunc, getCurrentGoldFunc) {
+    init(container, upgrades, onPurchaseAttemptFunc, getCurrentAspisFunc) {
         this.container = container;
         this.upgrades = upgrades;
         this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
-        this.getCurrentGoldFunc = getCurrentGoldFunc;
+        this.getCurrentAspisFunc = getCurrentAspisFunc;
         let rootUpgrades = this.getRootUpgrades();
         for (const rootUpgrade of rootUpgrades) {
             this.addRootUpgrade(rootUpgrade);
@@ -88,7 +88,7 @@ export default class UpgradesUi {
         }
     }
 
-    onGoldChanged(gold) {
+    onAspisChanged(aspis) {
         for (const [id, button] of this.buttonMap) {
             if (!this.upgrades.upgradeTree.has(id)) {
                 return;
@@ -98,7 +98,7 @@ export default class UpgradesUi {
                 button.classList.remove("cannot_afford");
                 continue;
             }
-            if (upgrade.cost > gold) {
+            if (upgrade.cost > aspis) {
                 button.classList.add("cannot_afford");
             } else {
                 button.classList.remove("cannot_afford");
@@ -122,7 +122,7 @@ export default class UpgradesUi {
     createUpgradeButton(upgrade, column) {
         let buttonInnerHtml = `<div class='upgrade_title'>
                                  <strong>${upgrade.title}</strong>
-                                 <span class='cost'> (${upgrade.cost}🪙)</span>
+                                 <span class='cost'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
                                </div>
                                <div class='upgrade_details hidden'>
                                  <p class='upgrade_desc'>${upgrade.desc}</p>

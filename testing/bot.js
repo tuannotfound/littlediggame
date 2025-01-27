@@ -14,7 +14,7 @@ export default class Bot {
         this.now = 0;
         this.then = 0;
 
-        this.peakGold = 0;
+        this.peakAspis = 0;
         this.mostRecentUpgrade = "";
         this.lastUpgradeTimestamp = 0;
     }
@@ -43,7 +43,7 @@ export default class Bot {
             "planeteater_bot_" + this.getDateTimeForFileName() + ".csv"
         );
         this.events = [];
-        this.peakGold = 0;
+        this.peakAspis = 0;
         this.mostRecentUpgrade = "";
     }
 
@@ -104,8 +104,8 @@ export default class Bot {
         this.maybeBuyUpgrade();
         this.maybeSpawnLittleGuy();
         this.recordState();
-        if (this.game.gold > this.peakGold) {
-            this.peakGold = this.game.gold;
+        if (this.game.aspis > this.peakAspis) {
+            this.peakAspis = this.game.aspis;
         }
         if (this.game.planet.health == 0) {
             this.stop();
@@ -129,7 +129,7 @@ export default class Bot {
                     closestSurfacePixel.position.toString() +
                     " for " +
                     this.game.spawnCost +
-                    " gold w/ EV of " +
+                    " aspis w/ EV of " +
                     expectedValue
             );
             this.game.spawn(closestSurfacePixel.position, false);
@@ -140,7 +140,7 @@ export default class Bot {
         if (this.game.spawnCost == 0) {
             return true;
         }
-        if (this.game.gold < this.game.spawnCost) {
+        if (this.game.aspis < this.game.spawnCost) {
             return false;
         }
 
@@ -150,7 +150,7 @@ export default class Bot {
     maybeBuyUpgrade() {
         let cheapestUpgrade = this.findCheapestUpgrade();
         if (cheapestUpgrade) {
-            if (cheapestUpgrade.cost < this.game.gold) {
+            if (cheapestUpgrade.cost < this.game.aspis) {
                 let buyBtn = document.querySelector("button#" + cheapestUpgrade.id);
                 if (buyBtn) {
                     console.log(
@@ -159,7 +159,7 @@ export default class Bot {
                             cheapestUpgrade.id +
                             " for " +
                             cheapestUpgrade.cost +
-                            " gold"
+                            " aspis"
                     );
                     buyBtn.click();
                     this.mostRecentUpgrade = cheapestUpgrade.id;
@@ -177,8 +177,8 @@ export default class Bot {
         let event = new Event(
             // In minutes
             (performance.now() * this.GAME_SPEED) / (1000 * 60),
-            this.game.gold,
-            this.peakGold,
+            this.game.aspis,
+            this.peakAspis,
             manualLittleGuyCount,
             autoLittleGuyCount,
             this.calculateExpectedValueOfLittleGuy(),
@@ -229,7 +229,7 @@ export default class Bot {
                 // Can't dig this yet, so it effectively contributes 0 value.
                 continue;
             }
-            totalValue += this.game.upgrades.goldPer[pixelType.name];
+            totalValue += this.game.upgrades.aspisPer[pixelType.name];
         }
         let avgValue = totalValue / surface.length;
         let expectedValue = avgValue * this.game.upgrades.digCount;
@@ -240,8 +240,8 @@ export default class Bot {
 class Event {
     constructor(
         timestampMinutes,
-        gold,
-        peakGold,
+        aspis,
+        peakAspis,
         manualLittleGuyCount,
         autoLittleGuyCount,
         littleGuyEv,
@@ -252,8 +252,8 @@ class Event {
         timeSinceLastUpgradeMinutes
     ) {
         this.timestampMinutes = timestampMinutes;
-        this.gold = gold;
-        this.peakGold = peakGold;
+        this.aspis = aspis;
+        this.peakAspis = peakAspis;
         this.manualLittleGuyCount = manualLittleGuyCount;
         this.autoLittleGuyCount = autoLittleGuyCount;
         this.littleGuyEv = littleGuyEv;
@@ -263,7 +263,7 @@ class Event {
         this.setUpgradeState(upgrades);
         this.cheapestUpgradeCost = cheapestUpgrade ? cheapestUpgrade.cost : 0;
         this.progressToNextUpgrade = cheapestUpgrade
-            ? Math.min(100, (100 * this.gold) / cheapestUpgrade.cost)
+            ? Math.min(100, (100 * this.aspis) / cheapestUpgrade.cost)
             : 100;
         this.mostRecentUpgrade = mostRecentUpgrade;
         this.timeSinceLastUpgradeMinutes = timeSinceLastUpgradeMinutes;
@@ -276,11 +276,11 @@ class Event {
                 this.upgradeCount++;
             }
         }
-        this.goldPerDirt = upgrades.goldPer[PixelType.DIRT.name];
-        this.goldPerTombstone = upgrades.goldPer[PixelType.TOMBSTONE.name];
-        this.goldPerGold = upgrades.unlockGold ? upgrades.goldPer[PixelType.GOLD.name] : 0;
-        this.goldPerDiamond = upgrades.unlockDiamonds
-            ? upgrades.goldPer[PixelType.DIAMOND.name]
+        this.aspisPerDirt = upgrades.aspisPer[PixelType.DIRT.name];
+        this.aspisPerTombstone = upgrades.aspisPer[PixelType.TOMBSTONE.name];
+        this.aspisPerAspis = upgrades.unlockGold ? upgrades.aspisPer[PixelType.GOLD.name] : 0;
+        this.aspisPerDiamond = upgrades.unlockDiamonds
+            ? upgrades.aspisPer[PixelType.DIAMOND.name]
             : 0;
         this.populationPowerScale = upgrades.populationPowerScale;
         this.conceptionIntervalMs = upgrades.conceptionIntervalMs;
@@ -292,8 +292,8 @@ class Event {
     static getHeaders() {
         return [
             "timestampMinutes",
-            "gold",
-            "peakGold",
+            "aspis",
+            "peakAspis",
             "manualLittleGuyCount",
             "autoLittleGuyCount",
             "littleGuyEv",
@@ -303,10 +303,10 @@ class Event {
             "progressToNextUpgrade",
             "mostRecentUpgrade",
             "timeSinceLastUpgradeMinutes",
-            "goldPerDirt",
-            "goldPerTombstone",
-            "goldPerGold",
-            "goldPerDiamond",
+            "aspisPerDirt",
+            "aspisPerTombstone",
+            "aspisPerGold",
+            "aspisPerDiamond",
             "populationPowerScale",
             "conceptionIntervalMs",
             "digSpeed",
@@ -318,8 +318,8 @@ class Event {
     asRow() {
         let data = [];
         data.push(this.timestampMinutes.toFixed(2));
-        data.push(this.gold);
-        data.push(this.peakGold);
+        data.push(this.aspis);
+        data.push(this.peakAspis);
         data.push(this.manualLittleGuyCount);
         data.push(this.autoLittleGuyCount);
         data.push(this.littleGuyEv);
@@ -329,10 +329,10 @@ class Event {
         data.push(this.progressToNextUpgrade);
         data.push(this.mostRecentUpgrade);
         data.push(this.timeSinceLastUpgradeMinutes);
-        data.push(this.goldPerDirt);
-        data.push(this.goldPerTombstone);
-        data.push(this.goldPerGold);
-        data.push(this.goldPerDiamond);
+        data.push(this.aspisPerDirt);
+        data.push(this.aspisPerTombstone);
+        data.push(this.aspisPerGold);
+        data.push(this.aspisPerDiamond);
         data.push(this.populationPowerScale);
         data.push(this.conceptionIntervalMs);
         data.push(this.digSpeed);

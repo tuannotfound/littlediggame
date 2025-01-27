@@ -1,6 +1,6 @@
 const Currency = {
-    GOLD: Object.freeze({
-        name: "GOLD",
+    ASPIS: Object.freeze({
+        name: "ASPIS",
     }),
     ARTIFACT: Object.freeze({
         name: "ARTIFACT",

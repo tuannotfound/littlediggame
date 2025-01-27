@@ -4,7 +4,9 @@
     "main": "main.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "webpack && webpack serve --mode development"
+        "dev": "webpack && webpack serve --mode development",
+        "prod": "webpack && webpack serve --mode production",
+        "build": "webpack"
     },
     "keywords": [],
     "author": "",
@@ -17,7 +19,11 @@
         "stats.js": "^0.17.0",
         "style-loader": "^4.0.0",
         "webpack": "^5.97.1",
+        "webpack-bundle-analyzer": "^4.10.2",
         "webpack-cli": "^6.0.1",
         "webpack-dev-server": "^5.2.0"
+    },
+    "dependencies": {
+        "@fortawesome/fontawesome-free": "^6.7.2"
     }
 }

@@ -73,8 +73,8 @@ export default class Game {
         this.knowsDeath = false;
         this.knowsEggDeath = false;
         this.knowsDirt = false;
-        this.gold = 0;
-        this.goldElement = null;
+        this.aspis = 0;
+        this.aspisElement = null;
         this.planetHealthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
@@ -104,7 +104,7 @@ export default class Game {
             planet: this.planet,
             planetPosition: this.planetPosition,
             littleGuys: this.littleGuys,
-            gold: this.gold,
+            aspis: this.aspis,
             knowsDirt: this.knowsDirt,
             knowsDeath: this.knowsDeath,
         };
@@ -127,7 +127,7 @@ export default class Game {
             let littleGuy = LittleGuy.fromJSON(littleGuyJson, planet, upgrades, pixelBeingDug);
             game.littleGuys.push(littleGuy);
         }
-        game.gold = json.gold;
+        game.aspis = json.aspis;
         game.knowsDirt = json.knowsDirt;
         game.knowsDeath = json.knowsDeath;
 
@@ -149,7 +149,7 @@ export default class Game {
             (upgrade, button) => {
                 this.onUpgradePurchased(upgrade, button);
             },
-            () => this.gold
+            () => this.aspis
         );
 
         if (!this.planet) {
@@ -216,8 +216,8 @@ export default class Game {
         this.planetHealthElement = document.getElementById("planet_health");
         this.updateHealth();
 
-        this.goldElement = document.getElementById("gold");
-        this.updateGold();
+        this.aspisElement = document.getElementById("aspis");
+        this.updateAspis();
 
         this.littleGuyCountElement = document.getElementById("little_guy_count");
         this.spawnCostElement = document.getElementById("spawn_cost");
@@ -230,8 +230,8 @@ export default class Game {
             let val = 10 ** pow;
             let plusBtn = document.getElementById("plus_" + val);
             plusBtn.addEventListener("click", () => {
-                this.gold += val;
-                this.updateGold();
+                this.aspis += val;
+                this.updateAspis();
             });
         }
     }
@@ -328,20 +328,20 @@ export default class Game {
     }
 
     onDigComplete(pixel) {
-        let value = this.upgrades.goldPer[pixel.type.name];
+        let value = this.upgrades.aspisPer[pixel.type.name];
         if (
             (pixel.type == PixelType.GOLD && !this.upgrades.unlockGold) ||
             (pixel.type == PixelType.DIAMOND && !this.upgrades.unlockDiamonds)
         ) {
             // Pretend we dug up some dirt if we haven't researched the real type yet.
-            value = this.upgrades.goldPer[PixelType.DIRT.name];
+            value = this.upgrades.aspisPer[PixelType.DIRT.name];
         }
-        this.gold += value;
+        this.aspis += value;
         if (!this.knowsDirt) {
             this.knowsDirt = true;
             this.updateLegend();
         }
-        this.updateGold();
+        this.updateAspis();
         let positionInParticlesSpace = this.planetToParticleSpace(pixel.position);
         let color = new Color(pixel.getRenderColor());
         color.a = 255;
@@ -366,21 +366,21 @@ export default class Game {
         let buttonCostEl = document.querySelector(
             "button#" + button.id + " > div.upgrade_title > span.cost"
         );
-        if (upgrade.cost > this.gold) {
-            this.startNotEnoughGoldAnimation(buttonCostEl);
+        if (upgrade.cost > this.aspis) {
+            this.startNotEnoughAspisAnimation(buttonCostEl);
             return;
         }
-        this.stopNotEnoughGoldAnimation(buttonCostEl);
-        this.gold -= upgrade.cost;
-        this.updateGold();
+        this.stopNotEnoughAspisAnimation(buttonCostEl);
+        this.aspis -= upgrade.cost;
+        this.updateAspis();
         upgrade.purchase();
         this.updateSpawnCost();
         this.updateLegend();
     }
 
-    updateGold() {
-        this.goldElement.innerHTML = this.gold;
-        this.upgradesUi.onGoldChanged(this.gold);
+    updateAspis() {
+        this.aspisElement.innerHTML = this.aspis;
+        this.upgradesUi.onAspisChanged(this.aspis);
 
         this.maybeSave();
     }
@@ -391,8 +391,8 @@ export default class Game {
 
     updateLegend() {
         for (const pixelType of Object.values(PixelType)) {
-            document.getElementById("gold_per_" + pixelType.name).innerText =
-                this.upgrades.goldPer[pixelType.name];
+            document.getElementById("aspis_per_" + pixelType.name).innerText =
+                this.upgrades.aspisPer[pixelType.name];
         }
 
         let updateHidden = function (type, show) {
@@ -458,16 +458,16 @@ export default class Game {
         this.spawn(closestSurfacePixel.position, false);
     }
 
-    startNotEnoughGoldAnimation(other) {
-        let animated = [this.goldElement.parentElement];
+    startNotEnoughAspisAnimation(other) {
+        let animated = [this.aspisElement.parentElement];
         if (other) {
             animated.push(other);
         }
         this.startAnimation(animated, this.PULSE_ANIMATION_NAME, this.PULSE_ANIMATION_DURATION_MS);
     }
 
-    stopNotEnoughGoldAnimation(other) {
-        let animated = [this.goldElement.parentElement];
+    stopNotEnoughAspisAnimation(other) {
+        let animated = [this.aspisElement.parentElement];
         if (other) {
             animated.push(other);
         }
@@ -496,11 +496,11 @@ export default class Game {
 
     spawn(position, immaculate) {
         if (!immaculate) {
-            if (this.spawnCost > this.gold && !window.DEBUG) {
-                this.startNotEnoughGoldAnimation(this.spawnCostElement.parentElement);
+            if (this.spawnCost > this.aspis && !window.DEBUG) {
+                this.startNotEnoughAspisAnimation(this.spawnCostElement.parentElement);
                 return;
             }
-            this.stopNotEnoughGoldAnimation(this.spawnCostElement.parentElement);
+            this.stopNotEnoughAspisAnimation(this.spawnCostElement.parentElement);
         }
 
         let littleGuy = new LittleGuy(this.planet, position, this.upgrades, immaculate);
@@ -508,9 +508,9 @@ export default class Game {
         littleGuy.init();
         this.littleGuys.push(littleGuy);
         if (!immaculate) {
-            this.gold -= this.spawnCost;
+            this.aspis -= this.spawnCost;
         }
-        this.updateGold();
+        this.updateAspis();
         this.updateSpawnCost();
         this.maybeSave();
     }
@@ -563,15 +563,17 @@ export default class Game {
             } else {
                 this.demonCount++;
             }
-            this.gold += this.upgrades.goldPer[PixelType.TOMBSTONE.name];
-            this.updateGold();
+            this.aspis += this.upgrades.aspisPer[PixelType.TOMBSTONE.name];
+            this.updateAspis();
         }
         if (littleGuy.deathByEgg) {
             this.knowsEggDeath = true;
-            this.particles.fireEffect(this.planetToParticleSpace(littleGuy.positionInPlanetSpace));
+            this.particles.fireEffect(
+                this.planetToParticleSpace(littleGuy.positionInPixelBodySpace)
+            );
             this.updateLegend();
         }
-        this.bloodyAround(littleGuy.positionInPlanetSpace);
+        this.bloodyAround(littleGuy.positionInPixelBodySpace);
     }
 
     handleInactive(littleGuy) {

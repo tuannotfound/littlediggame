@@ -19,10 +19,12 @@
             </div>
             <div id="debug" class="hidden">
                 <br />
-                <button id="plus_10">+10🪙</button>
-                <button id="plus_100">+100🪙</button>
-                <button id="plus_1000">+1000🪙</button>
-                <button id="plus_10000">+10000🪙</button>
+                <button id="plus_10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
+                <button id="plus_100">+100&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
+                <button id="plus_1000">+1000&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
+                <button id="plus_10000">
+                    +10000&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                </button>
                 <br />
                 <button id="bot"></button>
                 <button id="spawn_serpent">Spawn Serpent</button>
@@ -40,53 +42,64 @@
         <div id="game"></div>
         <div id="overlay" class="hidden">
             <div id="info_container">
-                <div><span id="planet_health">100.0</span><span>% 🌐</span></div>
-                <div><span id="gold">0</span><span>🪙</span></div>
-                <div><span id="little_guy_count">0</span><span>x🏃‍♂️</span></div>
-                <div><span>+🏃‍♂️:&nbsp;</span><span id="spawn_cost">0</span><span>🪙</span></div>
+                <div>
+                    <span id="planet_health">100.0</span><span>%</span>&nbsp;<i
+                        class="fa-solid fa-globe"
+                    ></i>
+                </div>
+                <div><span id="aspis">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i></div>
+                <div>
+                    <span id="little_guy_count">0</span>&nbsp;<i class="fa-solid fa-xmark"></i
+                    >&nbsp;<i class="fa-solid fa-person-walking"></i>
+                </div>
+                <div>
+                    <span>+&nbsp;<i class="fa-solid fa-person-walking"></i>:&nbsp;</span
+                    ><span id="spawn_cost">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                </div>
             </div>
-            <button id="show_upgrades">🛍️</button>
+            <button id="show_upgrades"><i class="fa-solid fa-book-open"></i></button>
             <div id="legend">
                 <span class="hidden"
                     ><span class="dirt">■</span>/<span class="grass">■</span>: Dirt (+<span
-                        id="gold_per_DIRT"
+                        id="aspis_per_DIRT"
                     ></span
-                    >🪙)<br
+                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                 /></span>
                 <span class="hidden"
                     ><span class="tombstone">■</span>: Tombstone (+<span
-                        id="gold_per_TOMBSTONE"
+                        id="aspis_per_TOMBSTONE"
                     ></span
-                    >🪙)<br
+                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                 /></span>
                 <span class="hidden"
-                    ><span class="gold">■</span>: Gold (+<span id="gold_per_GOLD"></span>🪙)<br
+                    ><span class="gold">■</span>: Gold (+<span id="aspis_per_GOLD"></span>&nbsp;<i
+                        class="fa-solid fa-austral-sign"
+                    ></i
+                    >)<br
                 /></span>
                 <span class="hidden"
-                    ><span class="diamond">■</span>: Diamond (+<span id="gold_per_DIAMOND"></span
-                    >🪙)<br
+                    ><span class="diamond">■</span>: Diamond (+<span id="aspis_per_DIAMOND"></span
+                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                 /></span>
                 <span class="hidden"
                     ><span class="egg">■</span>: <span id="egg_legend_title">???</span> (+<span
-                        id="gold_per_EGG"
+                        id="aspis_per_EGG"
                     ></span
-                    >🪙)<br
+                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                 /></span>
                 <span class="hidden"
                     ><span class="serpent">■</span>:
-                    <span id="serpent_legend_title">???</span> (+<span id="gold_per_SERPENT"></span
-                    >🪙)<br
+                    <span id="serpent_legend_title">???</span> (+<span id="aspis_per_SERPENT"></span
+                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                 /></span>
             </div>
         </div>
         <div id="upgrades_container" class="hidden">
             <div id="upgrades_header">
                 <h1 id="upgrades_title">Research</h1>
-                <button id="hide_upgrades">✖</button>
+                <button id="hide_upgrades"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="upgrades"></div>
         </div>
-
-        <script src="bundle.js"></script>
     </body>
 </html>

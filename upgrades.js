@@ -8,13 +8,13 @@ export default class Upgrades {
         // Base
         this.digSpeed = 0.5;
         this.digCount = 2;
-        this.goldPer = {};
-        this.goldPer[PixelType.DIRT.name] = 1;
-        this.goldPer[PixelType.GOLD.name] = 8;
-        this.goldPer[PixelType.TOMBSTONE.name] = 0;
-        this.goldPer[PixelType.DIAMOND.name] = 50;
-        this.goldPer[PixelType.EGG.name] = 393;
-        this.goldPer[PixelType.SERPENT.name] = 5555;
+        this.aspisPer = {};
+        this.aspisPer[PixelType.DIRT.name] = 1;
+        this.aspisPer[PixelType.GOLD.name] = 8;
+        this.aspisPer[PixelType.TOMBSTONE.name] = 0;
+        this.aspisPer[PixelType.DIAMOND.name] = 50;
+        this.aspisPer[PixelType.EGG.name] = 393;
+        this.aspisPer[PixelType.SERPENT.name] = 5555;
         this.unlockGold = false;
         this.unlockDiamonds = false;
         this.diamondRadar = false;
@@ -45,7 +45,7 @@ export default class Upgrades {
         return {
             digSpeed: this.digSpeed,
             digCount: this.digCount,
-            goldPer: this.goldPer,
+            aspisPer: this.aspisPer,
             unlockGold: this.unlockGold,
             unlockDiamonds: this.unlockDiamonds,
             diamondRadar: this.diamondRadar,
@@ -65,7 +65,7 @@ export default class Upgrades {
         let upgrades = new Upgrades();
         upgrades.digSpeed = json.digSpeed;
         upgrades.digCount = json.digCount;
-        upgrades.goldPer = json.goldPer;
+        upgrades.aspisPer = json.aspisPer;
         upgrades.unlockGold = json.unlockGold;
         upgrades.unlockDiamonds = json.unlockDiamonds;
         upgrades.diamondRadar = json.diamondRadar;
@@ -96,17 +96,17 @@ export default class Upgrades {
     }
 
     initUpgradeTree() {
-        // Gold++ tree
+        // Aspis++ tree
         let betterDirt = new Upgrade(
             "better_dirt",
             "better_dirt_tbd",
             StringUtils.dedent(`TBD`),
-            ["+100% gold extracted from dirt"],
+            ["+100% Aspis extracted from dirt"],
             5,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 2
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 2
                 );
             }
         );
@@ -118,115 +118,115 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Your populous will now recognize and dig up gold"],
             10,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.unlockGold = true;
             }
         );
         this.upgradeTree.set(unlockGold.id, unlockGold);
 
-        let moreGold1 = new Upgrade(
-            "more_gold_1",
+        let moreAspis1 = new Upgrade(
+            "more_aspis_1",
             "Elementum amicus",
             StringUtils.dedent(
                 `Your researchers discover that being kind to the soil, caring for it, reading to it
                 at night, and other displays of love result in more of it revealing itself to you
                 during dig operations.`
             ),
-            ["+100% gold extracted from dirt", "+25% gold extracted from... gold"],
+            ["+100% Aspis extracted from dirt", "+25% Aspis extracted from gold"],
             30,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 2
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 2
                 );
-                this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.25
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 1.25
                 );
             }
         );
-        moreGold1.addPrereq(betterDirt);
-        moreGold1.addPrereq(unlockGold);
-        this.upgradeTree.set(moreGold1.id, moreGold1);
+        moreAspis1.addPrereq(betterDirt);
+        moreAspis1.addPrereq(unlockGold);
+        this.upgradeTree.set(moreAspis1.id, moreAspis1);
 
-        let moreGold2 = new Upgrade(
-            "more_gold_2",
+        let moreAspis2 = new Upgrade(
+            "more_aspis_2",
             "Elementum tormentis",
             StringUtils.dedent(
                 `Perhaps even more surprisingly, your researchers observe that treating the soil
                 cruelly is even more productive. You hope the gold is masochistic and this behavior
                 isn't entirely immoral.`
             ),
-            ["+75% more gold extracted from dirt", "+60% more gold extracted from gold"],
+            ["+75% more Aspis extracted from dirt", "+60% more Aspis extracted from gold"],
             675,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 1.75
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 1.75
                 );
-                this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.6
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 1.6
                 );
             }
         );
-        moreGold2.addPrereq(moreGold1);
-        this.upgradeTree.set(moreGold2.id, moreGold2);
+        moreAspis2.addPrereq(moreAspis1);
+        this.upgradeTree.set(moreAspis2.id, moreAspis2);
 
-        let moreGold3 = new Upgrade(
-            "more_gold_3",
+        let moreAspis3 = new Upgrade(
+            "more_aspis_3",
             "Venereum elementum",
             StringUtils.dedent(
                 `Perhaps it is masochistic, and even sexual in nature. Lean into this.`
             ),
-            ["-2% more gold extracted from dirt", "-1% more gold extracted from gold"],
+            ["-2% more Aspis extracted from dirt", "-1% more Aspis extracted from gold"],
             8,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 0.98
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 0.98
                 );
-                this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 0.99
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 0.99
                 );
             }
         );
-        moreGold3.addPrereq(moreGold2);
-        this.upgradeTree.set(moreGold3.id, moreGold3);
+        moreAspis3.addPrereq(moreAspis2);
+        this.upgradeTree.set(moreAspis3.id, moreAspis3);
 
-        let moreGold4 = new Upgrade(
-            "more_gold_4",
+        let moreAspis4 = new Upgrade(
+            "more_aspis_4",
             "Nefas directionis",
             StringUtils.dedent(
                 `Nope, that wasn't it. Let's stop doing that. I think we're all relieved that's over
                 with, the dirt included.`
             ),
-            ["+60% more gold extracted from dirt", "+75% gold extracted from gold"],
+            ["+60% more Aspis extracted from dirt", "+75% Aspis extracted from gold"],
             3000,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 1.6
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 1.6
                 );
-                this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.75
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 1.75
                 );
             }
         );
-        moreGold4.addPrereq(moreGold3);
-        this.upgradeTree.set(moreGold4.id, moreGold4);
+        moreAspis4.addPrereq(moreAspis3);
+        this.upgradeTree.set(moreAspis4.id, moreAspis4);
 
         let graveDigger1 = new Upgrade(
             "grave_digger_1",
             "Dens cadaver",
             StringUtils.dedent(
                 `Tombstones don't have any gold in them, but gold fillings are popular amongst your
-                people, and there's no use letting those go to waste.`
+                people, and there's no use letting those go to waste when we can sell them.`
             ),
-            ["Get 2 gold from digging up tombstones"],
+            ["Get 2 Aspis from digging up tombstones"],
             5,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.TOMBSTONE.name] = 2;
+                this.aspisPer[PixelType.TOMBSTONE.name] = 2;
             }
         );
         this.upgradeTree.set(graveDigger1.id, graveDigger1);
@@ -238,11 +238,11 @@ export default class Upgrades {
                 `Hey, let's check their pockets while we're at it. Can't believe we didn't think of
                 that first.`
             ),
-            ["Get 8 gold from digging up tombstones"],
+            ["Get 8 Aspis from digging up tombstones"],
             50,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.TOMBSTONE.name] = 8;
+                this.aspisPer[PixelType.TOMBSTONE.name] = 8;
             }
         );
         graveDigger2.addPrereq(graveDigger1);
@@ -258,7 +258,7 @@ export default class Upgrades {
             ),
             ["Your populous will now recognize and dig up diamonds"],
             250,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.unlockDiamonds = true;
             }
@@ -274,12 +274,12 @@ export default class Upgrades {
                 finding and selling for a pittance. You just need to cut him in on the sale for a
                 small commission.`
             ),
-            ["+75% more gold from diamonds"],
+            ["+75% more Aspis from diamonds"],
             2300,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIAMOND.name] = Math.round(
-                    this.goldPer[PixelType.DIAMOND.name] * 1.75
+                this.aspisPer[PixelType.DIAMOND.name] = Math.round(
+                    this.aspisPer[PixelType.DIAMOND.name] * 1.75
                 );
             }
         );
@@ -292,51 +292,51 @@ export default class Upgrades {
             StringUtils.dedent(
                 `You murder your friend to, quite literally, cut out the middle man.`
             ),
-            ["+3% more gold from diamonds"],
+            ["+3% more Aspis from diamonds"],
             1200,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIAMOND.name] = Math.round(
-                    this.goldPer[PixelType.DIAMOND.name] * 1.03
+                this.aspisPer[PixelType.DIAMOND.name] = Math.round(
+                    this.aspisPer[PixelType.DIAMOND.name] * 1.03
                 );
             }
         );
         bloodDiamonds.addPrereq(diamondDeals);
         this.upgradeTree.set(bloodDiamonds.id, bloodDiamonds);
 
-        let moreGoldDirt = new Upgrade(
-            "more_gold_dirt",
-            "more_gold_dirt_tbd",
+        let moreAspisDirt = new Upgrade(
+            "more_aspis_dirt",
+            "more_aspis_dirt_tbd",
             StringUtils.dedent(`TBD: Dirt propaganda.`),
             ["The value of dirt is increased by 50%"],
             1500,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.DIRT.name] = Math.round(
-                    this.goldPer[PixelType.DIRT.name] * 1.5
+                this.aspisPer[PixelType.DIRT.name] = Math.round(
+                    this.aspisPer[PixelType.DIRT.name] * 1.5
                 );
             }
         );
-        moreGoldDirt.addPrereq(moreGold4);
-        moreGoldDirt.addPrereq(unlockDiamonds);
-        this.upgradeTree.set(moreGoldDirt.id, moreGoldDirt);
+        moreAspisDirt.addPrereq(moreAspis4);
+        moreAspisDirt.addPrereq(unlockDiamonds);
+        this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
-        let moreGoldGold = new Upgrade(
-            "more_gold_gold",
-            "more_gold_gold_tbd",
+        let moreAspisGold = new Upgrade(
+            "more_aspis_gold",
+            "more_aspis_gold_tbd",
             StringUtils.dedent(`TBD: Gold propaganda.`),
             ["The value of gold is increased by 80%"],
             1780,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.GOLD.name] = Math.round(
-                    this.goldPer[PixelType.GOLD.name] * 1.8
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 1.8
                 );
             }
         );
-        moreGoldGold.addPrereq(moreGold4);
-        moreGoldGold.addPrereq(unlockDiamonds);
-        this.upgradeTree.set(moreGoldGold.id, moreGoldGold);
+        moreAspisGold.addPrereq(moreAspis4);
+        moreAspisGold.addPrereq(unlockDiamonds);
+        this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         let graveDigger3 = new Upgrade(
             "grave_digger_3",
@@ -347,10 +347,10 @@ export default class Upgrades {
             ),
             ["Tombstones are now worth 25% of the value of diamonds."],
             1925,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
-                this.goldPer[PixelType.TOMBSTONE.name] = Math.round(
-                    this.goldPer[PixelType.DIAMOND.name] * 0.25
+                this.aspisPer[PixelType.TOMBSTONE.name] = Math.round(
+                    this.aspisPer[PixelType.DIAMOND.name] * 0.25
                 );
             }
         );
@@ -362,9 +362,11 @@ export default class Upgrades {
             "gold_seeker",
             "Thesaurum sub pede",
             "",
-            ["Your populous are much less likely to walk over gold without stopping to dig it up"],
+            [
+                "Your populous are much less likely to walk over something valuable without stopping to dig it up",
+            ],
             275,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.goldSeeker = true;
             }
@@ -382,7 +384,7 @@ export default class Upgrades {
             ),
             ["Digging is 2x faster"],
             10,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digSpeed *= 2;
             }
@@ -398,7 +400,7 @@ export default class Upgrades {
             ),
             ["Digging is 1.5x faster"],
             60,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digSpeed *= 1.5;
             }
@@ -415,7 +417,7 @@ export default class Upgrades {
             ),
             ["Digging is 1.25x faster"],
             220,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digSpeed *= 1.25;
             }
@@ -435,7 +437,7 @@ export default class Upgrades {
             ),
             ["Digging is 2x faster"],
             900,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digSpeed *= 2;
                 console.log("digspeed is now " + this.digSpeed);
@@ -450,7 +452,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             30,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digCount++;
             }
@@ -463,7 +465,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             400,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digCount++;
             }
@@ -477,7 +479,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 2"],
             2350,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.digCount += 2;
             }
@@ -494,7 +496,7 @@ export default class Upgrades {
                 "The cost of additional workers scales up more slowly",
             ],
             20,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 2;
                 this.populationPowerScale = 1.9;
@@ -511,7 +513,7 @@ export default class Upgrades {
                 "The cost of additional workers scales up more slowly",
             ],
             500,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 3;
                 this.populationPowerScale = 1.8;
@@ -529,7 +531,7 @@ export default class Upgrades {
                 "The cost of additional workers scales up more slowly",
             ],
             1550,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 4;
                 this.populationPowerScale = 1.7;
@@ -544,7 +546,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["The cost of additional workers scales up more slowly"],
             3000,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.populationPowerScale = 1.6;
             }
@@ -558,7 +560,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["The first 10 workers are now free"],
             6500,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 10;
             }
@@ -572,7 +574,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD: Peer into the planet itself to discover its treasures`),
             ["All gold is visible to your eyes"],
             410,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.goldRadar = true;
             }
@@ -587,7 +589,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["All diamond is revealed to you"],
             640,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.diamondRadar = true;
             }
@@ -602,13 +604,13 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Unlock the Religion research wing"],
             9999,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.religion = true;
                 this.initReligionTree();
             }
         );
-        religion.addPrereq(moreGold4);
+        religion.addPrereq(moreAspis4);
         religion.addPrereq(graveDigger2);
         religion.addPrereq(diamondDeals);
         religion.addPrereq(digSpeed4);
@@ -625,10 +627,10 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             [
                 "Death no longer results in a tombstone being created",
-                "Tombstone gold is granted immediately upon death",
+                "Tombstone Aspis is granted immediately upon death",
             ],
             1622,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.afterlife = true;
             }
@@ -641,7 +643,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["New congregants begin to manifest without your intervention"],
             6678,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs = 8000;
             }
@@ -654,7 +656,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["New believers are brought into existence twice as often"],
             3122,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs *= 0.5;
             }
@@ -668,7 +670,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["You are blessed with thrice as many new members joining your efforts"],
             10323,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs = Math.round(this.conceptionIntervalMs * 0.3);
             }
@@ -682,7 +684,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
             ["Unlocks the Serpent research wing"],
             1,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.serpent = true;
                 this.initSerpentTree();
@@ -700,7 +702,7 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Allows workers to exist near the Egg."],
             1,
-            Currency.GOLD,
+            Currency.ASPIS,
             () => {
                 this.eggHandling = true;
             }

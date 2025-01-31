@@ -6,7 +6,7 @@ import LittleGuy from "./little_guy.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
-import UpgradesUi from "./upgrades_ui.js";
+import UpgradesUi from "./upgrades_ui2.js";
 import PixelType from "./diggables/pixel_type.js";
 import Particles from "./particles.js";
 import Color from "./color.js";

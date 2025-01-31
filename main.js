@@ -25,9 +25,9 @@ document.onreadystatechange = function () {
             }
             console.log("Starting new game");
             game = new Game(window.innerWidth, window.innerHeight);
-            game.init(document.getElementById("game"));
             updateUiVisibility();
             updateUiSizes();
+            game.init(document.getElementById("game"));
         });
         let loadGameBtn = document.getElementById("load_game");
         loadGameBtn.addEventListener("click", () => {
@@ -41,9 +41,9 @@ document.onreadystatechange = function () {
             }
             console.log("Loading game");
             game = SaveLoad.load();
-            game.init(document.getElementById("game"));
             updateUiVisibility();
             updateUiSizes();
+            game.init(document.getElementById("game"));
         });
         if (SaveLoad.saveDataExists()) {
             loadGameBtn.removeAttribute("disabled");

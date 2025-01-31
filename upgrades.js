@@ -113,7 +113,7 @@ export default class Upgrades {
         this.upgradeTree.set(betterDirt.id, betterDirt);
 
         let unlockGold = new Upgrade(
-            "unlockGold",
+            "unlock_gold",
             "gold_tbd",
             StringUtils.dedent(`TBD`),
             ["Your populous will now recognize and dig up gold"],
@@ -249,7 +249,7 @@ export default class Upgrades {
         this.upgradeTree.set(graveDigger2.id, graveDigger2);
 
         let unlockDiamonds = new Upgrade(
-            "unlockDiamonds",
+            "unlock_diamonds",
             "Scintillare lapis",
             StringUtils.dedent(
                 `Someone with an eye for the finer things notices a bucket of brilliant crystals

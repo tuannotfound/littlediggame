@@ -188,6 +188,7 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
+        // ----- START Debug buttons -----
         let serpentBtn = document.getElementById("spawn_serpent");
         serpentBtn.addEventListener("click", () => {
             this.spawnSerpent();
@@ -211,6 +212,20 @@ export default class Game {
         bloodBtn.addEventListener("change", () => {
             this.blood = bloodBtn.checked;
             console.log("Blood: " + bloodBtn.checked);
+        });
+        // ----- END Debug buttons -----
+
+        let upgradesContainer = document.getElementById("upgrades_container");
+        let showUpgradesBtn = document.getElementById("show_upgrades");
+        showUpgradesBtn.addEventListener("click", () => {
+            upgradesContainer.classList.remove("hidden");
+            showUpgradesBtn.classList.add("hidden");
+            this.upgradesUi.onShown();
+        });
+        let hideUpgradesBtn = document.getElementById("hide_upgrades");
+        hideUpgradesBtn.addEventListener("click", () => {
+            upgradesContainer.classList.add("hidden");
+            showUpgradesBtn.classList.remove("hidden");
         });
 
         this.planetHealthElement = document.getElementById("planet_health");

@@ -65,6 +65,8 @@ export default class UpgradesUi {
         for (const rootUpgrade of rootUpgrades) {
             this.addRootUpgrade(rootUpgrade);
         }
+        this.container.addEventListener("mousedown", startDrag);
+        this.container.addEventListener("touchstart", startDrag);
     }
 
     destroy() {

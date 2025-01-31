@@ -1,20 +1,26 @@
 import dagre from "@dagrejs/dagre";
 import LinkerLine from "linkerline";
+import Draggable from "./draggable.js";
 
 export default class UpgradesUi {
+    LINE_UPDATE_INTERVAL_MS = 60 / 1000;
+
     constructor() {
         this.graph = null;
         this.container = null;
+        this.draggable = null;
         this.upgrades = null;
         this.getCurrentAspisFunc = null;
         this.buttonMap = new Map();
         this.lines = [];
+        this.lastLineUpdate = 0;
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
             onPurchased: (upgrade) => {
-                this.buttonMap.get(upgrade.id).setAttribute("disabled", true);
-                this.buttonMap.get(upgrade.id).classList.remove("cannot_afford");
-                this.buttonMap.get(upgrade.id).classList.add("purchased");
+                let button = this.buttonMap.get(upgrade.id);
+                button.setAttribute("disabled", true);
+                button.classList.remove("cannot_afford");
+                button.classList.add("purchased");
                 let upgradeDetailsEl = document.querySelector(
                     "button#" + upgrade.id + " > div > p.upgrade_desc"
                 );
@@ -31,6 +37,9 @@ export default class UpgradesUi {
                     }
                     this.onAspisChanged(this.getCurrentAspisFunc());
                 }
+                setTimeout(() => {
+                    this.updateGraph();
+                }, 10);
             },
             onUnlocked: (upgrade) => {
                 let button = this.buttonMap.get(upgrade.id);
@@ -43,6 +52,10 @@ export default class UpgradesUi {
                     "button#" + upgrade.id + " > div.obscured_details"
                 );
                 obscuredDetailsEl.classList.add("hidden");
+
+                setTimeout(() => {
+                    this.updateGraph();
+                }, 10);
             },
         };
         this.clickListener = (e) => {
@@ -67,43 +80,47 @@ export default class UpgradesUi {
         this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
         this.getCurrentAspisFunc = getCurrentAspisFunc;
 
-        this.initGraph();
+        this.draggable = new Draggable(this.container);
 
-        this.updateButtonPositions();
-
+        this.createButtons();
         this.createLines();
     }
 
-    initGraph() {
-        this.graph = new dagre.graphlib.Graph();
-        this.graph.setGraph({});
-        this.graph.setDefaultEdgeLabel(() => ({}));
-
+    createButtons() {
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             let button = this.createUpgradeButton(upgrade);
             this.container.appendChild(button);
-            this.graph.setNode(upgrade.id, {
-                width: 300,
-                height: 100,
-            });
-            // document.body.appendChild(button);
-            // let buttonBounds = button.getBoundingClientRect();
-            // document.body.removeChild(button);
-            // this.graph.setNode(upgrade.id, {
-            //     width: buttonBounds.width,
-            //     height: buttonBounds.height,
-            // });
-            for (const prereqId of upgrade.prereqs.keys()) {
-                this.graph.setEdge(upgrade.id, prereqId);
-            }
+        }
+        // After all buttons are created, go through and unlock any root upgrades.
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
             if (upgrade.prereqs.size == 0 && !upgrade.purchased) {
                 upgrade.unlock();
             }
         }
     }
 
-    updateButtonPositions() {
-        dagre.layout(this.graph);
+    updateGraph() {
+        console.log("Updating upgrades graph");
+        this.graph = new dagre.graphlib.Graph();
+        this.graph.setGraph({});
+        this.graph.setDefaultEdgeLabel(() => ({}));
+
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
+            let button = this.buttonMap.get(upgrade.id);
+            let buttonRect = button.getBoundingClientRect();
+            this.graph.setNode(upgrade.id, {
+                width: buttonRect.width,
+                height: buttonRect.height,
+            });
+            for (const prereqId of upgrade.prereqs.keys()) {
+                this.graph.setEdge(upgrade.id, prereqId);
+            }
+        }
+
+        dagre.layout(this.graph, {
+            //ranker: "tight-tree",
+        });
+
         this.container.style.width = this.graph.graph().width + "px";
         this.container.style.height = this.graph.graph().height + "px";
 
@@ -113,6 +130,7 @@ export default class UpgradesUi {
             button.style.left = node.x + "px";
             button.style.top = node.y + "px";
         }
+        this.maybeUpdateLines();
     }
 
     createLines() {
@@ -128,14 +146,20 @@ export default class UpgradesUi {
                 this.lines.push(line);
             }
         }
-        // This needs to be called when the upgrade div is actually shown.
-        // LinkerLine.positionAll();
     }
 
     destroy() {
         while (this.container.firstChild) {
             this.container.removeChild(this.container.lastChild);
         }
+        if (this.draggable) {
+            this.draggable.destroy();
+            this.draggable = null;
+        }
+    }
+
+    onShown() {
+        this.updateGraph();
     }
 
     onAspisChanged(aspis) {
@@ -189,6 +213,34 @@ export default class UpgradesUi {
         if (upgrade.purchased) {
             this.upgradeListener.onPurchased(upgrade);
         }
+        let transitionActive = false;
+        button.addEventListener("transitionstart", () => {
+            transitionActive = true;
+            function animate() {
+                if (!transitionActive) {
+                    return;
+                }
+                this.maybeUpdateLines();
+                requestAnimationFrame(animate.bind(this));
+            }
+            requestAnimationFrame(animate.bind(this));
+        });
+        button.addEventListener("transitionend", () => {
+            transitionActive = false;
+            this.maybeUpdateLines();
+        });
+        button.addEventListener("transitioncancel", () => {
+            transitionActive = false;
+            this.maybeUpdateLines();
+        });
         return button;
+    }
+
+    maybeUpdateLines() {
+        let now = performance.now();
+        if (now - this.lastLineUpdate > this.LINE_UPDATE_INTERVAL_MS) {
+            this.lastLineUpdate = now;
+            LinkerLine.positionAll();
+        }
     }
 }

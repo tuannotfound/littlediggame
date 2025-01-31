@@ -63,6 +63,10 @@ input[type="checkbox"] {
     flex-wrap: wrap;
 }
 
+.linker-line {
+    z-index: -1;
+}
+
 #game {
     width: fit-content;
     height: fit-content;
@@ -112,6 +116,7 @@ input[type="checkbox"] {
 }
 
 #upgrades_container {
+    display: grid;
     position: absolute;
     z-index: 2;
     background-color: rgba(255, 255, 255, 0.9);
@@ -138,16 +143,27 @@ input[type="checkbox"] {
     margin: 5px;
 }
 
+#upgrades_window {
+    overflow: hidden;
+}
+
 #upgrades {
     position: relative;
     padding: 5px;
     margin: 1px 0px;
+    touch-action: pan-x pan-y;
 }
 
 button.upgrade {
+    display: block;
+    width: 100%;
     max-width: 300px;
     position: absolute;
     margin: 5px 0px;
+}
+
+button.upgrade {
+    transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
 button.upgrade.cannot_afford:enabled > div.upgrade_title {

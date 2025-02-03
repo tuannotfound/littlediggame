@@ -79,6 +79,7 @@ export default class Game {
         this.planetHealthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
+        this.availableUpgradeCount = 0;
 
         this.angelCount = 0;
         this.demonCount = 0;
@@ -228,13 +229,14 @@ export default class Game {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
         });
-
-        this.planetHealthElement = document.getElementById("planet_health");
-        this.updateHealth();
+        this.availableUpgradeCount = document.getElementById("available_upgrade_count");
 
         this.aspisElement = document.getElementById("aspis");
         this.upgradesAspisElement = document.getElementById("upgrades_aspis");
         this.updateAspis();
+
+        this.planetHealthElement = document.getElementById("planet_health");
+        this.updateHealth();
 
         this.littleGuyCountElement = document.getElementById("little_guy_count");
         this.spawnCostElement = document.getElementById("spawn_cost");
@@ -345,6 +347,10 @@ export default class Game {
     }
 
     onDigComplete(pixel) {
+        if (!this.knowsDirt) {
+            this.knowsDirt = true;
+            this.updateLegend();
+        }
         let value = this.upgrades.aspisPer[pixel.type.name];
         if (
             (pixel.type == PixelType.GOLD && !this.upgrades.unlockGold) ||
@@ -354,13 +360,12 @@ export default class Game {
             value = this.upgrades.aspisPer[PixelType.DIRT.name];
         }
         this.aspis += value;
-        if (!this.knowsDirt) {
-            this.knowsDirt = true;
-            this.updateLegend();
+        if (value > 0) {
+            this.updateAspis();
         }
-        this.updateAspis();
         let positionInParticlesSpace = this.planetToParticleSpace(pixel.position);
         let color = new Color(pixel.getRenderColor());
+        // The pixel itself will likely be invisible post-dig, so make sure we reset the alpha.
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
         this.particles.coinEffect(positionInParticlesSpace, value);
@@ -392,7 +397,9 @@ export default class Game {
         }
         this.stopNotEnoughAspisAnimation([buttonCostEl, this.upgradesAspisElement.parentElement]);
         this.aspis -= upgrade.cost;
-        this.updateAspis();
+        if (upgrade.cost > 0) {
+            this.updateAspis();
+        }
         upgrade.purchase();
         this.updateSpawnCost();
         this.updateLegend();
@@ -402,8 +409,30 @@ export default class Game {
         this.aspisElement.innerHTML = this.aspis;
         this.upgradesAspisElement.innerHTML = this.aspis;
         this.upgradesUi.onAspisChanged(this.aspis);
+        this.updateAvailableUpgradeCount();
 
         this.maybeSave();
+    }
+
+    updateAvailableUpgradeCount() {
+        let availableUpgradeCount = 0;
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
+            if (upgrade.purchased) {
+                continue;
+            }
+            if (!upgrade.unlocked) {
+                continue;
+            }
+            if (upgrade.cost <= this.aspis) {
+                availableUpgradeCount++;
+            }
+        }
+        if (availableUpgradeCount > 0) {
+            this.availableUpgradeCount.classList.remove("hidden");
+            this.availableUpgradeCount.innerHTML = availableUpgradeCount;
+        } else {
+            this.availableUpgradeCount.classList.add("hidden");
+        }
     }
 
     updateHealth() {
@@ -530,8 +559,10 @@ export default class Game {
         this.littleGuys.push(littleGuy);
         if (!immaculate) {
             this.aspis -= this.spawnCost;
+            if (this.spawnCost > 0) {
+                this.updateAspis();
+            }
         }
-        this.updateAspis();
         this.updateSpawnCost();
         this.maybeSave();
     }

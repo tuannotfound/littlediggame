@@ -92,6 +92,9 @@ input[type="checkbox"] {
 }
 
 #show_upgrades {
+    position: absolute;
+    right: 10px;
+    top: 10px;
     pointer-events: auto;
     grid-row: 1;
     justify-self: right;
@@ -99,7 +102,26 @@ input[type="checkbox"] {
     cursor: pointer;
     height: 60px;
     width: 60px;
-    margin: 5px;
+}
+
+.notification {
+    /* circle shape, size and position */
+    position: absolute;
+    right: -0.7em;
+    top: -0.7em;
+    min-width: 1.6em; /* or width, explained below. */
+    height: 1.6em;
+    border-radius: 0.8em; /* or 50%, explained below. */
+    border: 1px solid rgb(21, 66, 33);
+    background-color: rgb(50, 153, 76);
+    padding: 0px 1px;
+
+    /* number size and position */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    font-size: 0.7em;
+    color: white;
 }
 
 #legend {

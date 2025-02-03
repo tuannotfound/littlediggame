@@ -122,6 +122,7 @@ input[type="checkbox"] {
     position: absolute;
     z-index: 2;
     background-color: rgba(255, 255, 255, 0.9);
+    border: black 1px solid;
 }
 
 #upgrades_header {
@@ -129,9 +130,10 @@ input[type="checkbox"] {
     align-items: center;
     grid-template-columns: 1fr 1fr 1fr;
     background-color: white;
+    border-bottom: #a1a1a1 1px solid;
 }
 
-#upgrades_aspis {
+div:has(> #upgrades_aspis) {
     padding: 2px;
     grid-column: 1;
     justify-self: left;

@@ -75,6 +75,7 @@ export default class Game {
         this.knowsDirt = false;
         this.aspis = 0;
         this.aspisElement = null;
+        this.upgradesAspisElement = null;
         this.planetHealthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
@@ -232,6 +233,7 @@ export default class Game {
         this.updateHealth();
 
         this.aspisElement = document.getElementById("aspis");
+        this.upgradesAspisElement = document.getElementById("upgrades_aspis");
         this.updateAspis();
 
         this.littleGuyCountElement = document.getElementById("little_guy_count");
@@ -381,12 +383,14 @@ export default class Game {
         let buttonCostEl = document.querySelector(
             "button#" + button.id + " > div.upgrade_title > span.cost"
         );
-        let upgradeAspisEl = document.getElementById("upgrades_aspis");
         if (upgrade.cost > this.aspis) {
-            this.startNotEnoughAspisAnimation([buttonCostEl, upgradeAspisEl]);
+            this.startNotEnoughAspisAnimation([
+                buttonCostEl,
+                this.upgradesAspisElement.parentElement,
+            ]);
             return;
         }
-        this.stopNotEnoughAspisAnimation([buttonCostEl, upgradeAspisEl]);
+        this.stopNotEnoughAspisAnimation([buttonCostEl, this.upgradesAspisElement.parentElement]);
         this.aspis -= upgrade.cost;
         this.updateAspis();
         upgrade.purchase();
@@ -396,6 +400,7 @@ export default class Game {
 
     updateAspis() {
         this.aspisElement.innerHTML = this.aspis;
+        this.upgradesAspisElement.innerHTML = this.aspis;
         this.upgradesUi.onAspisChanged(this.aspis);
 
         this.maybeSave();

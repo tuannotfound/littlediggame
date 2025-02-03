@@ -437,6 +437,9 @@ export default class Game {
 
     updateHealth() {
         this.planetHealthElement.innerHTML = (100 * this.planet.health).toFixed(1);
+        if (this.planet.health <= 0 && !this.serpent.initialized) {
+            this.spawnSerpent();
+        }
     }
 
     updateLegend() {

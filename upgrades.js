@@ -108,7 +108,9 @@ export default class Upgrades {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 2
                 );
-            }
+            },
+            0,
+            0
         );
         this.upgradeTree.set(betterDirt.id, betterDirt);
 
@@ -121,7 +123,9 @@ export default class Upgrades {
             Currency.ASPIS,
             () => {
                 this.unlockGold = true;
-            }
+            },
+            0,
+            0
         );
         this.upgradeTree.set(unlockGold.id, unlockGold);
 
@@ -143,7 +147,9 @@ export default class Upgrades {
                 this.aspisPer[PixelType.GOLD.name] = Math.round(
                     this.aspisPer[PixelType.GOLD.name] * 1.25
                 );
-            }
+            },
+            0,
+            1
         );
         moreAspis1.addPrereq(betterDirt);
         moreAspis1.addPrereq(unlockGold);
@@ -318,7 +324,7 @@ export default class Upgrades {
             }
         );
         moreAspisDirt.addPrereq(moreAspis4);
-        moreAspisDirt.addPrereq(unlockDiamonds);
+        moreAspisDirt.addPrereq(bloodDiamonds);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
         let moreAspisGold = new Upgrade(
@@ -335,7 +341,7 @@ export default class Upgrades {
             }
         );
         moreAspisGold.addPrereq(moreAspis4);
-        moreAspisGold.addPrereq(unlockDiamonds);
+        moreAspisGold.addPrereq(bloodDiamonds);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         let graveDigger3 = new Upgrade(
@@ -568,35 +574,36 @@ export default class Upgrades {
         freeWorkers1.addPrereq(pop3);
         this.upgradeTree.set(freeWorkers1.id, freeWorkers1);
 
-        let goldRadar = new Upgrade(
-            "gold_radar",
-            "gold_radar_tbd",
-            StringUtils.dedent(`TBD: Peer into the planet itself to discover its treasures`),
-            ["All gold is visible to your eyes"],
-            410,
-            Currency.ASPIS,
-            () => {
-                this.goldRadar = true;
-            }
-        );
-        goldRadar.addPrereq(goldSeeker);
-        goldRadar.addPrereq(digSpeed4);
-        this.upgradeTree.set(goldRadar.id, goldRadar);
+        // These kinda suck?
+        // let goldRadar = new Upgrade(
+        //     "gold_radar",
+        //     "gold_radar_tbd",
+        //     StringUtils.dedent(`TBD: Peer into the planet itself to discover its treasures`),
+        //     ["All gold is visible to your eyes"],
+        //     410,
+        //     Currency.ASPIS,
+        //     () => {
+        //         this.goldRadar = true;
+        //     }
+        // );
+        // goldRadar.addPrereq(goldSeeker);
+        // goldRadar.addPrereq(digSpeed4);
+        // this.upgradeTree.set(goldRadar.id, goldRadar);
 
-        let diamondRadar = new Upgrade(
-            "diamond_radar",
-            "diamond_radar_tbd",
-            StringUtils.dedent(`TBD`),
-            ["All diamond is revealed to you"],
-            640,
-            Currency.ASPIS,
-            () => {
-                this.diamondRadar = true;
-            }
-        );
-        diamondRadar.addPrereq(bloodDiamonds);
-        diamondRadar.addPrereq(goldRadar);
-        this.upgradeTree.set(diamondRadar.id, diamondRadar);
+        // let diamondRadar = new Upgrade(
+        //     "diamond_radar",
+        //     "diamond_radar_tbd",
+        //     StringUtils.dedent(`TBD`),
+        //     ["All diamond is revealed to you"],
+        //     640,
+        //     Currency.ASPIS,
+        //     () => {
+        //         this.diamondRadar = true;
+        //     }
+        // );
+        // diamondRadar.addPrereq(bloodDiamonds);
+        // diamondRadar.addPrereq(goldRadar);
+        // this.upgradeTree.set(diamondRadar.id, diamondRadar);
 
         let religion = new Upgrade(
             "religion",
@@ -611,8 +618,7 @@ export default class Upgrades {
             }
         );
         religion.addPrereq(moreAspis4);
-        religion.addPrereq(graveDigger2);
-        religion.addPrereq(diamondDeals);
+        religion.addPrereq(graveDigger3);
         religion.addPrereq(digSpeed4);
         religion.addPrereq(digCount3);
         religion.addPrereq(pop4);

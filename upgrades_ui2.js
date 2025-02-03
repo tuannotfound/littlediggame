@@ -12,7 +12,10 @@ export default class UpgradesUi {
         this.upgrades = null;
         this.getCurrentAspisFunc = null;
         this.buttonMap = new Map();
-        this.lines = [];
+        this.gridMap = new Map();
+        this.rowTrackMap = new Map();
+        this.rootUpgradesAdded = [];
+        this.linesMap = new Map();
         this.lastLineUpdate = 0;
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
@@ -30,16 +33,26 @@ export default class UpgradesUi {
                     // New research trees may have been unlocked. Look for any root upgrades that
                     // don't yet exist in the button map and add them.
                     let rootUpgrades = this.getRootUpgrades();
+                    let newRootUpgrades = false;
                     for (const rootUpgrade of rootUpgrades) {
-                        if (!this.buttonMap.has(rootUpgrade.id)) {
-                            this.addRootUpgrade(rootUpgrade);
+                        if (this.rootUpgradesAdded.includes(rootUpgrade.id)) {
+                            continue;
                         }
+
+                        this.createButtonsFromRoot(rootUpgrade, this.rootUpgradesAdded.length + 1);
+                        newRootUpgrades = true;
+                    }
+                    if (newRootUpgrades) {
+                        for (const upgrade of rootUpgrades) {
+                            if (!upgrade.unlocked) {
+                                upgrade.unlock();
+                            }
+                        }
+                        this.createLines();
                     }
                     this.onAspisChanged(this.getCurrentAspisFunc());
                 }
-                setTimeout(() => {
-                    this.updateGraph();
-                }, 10);
+                LinkerLine.positionAll();
             },
             onUnlocked: (upgrade) => {
                 let button = this.buttonMap.get(upgrade.id);
@@ -52,10 +65,7 @@ export default class UpgradesUi {
                     "button#" + upgrade.id + " > div.obscured_details"
                 );
                 obscuredDetailsEl.classList.add("hidden");
-
-                setTimeout(() => {
-                    this.updateGraph();
-                }, 10);
+                LinkerLine.positionAll();
             },
         };
         this.clickListener = (e) => {
@@ -86,64 +96,86 @@ export default class UpgradesUi {
         this.createLines();
     }
 
+    getRootUpgrades() {
+        return [...this.upgrades.upgradeTree.values().filter((u) => u.prereqs.size == 0)];
+    }
+
     createButtons() {
-        for (const upgrade of this.upgrades.upgradeTree.values()) {
-            let button = this.createUpgradeButton(upgrade);
-            this.container.appendChild(button);
+        let rootUpgrades = this.getRootUpgrades();
+        for (const upgrade of rootUpgrades) {
+            this.createButtonsFromRoot(upgrade, this.rootUpgradesAdded.length + 1);
         }
         // After all buttons are created, go through and unlock any root upgrades.
-        for (const upgrade of this.upgrades.upgradeTree.values()) {
-            if (upgrade.prereqs.size == 0 && !upgrade.purchased) {
+        for (const upgrade of rootUpgrades) {
+            if (!upgrade.unlocked) {
                 upgrade.unlock();
             }
         }
     }
 
-    updateGraph() {
-        console.log("Updating upgrades graph");
-        this.graph = new dagre.graphlib.Graph();
-        this.graph.setGraph({});
-        this.graph.setDefaultEdgeLabel(() => ({}));
+    createButtonsFromRoot(rootUpgrade, row) {
+        // Perform a breadth-first traversal starting from the root upgrade
+        const queue = [];
+        const visited = new Set();
 
-        for (const upgrade of this.upgrades.upgradeTree.values()) {
-            let button = this.buttonMap.get(upgrade.id);
-            let buttonRect = button.getBoundingClientRect();
-            this.graph.setNode(upgrade.id, {
-                width: buttonRect.width,
-                height: buttonRect.height,
-            });
-            for (const prereqId of upgrade.prereqs.keys()) {
-                this.graph.setEdge(upgrade.id, prereqId);
+        this.createUpgradeButton(rootUpgrade, row);
+        this.rootUpgradesAdded.push(rootUpgrade.id);
+        queue.push(rootUpgrade);
+        visited.add(rootUpgrade.id);
+
+        while (queue.length > 0) {
+            const currentUpgrade = queue.shift();
+
+            // Iterate through downstream upgrades
+            for (const downstreamUpgrade of currentUpgrade.downstream.values()) {
+                if (this.buttonMap.has(downstreamUpgrade.id)) {
+                    let rows = this.rowTrackMap.get(downstreamUpgrade.id);
+                    rows.push(row);
+                    let newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
+                    let column = downstreamUpgrade.getMaxDepth() + 1;
+                    let button = this.buttonMap.get(downstreamUpgrade.id);
+                    let prevRow = button.parentElement.style.gridRow;
+                    console.log(
+                        downstreamUpgrade.id +
+                            " moving from row " +
+                            prevRow +
+                            " to " +
+                            newRow +
+                            " (avg of " +
+                            rows.toString() +
+                            ")"
+                    );
+                    if (newRow != prevRow) {
+                        button.parentElement.removeChild(button);
+                        this.getGridDiv(newRow, column).appendChild(button);
+                    }
+                    continue;
+                }
+                if (visited.has(downstreamUpgrade.id)) {
+                    continue;
+                }
+                this.createUpgradeButton(downstreamUpgrade, row);
+                queue.push(downstreamUpgrade);
+                visited.add(downstreamUpgrade.id);
             }
         }
-
-        dagre.layout(this.graph, {
-            //ranker: "tight-tree",
-        });
-
-        this.container.style.width = this.graph.graph().width + "px";
-        this.container.style.height = this.graph.graph().height + "px";
-
-        for (const id of this.graph.nodes()) {
-            let button = this.buttonMap.get(id);
-            let node = this.graph.node(id);
-            button.style.left = node.x + "px";
-            button.style.top = node.y + "px";
-        }
-        this.maybeUpdateLines();
     }
 
     createLines() {
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             let button = this.buttonMap.get(upgrade.id);
             for (const prereqId of upgrade.prereqs.keys()) {
+                let linesMapKey = upgrade.id + "->" + prereqId;
+                if (this.linesMap.has(linesMapKey)) {
+                    continue;
+                }
                 let prereqButton = this.buttonMap.get(prereqId);
                 let line = new LinkerLine({
                     parent: this.container,
                     start: prereqButton,
                     end: button,
                 });
-                this.lines.push(line);
+                this.linesMap.set(upgrade.id + "->" + prereqId, line);
             }
         }
     }
@@ -159,7 +191,7 @@ export default class UpgradesUi {
     }
 
     onShown() {
-        this.updateGraph();
+        LinkerLine.positionAll();
     }
 
     onAspisChanged(aspis) {
@@ -180,7 +212,7 @@ export default class UpgradesUi {
         }
     }
 
-    createUpgradeButton(upgrade) {
+    createUpgradeButton(upgrade, row) {
         let buttonInnerHtml = `<div class='upgrade_title'>
                                  <strong>${upgrade.title}</strong>
                                  <span class='cost'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
@@ -233,7 +265,23 @@ export default class UpgradesUi {
             transitionActive = false;
             this.maybeUpdateLines();
         });
+
+        let column = upgrade.getMaxDepth() + 1;
+        this.getGridDiv(row, column).appendChild(button);
+        this.rowTrackMap.set(upgrade.id, [row]);
         return button;
+    }
+
+    getGridDiv(row, column) {
+        let gridKey = row + "x" + column;
+        if (!this.gridMap.has(gridKey)) {
+            let gridDiv = document.createElement("div");
+            gridDiv.style.gridRow = row;
+            gridDiv.style.gridColumn = column;
+            this.container.appendChild(gridDiv);
+            this.gridMap.set(gridKey, gridDiv);
+        }
+        return this.gridMap.get(gridKey);
     }
 
     maybeUpdateLines() {

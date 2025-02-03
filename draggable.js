@@ -1,7 +1,6 @@
 // Makes an element draggable within its parent window.
 // 'element' should have:
 //   * position: relative;
-//   * touch-action: pan-x pan-y;
 // and its parent should have:
 //   * overflow: none;
 export default class Draggable {
@@ -23,7 +22,6 @@ export default class Draggable {
     }
 
     _startDrag(e) {
-        e.preventDefault(); // Prevent default touch scrolling behavior if needed.
         this.isDragging = true;
         this.element.parentElement.style.cursor = "grabbing";
         const event = e.touches ? e.touches[0] : e;

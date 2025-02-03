@@ -151,7 +151,6 @@ input[type="checkbox"] {
     position: relative;
     padding: 5px;
     margin: 1px 0px;
-    touch-action: pan-x pan-y;
 }
 
 button.upgrade {

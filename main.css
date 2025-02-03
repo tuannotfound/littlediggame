@@ -109,6 +109,7 @@ input[type="checkbox"] {
 }
 
 #info_container > div {
+    padding: 2px;
     margin-left: 5px;
     display: flex;
     align-items: flex-end;
@@ -116,6 +117,7 @@ input[type="checkbox"] {
 }
 
 #upgrades_container {
+    touch-action: manipulation;
     display: grid;
     position: absolute;
     z-index: 2;
@@ -127,6 +129,16 @@ input[type="checkbox"] {
     align-items: center;
     grid-template-columns: 1fr 1fr 1fr;
     background-color: white;
+}
+
+#upgrades_aspis {
+    padding: 2px;
+    grid-column: 1;
+    justify-self: left;
+    margin: 10px;
+    display: flex;
+    align-items: flex-end;
+    text-wrap-mode: nowrap;
 }
 
 #upgrades_title {
@@ -155,14 +167,9 @@ input[type="checkbox"] {
 
 button.upgrade {
     display: block;
-    width: 100%;
-    max-width: 300px;
+    width: 300px;
     position: absolute;
     margin: 5px 0px;
-}
-
-button.upgrade {
-    transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
 }
 
 button.upgrade.cannot_afford:enabled > div.upgrade_title {

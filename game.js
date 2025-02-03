@@ -381,11 +381,12 @@ export default class Game {
         let buttonCostEl = document.querySelector(
             "button#" + button.id + " > div.upgrade_title > span.cost"
         );
+        let upgradeAspisEl = document.getElementById("upgrades_aspis");
         if (upgrade.cost > this.aspis) {
-            this.startNotEnoughAspisAnimation(buttonCostEl);
+            this.startNotEnoughAspisAnimation([buttonCostEl, upgradeAspisEl]);
             return;
         }
-        this.stopNotEnoughAspisAnimation(buttonCostEl);
+        this.stopNotEnoughAspisAnimation([buttonCostEl, upgradeAspisEl]);
         this.aspis -= upgrade.cost;
         this.updateAspis();
         upgrade.purchase();
@@ -473,18 +474,18 @@ export default class Game {
         this.spawn(closestSurfacePixel.position, false);
     }
 
-    startNotEnoughAspisAnimation(other) {
+    startNotEnoughAspisAnimation(others) {
         let animated = [this.aspisElement.parentElement];
-        if (other) {
-            animated.push(other);
+        if (others) {
+            animated.push(...others);
         }
         this.startAnimation(animated, this.PULSE_ANIMATION_NAME, this.PULSE_ANIMATION_DURATION_MS);
     }
 
-    stopNotEnoughAspisAnimation(other) {
+    stopNotEnoughAspisAnimation(others) {
         let animated = [this.aspisElement.parentElement];
-        if (other) {
-            animated.push(other);
+        if (others) {
+            animated.push(...others);
         }
         this.stopAnimation(animated, this.PULSE_ANIMATION_NAME);
     }
@@ -512,10 +513,10 @@ export default class Game {
     spawn(position, immaculate) {
         if (!immaculate) {
             if (this.spawnCost > this.aspis && !window.DEBUG) {
-                this.startNotEnoughAspisAnimation(this.spawnCostElement.parentElement);
+                this.startNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
                 return;
             }
-            this.stopNotEnoughAspisAnimation(this.spawnCostElement.parentElement);
+            this.stopNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
         }
 
         let littleGuy = new LittleGuy(this.planet, position, this.upgrades, immaculate);

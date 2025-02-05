@@ -20,67 +20,11 @@ export default class UpgradesUi {
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
             onPurchased: (upgrade) => {
-                let button = this.buttonMap.get(upgrade.id);
-                button.setAttribute("disabled", true);
-                button.classList.remove("cannot_afford");
-                button.classList.add("purchased");
-                let upgradeDetailsEl = document.querySelector(
-                    "button#" + upgrade.id + " > div > p.upgrade_desc"
-                );
-                upgradeDetailsEl.classList.add("hidden");
-
-                if (this.buttonMap.size < this.upgrades.upgradeTree.size) {
-                    // New research trees may have been unlocked. Look for any root upgrades that
-                    // don't yet exist in the button map and add them.
-                    let rootUpgrades = this.getRootUpgrades();
-                    let newRootUpgrades = false;
-                    for (const rootUpgrade of rootUpgrades) {
-                        if (this.rootUpgradesAdded.includes(rootUpgrade.id)) {
-                            continue;
-                        }
-
-                        this.createButtonsFromRoot(rootUpgrade, this.rootUpgradesAdded.length + 1);
-                        newRootUpgrades = true;
-                    }
-                    if (newRootUpgrades) {
-                        for (const upgrade of rootUpgrades) {
-                            if (!upgrade.unlocked) {
-                                upgrade.unlock();
-                            }
-                        }
-                        this.createLines();
-                    }
-                    this.onAspisChanged(this.getCurrentAspisFunc());
-                }
-                LinkerLine.positionAll();
+                this.handlePurchase(upgrade);
             },
             onUnlocked: (upgrade) => {
-                let button = this.buttonMap.get(upgrade.id);
-                button.removeAttribute("disabled");
-                let upgradeDetailsEl = document.querySelector(
-                    "button#" + upgrade.id + " > div.upgrade_details"
-                );
-                upgradeDetailsEl.classList.remove("hidden");
-                let obscuredDetailsEl = document.querySelector(
-                    "button#" + upgrade.id + " > div.obscured_details"
-                );
-                obscuredDetailsEl.classList.add("hidden");
-                LinkerLine.positionAll();
+                this.handleUnlock(upgrade);
             },
-        };
-        this.clickListener = (e) => {
-            let id = e.currentTarget.id;
-            if (!this.upgrades.upgradeTree.has(id)) {
-                return;
-            }
-            let upgrade = this.upgrades.upgradeTree.get(id);
-            if (upgrade.purchased) {
-                console.warn("Attempted to purchase " + upgrade.id + " more than once");
-                return;
-            }
-            if (this.onPurchaseAttemptFunc) {
-                this.onPurchaseAttemptFunc(upgrade, e.currentTarget);
-            }
         };
     }
 
@@ -104,12 +48,6 @@ export default class UpgradesUi {
         let rootUpgrades = this.getRootUpgrades();
         for (const upgrade of rootUpgrades) {
             this.createButtonsFromRoot(upgrade, this.rootUpgradesAdded.length + 1);
-        }
-        // After all buttons are created, go through and unlock any root upgrades.
-        for (const upgrade of rootUpgrades) {
-            if (!upgrade.unlocked) {
-                upgrade.unlock();
-            }
         }
     }
 
@@ -165,9 +103,8 @@ export default class UpgradesUi {
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             let button = this.buttonMap.get(upgrade.id);
             for (const prereqId of upgrade.prereqs.keys()) {
-                let linesMapKey = upgrade.id + "->" + prereqId;
-                if (this.linesMap.has(linesMapKey)) {
-                    continue;
+                if (!this.linesMap.has(prereqId)) {
+                    this.linesMap.set(prereqId, []);
                 }
                 let prereqButton = this.buttonMap.get(prereqId);
                 let line = new LinkerLine({
@@ -175,7 +112,17 @@ export default class UpgradesUi {
                     start: prereqButton,
                     end: button,
                 });
-                this.linesMap.set(upgrade.id + "->" + prereqId, line);
+                line.setOptions({
+                    color: "rgb(150, 150, 150)",
+                    size: 2,
+                    dash: true,
+                    endPlug: "square",
+                    endPlugSize: 1.5,
+                    startSocket: "right",
+                    endSocket: "left",
+                });
+                line.hide();
+                this.linesMap.get(prereqId).push(line);
             }
         }
     }
@@ -191,7 +138,103 @@ export default class UpgradesUi {
     }
 
     onShown() {
+        // After all buttons and lines are created, go through and unlock any root upgrades.
+        // Must do this onShown() otherwise the children of the buttons have a height of 0 and
+        // our attempt at transitioning to full height doesn't work.
+        for (const upgrade of this.getRootUpgrades()) {
+            if (!upgrade.unlocked) {
+                upgrade.unlock();
+            }
+        }
         LinkerLine.positionAll();
+    }
+
+    handleUnlock(upgrade) {
+        let button = this.buttonMap.get(upgrade.id);
+        button.removeAttribute("disabled");
+        let upgradeDetailsEl = document.querySelector(
+            "button#" + upgrade.id + " > div.upgrade_details"
+        );
+        upgradeDetailsEl.style.height = this.getTotalHeightOfChildren(upgradeDetailsEl) + "px";
+        console.log(upgrade.id + " details height: " + upgradeDetailsEl.style.height);
+        let obscuredDetailsEl = document.querySelector(
+            "button#" + upgrade.id + " > div.obscured_details"
+        );
+        obscuredDetailsEl.style.height = "0px";
+        LinkerLine.positionAll();
+        let lines = this.linesMap.get(upgrade.id);
+        // Not all upgrades have a line originating from them.
+        if (lines) {
+            for (const line of lines) {
+                line.show("draw", { duration: 500 });
+            }
+        }
+    }
+
+    getTotalHeightOfChildren(el) {
+        return [...el.children].reduce((a, b) => a + this.getFullHeight(b), 0);
+    }
+
+    getFullHeight(el) {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        const height = rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+
+        return height;
+    }
+
+    handlePurchase(upgrade) {
+        let button = this.buttonMap.get(upgrade.id);
+        button.setAttribute("disabled", true);
+        button.classList.remove("cannot_afford");
+        button.classList.add("purchased");
+
+        if (this.buttonMap.size < this.upgrades.upgradeTree.size) {
+            // New research trees may have been unlocked. Look for any root upgrades that
+            // don't yet exist in the button map and add them.
+            let rootUpgrades = this.getRootUpgrades();
+            let newRootUpgrades = false;
+            for (const rootUpgrade of rootUpgrades) {
+                if (this.rootUpgradesAdded.includes(rootUpgrade.id)) {
+                    continue;
+                }
+
+                this.createButtonsFromRoot(rootUpgrade, this.rootUpgradesAdded.length + 1);
+                newRootUpgrades = true;
+            }
+            if (newRootUpgrades) {
+                for (const upgrade of rootUpgrades) {
+                    if (!upgrade.unlocked) {
+                        upgrade.unlock();
+                    }
+                }
+                this.createLines();
+            }
+            this.onAspisChanged(this.getCurrentAspisFunc());
+        }
+        let lines = this.linesMap.get(upgrade.id);
+        // Not all upgrades have a line originating from them.
+        if (lines) {
+            for (const line of lines) {
+                line.setOptions({ color: "rgb(60, 180, 90)", dash: false });
+            }
+        }
+        LinkerLine.positionAll();
+    }
+
+    handleUpgradeButtonClick(e) {
+        let id = e.currentTarget.id;
+        if (!this.upgrades.upgradeTree.has(id)) {
+            return;
+        }
+        let upgrade = this.upgrades.upgradeTree.get(id);
+        if (upgrade.purchased) {
+            console.warn("Attempted to purchase " + upgrade.id + " more than once");
+            return;
+        }
+        if (this.onPurchaseAttemptFunc) {
+            this.onPurchaseAttemptFunc(upgrade, e.currentTarget);
+        }
     }
 
     onAspisChanged(aspis) {
@@ -217,8 +260,10 @@ export default class UpgradesUi {
                                  <strong>${upgrade.title}</strong>
                                  <span class='cost'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
                                </div>
-                               <div class='upgrade_details hidden'>
-                                 <p class='upgrade_desc'>${upgrade.desc}</p>
+                               <div class='upgrade_details' style='height: 0px;'>
+                                 <div class='upgrade_desc_container'>
+                                   <p class='upgrade_desc'>${upgrade.desc}</p>
+                                 </div>
                                  <ul>`;
         for (const bulletPt of upgrade.bulletPts) {
             buttonInnerHtml += `<li>${bulletPt}</li>`;
@@ -237,7 +282,7 @@ export default class UpgradesUi {
             button.setAttribute("disabled", true);
         }
         upgrade.addListener(this.upgradeListener);
-        button.addEventListener("click", this.clickListener);
+        button.addEventListener("click", this.handleUpgradeButtonClick.bind(this));
         this.buttonMap.set(upgrade.id, button);
         if (upgrade.unlocked) {
             this.upgradeListener.onUnlocked(upgrade);

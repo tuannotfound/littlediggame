@@ -1,23 +1,30 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import PixelType from "./diggables/pixel_type.js";
+import Color from "./color.js";
 
 export default class LittleGuy {
-    DEFAULT_HEAD_COLOR = { r: 242, g: 222, b: 187, a: 255 };
-    DEFAULT_BODY_COLOR = { r: 87, g: 125, b: 180, a: 255 };
+    static DEFAULT_HEAD_COLOR = new Color(242, 222, 187).immutableCopy();
+    static DEFAULT_BODY_COLOR = new Color(87, 125, 180).immutableCopy();
     // Yellow helmet. Safety first.
-    DIGGING_HEAD_COLOR = { r: 245, g: 221, b: 66, a: 255 };
+    static DIGGING_HEAD_COLOR = new Color(245, 221, 66).immutableCopy();
     // Filthy, dirt-covered overalls.
-    DIGGING_BODY_COLOR = { r: 107, g: 56, b: 28, a: 255 };
-    ASCENDING_BODY_COLOR = { r: 215, g: 215, b: 215, a: 255 };
-    DESCENDING_BODY_COLOR = { r: 217, g: 30, b: 43, a: 255 };
+    static DIGGING_BODY_COLOR = new Color(107, 56, 28).immutableCopy();
+    // Angelic robes.
+    static ASCENDING_BODY_COLOR = new Color(215, 215, 215).immutableCopy();
+    // Lil' devil.
+    static DESCENDING_BODY_COLOR = new Color(217, 30, 43).immutableCopy();
+    // Burnt toast.
+    static DEATH_BY_EGG_COLOR = new Color(26, 19, 10).immutableCopy();
+    static TRANSPARENT_COLOR = new Color(0, 0, 0, 0).immutableCopy();
     // The likelihood this little guy will wander in a given frame.
-    MOVE_PROBABILITY_PCT = 2;
-    DIG_PROBABILITY_PCT = 0.005;
+    static MOVE_PROBABILITY_PCT = 2;
+    static DIG_PROBABILITY_PCT = 0.005;
     // The likelihood that we'll continue moving in the direction we were already moving in.
-    DIRECTION_PERSISTENCE_FACTOR = 0.9;
+    static DIRECTION_PERSISTENCE_FACTOR = 0.9;
     // The likelihood this little guy will get into heaven.
-    SAINTLY_PCT = 0.95;
+    static SAINTLY_PCT = 0.95;
+    static DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE = 40;
 
     constructor(pixelBody, positionInPixelBodySpace, upgrades, immaculate) {
         this.pixelBody = pixelBody;
@@ -54,6 +61,7 @@ export default class LittleGuy {
             console.log("Uh oh, we got a bad one, folks");
         }
         this.deathByEgg = false;
+        this.framesSinceDeath = 0;
 
         this.listeners = [];
     }
@@ -160,6 +168,50 @@ export default class LittleGuy {
         return positionInPixelBodySpace;
     }
 
+    getHeadColor() {
+        if (!this.alive) {
+            if (this.upgrades.afterlife) {
+                let alpha = this.getAscensionAlpha();
+                let color = LittleGuy.DEFAULT_HEAD_COLOR.copy();
+                color.a = alpha;
+                return color;
+            } else if (this.deathByEgg) {
+                if (this.framesSinceDeath < LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE / 2) {
+                    return LittleGuy.DEATH_BY_EGG_COLOR;
+                } else {
+                    return LittleGuy.TRANSPARENT_COLOR;
+                }
+            }
+        }
+        if (this.digging) {
+            return LittleGuy.DIGGING_HEAD_COLOR;
+        }
+        return LittleGuy.DEFAULT_HEAD_COLOR;
+    }
+
+    getBodyColor() {
+        if (!this.alive) {
+            if (this.upgrades.afterlife) {
+                let alpha = this.getAscensionAlpha();
+                let color = this.saintly
+                    ? LittleGuy.ASCENDING_BODY_COLOR.copy()
+                    : LittleGuy.DESCENDING_BODY_COLOR.copy();
+                color.a = alpha;
+                return color;
+            } else if (this.deathByEgg) {
+                return LittleGuy.DEATH_BY_EGG_COLOR;
+            }
+        }
+        if (this.digging) {
+            return LittleGuy.DIGGING_BODY_COLOR;
+        }
+        return LittleGuy.DEFAULT_BODY_COLOR;
+    }
+
+    getAscensionAlpha() {
+        return ((100 - this.ascentionProgressPct) * 255) / 100;
+    }
+
     updateRenderData() {
         let imageData = this.layer
             .getContext()
@@ -177,33 +229,23 @@ export default class LittleGuy {
             }
         }
 
-        let alpha = ((100 - this.ascentionProgressPct) * 255) / 100;
-
         let bodyPosition = new Vector(1, 1);
         let bodyIndex = (bodyPosition.x + bodyPosition.y * imageData.width) * 4;
-        let bodyColor = this.digging ? this.DIGGING_BODY_COLOR : this.DEFAULT_BODY_COLOR;
-        if (!this.alive && this.upgrades.afterlife) {
-            if (this.saintly) {
-                // Don thy heavenly robes
-                bodyColor = this.ASCENDING_BODY_COLOR;
-            } else {
-                // Dress up like a little devil then, I guess
-                bodyColor = this.DESCENDING_BODY_COLOR;
-            }
-        }
+        let bodyColor = this.getBodyColor();
         imageData.data[bodyIndex] = bodyColor.r; // Red
         imageData.data[bodyIndex + 1] = bodyColor.g; // Green
         imageData.data[bodyIndex + 2] = bodyColor.b; // Blue
-        imageData.data[bodyIndex + 3] = alpha; // Alpha
+        imageData.data[bodyIndex + 3] = bodyColor.a; // Alpha
 
         const headPosition = bodyPosition.copy();
         headPosition.add(this.orientation);
         let headIndex = (headPosition.x + headPosition.y * imageData.width) * 4;
-        let headColor = this.digging ? this.DIGGING_HEAD_COLOR : this.DEFAULT_HEAD_COLOR;
+        let headColor = this.getHeadColor();
+        console.log("Updating render data to have a head with alpha " + headColor.a);
         imageData.data[headIndex] = headColor.r; // Red
         imageData.data[headIndex + 1] = headColor.g; // Green
         imageData.data[headIndex + 2] = headColor.b; // Blue
-        imageData.data[headIndex + 3] = alpha; // Alpha
+        imageData.data[headIndex + 3] = headColor.a; // Alpha
         this.layer.getContext().putImageData(imageData, 0, 0);
     }
 
@@ -246,13 +288,17 @@ export default class LittleGuy {
             return;
         }
         if (!this.alive) {
+            this.framesSinceDeath++;
             if (this.upgrades.afterlife) {
                 this.ascend();
-                return;
-            } else {
+            } else if (!this.deathByEgg) {
                 this.bury();
-                return;
+            } else if (this.framesSinceDeath >= LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE) {
+                this.active = false;
+                this.notifyInactive();
             }
+            this.updateRenderData();
+            return;
         }
         this.closestSurfacePixel = this.pixelBody.getClosestSurfacePixel(
             this.positionInPixelBodySpace.copy()
@@ -273,7 +319,7 @@ export default class LittleGuy {
                 (this.upgrades.unlockDiamonds &&
                     this.closestSurfacePixel.type == PixelType.DIAMOND);
         }
-        if (forcedToDig || Math.random() < this.DIG_PROBABILITY_PCT) {
+        if (forcedToDig || Math.random() < LittleGuy.DIG_PROBABILITY_PCT) {
             this.startDigging();
         }
         this.dig();
@@ -294,6 +340,7 @@ export default class LittleGuy {
         } else {
             this.pixelBody.updateSurface();
         }
+
         this.active = false;
         this.notifyInactive();
     }
@@ -301,6 +348,7 @@ export default class LittleGuy {
     ascend() {
         // (to heaven)
         if (this.alive) {
+            console.error("Attempted to ascend before dying");
             return;
         }
         let angle = Math.atan2(this.position.y, this.position.x);
@@ -314,7 +362,6 @@ export default class LittleGuy {
         this.position = new Vector(distToCenter * Math.cos(angle), distToCenter * Math.sin(angle));
         this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
         this.ascentionProgressPct += 1;
-        this.updateRenderData();
         if (this.ascentionProgressPct >= 100 || this.distToCenter < 0.2) {
             this.active = false;
             this.notifyInactive();
@@ -420,7 +467,7 @@ export default class LittleGuy {
             this.closestSurfacePixel = null;
             return;
         }
-        let willMove = Math.random() * 100 <= this.MOVE_PROBABILITY_PCT;
+        let willMove = Math.random() * 100 <= LittleGuy.MOVE_PROBABILITY_PCT;
         if (!willMove) {
             this.closestSurfacePixel = null;
             return;
@@ -428,8 +475,8 @@ export default class LittleGuy {
         // Prefer continuing in the current direction to avoid quickly going back and forth too much
         let threshold =
             this.previousDirection < 0
-                ? this.DIRECTION_PERSISTENCE_FACTOR
-                : 1 - this.DIRECTION_PERSISTENCE_FACTOR;
+                ? LittleGuy.DIRECTION_PERSISTENCE_FACTOR
+                : 1 - LittleGuy.DIRECTION_PERSISTENCE_FACTOR;
 
         this.move(Math.random() > threshold ? 1 : -1);
     }

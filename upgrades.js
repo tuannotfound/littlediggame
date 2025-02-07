@@ -614,7 +614,6 @@ export default class Upgrades {
             Currency.ASPIS,
             () => {
                 this.religion = true;
-                this.initReligionTree();
             }
         );
         religion.addPrereq(moreAspis4);
@@ -624,9 +623,11 @@ export default class Upgrades {
         religion.addPrereq(pop4);
         religion.addPrereq(freeWorkers1);
         this.upgradeTree.set(religion.id, religion);
+
+        this.initReligionTree(religion);
     }
 
-    initReligionTree() {
+    initReligionTree(rootUpgrade) {
         let afterlife = new Upgrade(
             "afterlife",
             "Supra Vita",
@@ -641,6 +642,7 @@ export default class Upgrades {
                 this.afterlife = true;
             }
         );
+        afterlife.addPrereq(rootUpgrade);
         this.upgradeTree.set(afterlife.id, afterlife);
 
         let spawning1 = new Upgrade(
@@ -654,6 +656,7 @@ export default class Upgrades {
                 this.conceptionIntervalMs = 8000;
             }
         );
+        spawning1.addPrereq(rootUpgrade);
         this.upgradeTree.set(spawning1.id, spawning1);
 
         let spawning2 = new Upgrade(
@@ -693,15 +696,16 @@ export default class Upgrades {
             Currency.ASPIS,
             () => {
                 this.serpent = true;
-                this.initSerpentTree();
             }
         );
         serpent.addPrereq(spawning3);
         serpent.addPrereq(afterlife);
         this.upgradeTree.set(serpent.id, serpent);
+
+        this.initSerpentTree(serpent);
     }
 
-    initSerpentTree() {
+    initSerpentTree(rootUpgrade) {
         let eggHandling = new Upgrade(
             "egg_handling",
             "egg_handling_tbd",
@@ -713,6 +717,7 @@ export default class Upgrades {
                 this.eggHandling = true;
             }
         );
+        eggHandling.addPrereq(rootUpgrade);
         this.upgradeTree.set(eggHandling.id, eggHandling);
     }
 }

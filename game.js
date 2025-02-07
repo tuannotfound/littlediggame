@@ -396,11 +396,13 @@ export default class Game {
             return;
         }
         this.stopNotEnoughAspisAnimation([buttonCostEl, this.upgradesAspisElement.parentElement]);
+        // Must mark the upgrade as purchased before we update the Aspis, otherwise the 'available
+        // to purchase' notifcation bubble will include the one we just purchased.
+        upgrade.purchase();
         this.aspis -= upgrade.cost;
         if (upgrade.cost > 0) {
             this.updateAspis();
         }
-        upgrade.purchase();
         this.updateSpawnCost();
         this.updateLegend();
     }
@@ -416,6 +418,7 @@ export default class Game {
 
     updateAvailableUpgradeCount() {
         let availableUpgradeCount = 0;
+        let availableUpgrades = [];
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             if (upgrade.purchased) {
                 continue;
@@ -425,6 +428,7 @@ export default class Game {
             }
             if (upgrade.cost <= this.aspis) {
                 availableUpgradeCount++;
+                availableUpgrades.push(upgrade.id);
             }
         }
         if (availableUpgradeCount > 0) {

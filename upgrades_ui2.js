@@ -47,6 +47,7 @@ export default class UpgradesUi {
     createButtons() {
         let rootUpgrades = this.getRootUpgrades();
         for (const upgrade of rootUpgrades) {
+            upgrade.unlock();
             this.createButtonsFromRoot(upgrade, this.rootUpgradesAdded.length + 1);
         }
     }
@@ -138,12 +139,12 @@ export default class UpgradesUi {
     }
 
     onShown() {
-        // After all buttons and lines are created, go through and unlock any root upgrades.
-        // Must do this onShown() otherwise the children of the buttons have a height of 0 and
-        // our attempt at transitioning to full height doesn't work.
-        for (const upgrade of this.getRootUpgrades()) {
-            if (!upgrade.unlocked) {
-                upgrade.unlock();
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
+            if (upgrade.unlocked) {
+                this.handleUnlock(upgrade);
+            }
+            if (upgrade.purchased) {
+                this.handlePurchase(upgrade);
             }
         }
         LinkerLine.positionAll();
@@ -189,29 +190,6 @@ export default class UpgradesUi {
         button.classList.remove("cannot_afford");
         button.classList.add("purchased");
 
-        if (this.buttonMap.size < this.upgrades.upgradeTree.size) {
-            // New research trees may have been unlocked. Look for any root upgrades that
-            // don't yet exist in the button map and add them.
-            let rootUpgrades = this.getRootUpgrades();
-            let newRootUpgrades = false;
-            for (const rootUpgrade of rootUpgrades) {
-                if (this.rootUpgradesAdded.includes(rootUpgrade.id)) {
-                    continue;
-                }
-
-                this.createButtonsFromRoot(rootUpgrade, this.rootUpgradesAdded.length + 1);
-                newRootUpgrades = true;
-            }
-            if (newRootUpgrades) {
-                for (const upgrade of rootUpgrades) {
-                    if (!upgrade.unlocked) {
-                        upgrade.unlock();
-                    }
-                }
-                this.createLines();
-            }
-            this.onAspisChanged(this.getCurrentAspisFunc());
-        }
         let lines = this.linesMap.get(upgrade.id);
         // Not all upgrades have a line originating from them.
         if (lines) {
@@ -284,12 +262,6 @@ export default class UpgradesUi {
         upgrade.addListener(this.upgradeListener);
         button.addEventListener("click", this.handleUpgradeButtonClick.bind(this));
         this.buttonMap.set(upgrade.id, button);
-        if (upgrade.unlocked) {
-            this.upgradeListener.onUnlocked(upgrade);
-        }
-        if (upgrade.purchased) {
-            this.upgradeListener.onPurchased(upgrade);
-        }
         let transitionActive = false;
         button.addEventListener("transitionstart", () => {
             transitionActive = true;

@@ -49,22 +49,25 @@ export default class Serpent {
         }
         let previousPosition = this.position;
         for (let i = 0; i < this.segmentCount; i++) {
-            let size = MathExtras.scaleBetween(
-                this.segmentCount - i,
-                0,
-                this.segmentCount,
-                this.MIN_SIZE,
-                this.MAX_SIZE - 1
+            let size = Math.round(
+                MathExtras.scaleBetween(
+                    this.segmentCount - i,
+                    0,
+                    this.segmentCount,
+                    this.MIN_SIZE,
+                    this.MAX_SIZE - 1
+                )
             );
-            if (i == 0) {
-                // Ensure the head is always the largest, with no equal.
+            // Ensure we always have an odd size so that we can have a center pixel.
+            if (size % 2 == 0) {
                 size++;
             }
-            let position = new Vector(
-                previousPosition.x - this.direction.x * size,
-                previousPosition.y - this.direction.y * size
-            );
-            //previousPosition = position;
+            if (i == 0) {
+                // Ensure the head is always the largest, with no equal.
+                size += 2;
+            }
+            console.log(Serpent.TAG + "Generating segment of size " + size);
+            let position = new Vector(previousPosition.x, previousPosition.y);
             let segment = new Segment(
                 size,
                 this.bounds,
@@ -104,7 +107,8 @@ export default class Serpent {
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
         // Render from tail to head to ensure the head stays on top.
-        for (let i = this.segments.length - 1; i >= 0; i--) {
+        // for (let i = this.segments.length - 1; i >= 0; i--) {
+        for (let i = 0; i < this.segments.length; i++) {
             this.segments[i].render(imageData);
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
@@ -125,13 +129,11 @@ class Segment {
         this.renderPositionChangesSinceLastTurn = 0;
 
         this.history = [];
-        this.historySize = Math.ceil(this.size);
-        for (let i = 0; i < this.historySize; i++) {
-            this.history.push({
-                renderPosition: this.renderPosition.copy(),
-                direction: this.direction.copy(),
-            });
-        }
+        this.historySize = 1;
+        this.history.push({
+            renderPosition: this.renderPosition.copy(),
+            direction: this.direction.copy(),
+        });
         this.upgrades = upgrades;
         this.foreSegment = null;
         this.aftSegment = null;
@@ -168,7 +170,7 @@ class Segment {
 
     update() {
         if (!this.foreSegment) {
-            // We're a head segment, decide if we're going to turn
+            // We're a head segment, decide if we're going to turn.
             let forcedToTurn = !this.canMoveForward();
             let turnThreshold = MathExtras.scaleBetween(
                 this.renderPositionChangesSinceLastTurn,
@@ -228,8 +230,9 @@ class Segment {
                 console.log(Serpent.TAG + "Head segment @ " + this.renderPosition.toString());
             }
         } else {
-            // This almost works, but the difference in size between segments causes gaps to appear
-            // between segments. Need to account for that somehow.
+            // We're a body segment, so just follow the segment in front of us.
+            // TBD: Fix this! This ALMOST works. Works great for going left to up, but any other
+            // direction is broken.
             let foreState = this.foreSegment.oldestState;
             this.direction = foreState.direction;
 
@@ -237,7 +240,7 @@ class Segment {
             let foreCenter = Vector.add(forePosition, this.foreSegment.size / 2);
             let foreConnectionPosition = Vector.add(
                 foreCenter,
-                Vector.mult(foreState.direction, this.foreSegment.size / 2)
+                Vector.mult(foreState.direction, Math.round(this.size / 2))
             );
             let offsetPosition = foreConnectionPosition.copy();
 
@@ -252,9 +255,6 @@ class Segment {
             } else if (this.direction.x == -1) {
                 offsetPosition.sub(0, this.size / 2);
             }
-
-            // offsetPosition.add(this.foreSegment.size / 2 - this.size / 2);
-            // offsetPosition.add(Vector.mult(this.direction, this.foreSegment.size - this.size));
             this.position = offsetPosition;
             this.renderPosition = offsetPosition.copy();
             this.renderPosition.round();
@@ -270,7 +270,7 @@ class Segment {
                 renderPosition: this.renderPosition.copy(),
                 direction: this.direction.copy(),
             });
-            if (this.history.length > this.historySize) {
+            while (this.history.length > this.historySize) {
                 this.history.shift();
             }
         }
@@ -283,6 +283,14 @@ class Segment {
 
     setAftSegment(segment) {
         this.aftSegment = segment;
+        this.historySize = Math.ceil((this.size + segment.size) / 2);
+
+        for (let i = this.history.length; i < this.historySize; i++) {
+            this.history.push({
+                renderPosition: this.renderPosition.copy(),
+                direction: this.direction.copy(),
+            });
+        }
     }
 
     render(imageData) {

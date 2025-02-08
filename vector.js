@@ -176,6 +176,13 @@ Vector.mult = function (v1, v2) {
     }
     return new Vector(v1.x * v2.x, v1.y * v2.y);
 };
+// Second arg can be either a Vector or a scalar
+Vector.divide = function (v1, v2) {
+    if (typeof v2 === "number") {
+        return new Vector(v1.x / v2, v1.y / v2);
+    }
+    return new Vector(v1.x / v2.x, v1.y / v2.y);
+};
 Vector.fromAngle = function (angle) {
     let v = new Vector(0, 0);
     v.x = Math.cos(angle);

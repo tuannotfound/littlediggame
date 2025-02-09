@@ -6,8 +6,8 @@ import PixelType from "./diggables/pixel_type.js";
 
 export default class Serpent {
     static TAG = "[SERP] ";
-    MAX_SIZE = 10;
-    MIN_SIZE = 2;
+    MAX_SIZE = 17;
+    MIN_SIZE = 3;
 
     constructor(
         segmentCount,

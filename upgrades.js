@@ -17,8 +17,6 @@ export default class Upgrades {
         this.aspisPer[PixelType.SERPENT.name] = 5555;
         this.unlockGold = false;
         this.unlockDiamonds = false;
-        this.diamondRadar = false;
-        this.goldRadar = false;
         this.freeWorkerCount = 1;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
@@ -48,8 +46,6 @@ export default class Upgrades {
             aspisPer: this.aspisPer,
             unlockGold: this.unlockGold,
             unlockDiamonds: this.unlockDiamonds,
-            diamondRadar: this.diamondRadar,
-            goldRadar: this.goldRadar,
             populationPowerScale: this.populationPowerScale,
             goldSeeker: this.goldSeeker,
             religion: this.religion,
@@ -68,8 +64,6 @@ export default class Upgrades {
         upgrades.aspisPer = json.aspisPer;
         upgrades.unlockGold = json.unlockGold;
         upgrades.unlockDiamonds = json.unlockDiamonds;
-        upgrades.diamondRadar = json.diamondRadar;
-        upgrades.goldRadar = json.goldRadar;
         upgrades.populationPowerScale = json.populationPowerScale;
         upgrades.goldSeeker = json.goldSeeker;
         upgrades.religion = json.religion;
@@ -573,37 +567,6 @@ export default class Upgrades {
         );
         freeWorkers1.addPrereq(pop3);
         this.upgradeTree.set(freeWorkers1.id, freeWorkers1);
-
-        // These kinda suck?
-        // let goldRadar = new Upgrade(
-        //     "gold_radar",
-        //     "gold_radar_tbd",
-        //     StringUtils.dedent(`TBD: Peer into the planet itself to discover its treasures`),
-        //     ["All gold is visible to your eyes"],
-        //     410,
-        //     Currency.ASPIS,
-        //     () => {
-        //         this.goldRadar = true;
-        //     }
-        // );
-        // goldRadar.addPrereq(goldSeeker);
-        // goldRadar.addPrereq(digSpeed4);
-        // this.upgradeTree.set(goldRadar.id, goldRadar);
-
-        // let diamondRadar = new Upgrade(
-        //     "diamond_radar",
-        //     "diamond_radar_tbd",
-        //     StringUtils.dedent(`TBD`),
-        //     ["All diamond is revealed to you"],
-        //     640,
-        //     Currency.ASPIS,
-        //     () => {
-        //         this.diamondRadar = true;
-        //     }
-        // );
-        // diamondRadar.addPrereq(bloodDiamonds);
-        // diamondRadar.addPrereq(goldRadar);
-        // this.upgradeTree.set(diamondRadar.id, diamondRadar);
 
         let religion = new Upgrade(
             "religion",

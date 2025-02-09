@@ -14,7 +14,7 @@ export default class Serpent {
         bounds,
         initialPosition,
         initialDirection = new Vector(0, -1),
-        speed = 0.25
+        speed = 1
     ) {
         this.segmentCount = segmentCount;
         this.bounds = bounds;
@@ -47,7 +47,6 @@ export default class Serpent {
             );
             return;
         }
-        let previousPosition = this.position;
         for (let i = 0; i < this.segmentCount; i++) {
             let size = Math.round(
                 MathExtras.scaleBetween(
@@ -67,11 +66,10 @@ export default class Serpent {
                 size += 2;
             }
             console.log(Serpent.TAG + "Generating segment of size " + size);
-            let position = new Vector(previousPosition.x, previousPosition.y);
             let segment = new Segment(
                 size,
                 this.bounds,
-                position,
+                this.position.copy(),
                 this.direction,
                 this.speed,
                 this.upgrades
@@ -107,8 +105,8 @@ export default class Serpent {
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
         // Render from tail to head to ensure the head stays on top.
-        // for (let i = this.segments.length - 1; i >= 0; i--) {
-        for (let i = 0; i < this.segments.length; i++) {
+        for (let i = this.segments.length - 1; i >= 0; i--) {
+            //for (let i = 0; i < this.segments.length; i++) {
             this.segments[i].render(imageData);
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
@@ -116,10 +114,11 @@ export default class Serpent {
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 0; //5;
+    MAX_TURN_CHANCE_PCT = 5;
     constructor(size, bounds, position, direction, speed, upgrades) {
         this.size = Math.round(size);
         this.bounds = bounds;
+        // This is the center of the segment
         this.position = position;
         this.renderPosition = position.copy();
         this.renderPosition.round();
@@ -129,11 +128,13 @@ class Segment {
         this.renderPositionChangesSinceLastTurn = 0;
 
         this.history = [];
-        this.historySize = 1;
-        this.history.push({
-            renderPosition: this.renderPosition.copy(),
-            direction: this.direction.copy(),
-        });
+        this.historySize = this.size * 2;
+        for (let i = 0; i < this.historySize; i++) {
+            this.history.push({
+                renderPosition: this.renderPosition.copy(),
+                direction: this.direction.copy(),
+            });
+        }
         this.upgrades = upgrades;
         this.foreSegment = null;
         this.aftSegment = null;
@@ -144,9 +145,29 @@ class Segment {
 
     generatePixels() {
         // Temporary: just make a square with edge length = size
+        const halfSize = Math.floor(this.size / 2);
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
-                let pixel = PixelFactory.create(new Vector(x, y), this.upgrades, PixelType.SERPENT);
+                // Temporary, indicator dot
+                let indicatorDot = false;
+                if (this.direction.y == 1 && y == this.size - 1 && x == halfSize) {
+                    indicatorDot = true;
+                } else if (this.direction.y == -1 && y == 0 && x == halfSize) {
+                    indicatorDot = true;
+                } else if (this.direction.x == -1 && x == 0 && y == halfSize) {
+                    indicatorDot = true;
+                } else if (this.direction.x == 1 && x == this.size - 1 && y == halfSize) {
+                    indicatorDot = true;
+                }
+                let pixelPosition = new Vector(x - halfSize, y - halfSize);
+                if (pixelPosition.x == 0 && pixelPosition.y == 0) {
+                    indicatorDot = true;
+                }
+                let pixel = PixelFactory.create(
+                    pixelPosition,
+                    this.upgrades,
+                    indicatorDot ? PixelType.DIAMOND : PixelType.SERPENT
+                );
                 if (x == 0 || x == this.size - 1 || y == 0 || y == this.size - 1) {
                     pixel.setSurface(true);
                 }
@@ -156,12 +177,14 @@ class Segment {
     }
 
     canMoveForward() {
-        let nextPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
+        const halfSize = Math.floor(this.size / 2);
+        let nextRenderPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
+        nextRenderPosition.round();
         if (
-            nextPosition.x < 0 ||
-            nextPosition.x + this.size >= this.bounds.x ||
-            nextPosition.y < 0 ||
-            nextPosition.y + this.size >= this.bounds.y
+            nextRenderPosition.x - halfSize < 0 ||
+            nextRenderPosition.x + halfSize >= this.bounds.x ||
+            nextRenderPosition.y - halfSize < 0 ||
+            nextRenderPosition.y + halfSize >= this.bounds.y
         ) {
             return false;
         }
@@ -222,6 +245,11 @@ class Segment {
                         this.direction.toString()
                 );
                 this.renderPositionChangesSinceLastTurn = 0;
+
+                let rotationFunc = this.getRotationFunc();
+                if (rotationFunc) {
+                    this.rotate(rotationFunc);
+                }
             }
             this.position.add(Vector.mult(this.direction, this.speed));
             this.renderPosition.set(this.position);
@@ -231,33 +259,20 @@ class Segment {
             }
         } else {
             // We're a body segment, so just follow the segment in front of us.
-            // TBD: Fix this! This ALMOST works. Works great for going left to up, but any other
-            // direction is broken.
-            let foreState = this.foreSegment.oldestState;
+            let foreState =
+                this.foreSegment.history[
+                    this.foreSegment.history.length -
+                        (Math.ceil(this.foreSegment.size / 2) + Math.ceil(this.size / 2) - 1)
+                ];
             this.direction = foreState.direction;
 
-            let forePosition = foreState.renderPosition;
-            let foreCenter = Vector.add(forePosition, this.foreSegment.size / 2);
-            let foreConnectionPosition = Vector.add(
-                foreCenter,
-                Vector.mult(foreState.direction, Math.round(this.size / 2))
-            );
-            let offsetPosition = foreConnectionPosition.copy();
-
-            if (this.direction.x == 1) {
-                offsetPosition.sub(this.size, 0);
-                offsetPosition.sub(0, this.size / 2);
-            } else if (this.direction.y == 1) {
-                offsetPosition.sub(0, this.size);
-                offsetPosition.sub(this.size / 2, 0);
-            } else if (this.direction.y == -1) {
-                offsetPosition.sub(this.size / 2, 0);
-            } else if (this.direction.x == -1) {
-                offsetPosition.sub(0, this.size / 2);
+            let rotationFunc = this.getRotationFunc();
+            if (rotationFunc) {
+                this.rotate(rotationFunc);
             }
-            this.position = offsetPosition;
-            this.renderPosition = offsetPosition.copy();
-            this.renderPosition.round();
+
+            this.position = foreState.renderPosition.copy();
+            this.renderPosition = this.position.copy();
         }
 
         if (!Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
@@ -283,20 +298,68 @@ class Segment {
 
     setAftSegment(segment) {
         this.aftSegment = segment;
-        this.historySize = Math.ceil((this.size + segment.size) / 2);
+    }
 
-        for (let i = this.history.length; i < this.historySize; i++) {
-            this.history.push({
-                renderPosition: this.renderPosition.copy(),
-                direction: this.direction.copy(),
-            });
+    rotate(rotationFunc) {
+        for (const pixel of this.pixels) {
+            pixel.position.set(rotationFunc(pixel.position, 1, 1));
+        }
+    }
+
+    // Returns null if no rotation should happen.
+    getRotationFunc() {
+        // "previous" direction
+        let pd = this.mostRecentState.direction;
+        // "current" direction
+        let cd = this.direction;
+        if (Vector.equals(cd, pd)) {
+            return null;
+        }
+
+        // Going to get ugly, buckle up.
+        if (pd.x == cd.x || pd.y == cd.y) {
+            console.log(Serpent.TAG + "180");
+            return Vector.rotate180;
+        }
+        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CCW rotation.
+        let ccw = [
+            [0, 1, 1, 0],
+            [0, -1, -1, 0],
+            [1, 0, 0, -1],
+            [-1, 0, 0, 1],
+        ];
+        for (const i of ccw) {
+            if (pd.x == i[0] && pd.y == i[1] && cd.x == i[2] && cd.y == i[3]) {
+                console.log(
+                    Serpent.TAG +
+                        "CCW, this.renderPositionChangesSinceLastTurn = " +
+                        this.renderPositionChangesSinceLastTurn
+                );
+                return Vector.rotate90CCW;
+            }
+        }
+        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CW rotation.
+        let cw = [
+            [0, 1, -1, 0],
+            [0, -1, 1, 0],
+            [1, 0, 0, 1],
+            [-1, 0, 0, -1],
+        ];
+        for (const i of cw) {
+            if (pd.x == i[0] && pd.y == i[1] && cd.x == i[2] && cd.y == i[3]) {
+                console.log(
+                    Serpent.TAG +
+                        "CW, this.renderPositionChangesSinceLastTurn = " +
+                        this.renderPositionChangesSinceLastTurn
+                );
+                return Vector.rotate90CW;
+            }
         }
     }
 
     render(imageData) {
-        // TBD: render the orientation as well
         for (const pixel of this.pixels) {
-            pixel.render(imageData, this.renderPosition);
+            pixel.render(imageData, Vector.sub(this.renderPosition, 0));
         }
     }
 

@@ -44,7 +44,7 @@ export default class Game {
         this.planetPosition = null;
 
         this.serpent = new Serpent(
-            10,
+            12,
             new Vector(
                 this.layer.width / this.zoomLevel,
                 this.layer.height / this.zoomLevel
@@ -586,7 +586,7 @@ export default class Game {
         if (this.serpent.initialized) {
             return;
         }
-        this.serpent.init();
+        this.serpent.init(this.upgrades);
     }
 
     // Center is in planet space

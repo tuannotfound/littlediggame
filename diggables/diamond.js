@@ -24,7 +24,7 @@ export default class Diamond extends Pixel {
     }
 
     actLikeDirt() {
-        if (window.DEBUG || this.upgrades.diamondRadar) {
+        if (window.DEBUG) {
             return false;
         }
         if (!this.upgrades.unlockDiamonds) {

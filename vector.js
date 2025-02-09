@@ -147,6 +147,24 @@ Vector.prototype = {
         var c = this.mag();
         this.x = Math.cos(b) * c;
         this.y = Math.sin(b) * c;
+        return this;
+    },
+    rotate90CW: function (height) {
+        let prevY = this.y;
+        this.y = this.x;
+        this.x = height - 1 - prevY;
+        return this;
+    },
+    rotate90CCW: function (width) {
+        let prevX = this.x;
+        this.x = this.y;
+        this.y = width - 1 - prevX;
+        return this;
+    },
+    rotate180: function (width, height) {
+        this.x = width - 1 - this.x;
+        this.y = height - 1 - this.y;
+        return this;
     },
 };
 
@@ -206,4 +224,13 @@ Vector.fromJSON = function (json) {
 };
 Vector.swapXY = function (v) {
     return new Vector(v.y, v.x);
+};
+Vector.rotate90CW = function (v, height) {
+    return new Vector(height - 1 - v.y, v.x);
+};
+Vector.rotate90CCW = function (v, width) {
+    return new Vector(v.y, width - 1 - v.x);
+};
+Vector.rotate180 = function (v, width, height) {
+    return new Vector(width - 1 - v.x, height - 1 - v.y);
 };

@@ -594,39 +594,28 @@ export default class LittleGuy {
             }
             return;
         }
-        function rotateVector180(vector, width, height) {
-            return new Vector(width - 1 - vector.x, height - 1 - vector.y);
-        }
-        function rotateVector90CW(vector, width, height) {
-            return new Vector(height - 1 - vector.y, vector.x);
-        }
-        function rotateVector90CCW(vector, width, height) {
-            return new Vector(vector.y, width - 1 - vector.x);
-        }
 
         let rotatedPositionInPixelBodySpace = positionInPixelBodySpace.copy();
         if (this.orientation.x == 0 && this.orientation.y == -1) {
             // ↑, no rotation needed
         } else if (this.orientation.x == 0 && this.orientation.y == 1) {
             // ↓, need to rotate 180 deg
-            rotatedPositionInPixelBodySpace = rotateVector180(
+            rotatedPositionInPixelBodySpace = Vector.rotate180(
                 positionInPixelBodySpace,
                 this.pixelBody.layer.width,
                 this.pixelBody.layer.height
             );
         } else if (this.orientation.x == -1 && this.orientation.y == 0) {
             // ←, need to rotate 90 deg CW
-            rotatedPositionInPixelBodySpace = rotateVector90CW(
+            rotatedPositionInPixelBodySpace = Vector.rotate90CW(
                 positionInPixelBodySpace,
-                this.pixelBody.layer.width,
                 this.pixelBody.layer.height
             );
         } else if (this.orientation.x == 1 && this.orientation.y == 0) {
             // →, need to rotate 90 deg CCW
-            rotatedPositionInPixelBodySpace = rotateVector90CCW(
+            rotatedPositionInPixelBodySpace = Vector.rotate90CCW(
                 positionInPixelBodySpace,
-                this.pixelBody.layer.width,
-                this.pixelBody.layer.height
+                this.pixelBody.layer.width
             );
         }
 
@@ -641,7 +630,7 @@ export default class LittleGuy {
             } else if (this.orientation.x == 0 && this.orientation.y == 1) {
                 // ↓, need to rotate 180 deg
                 rotatedCandidates.push({
-                    rotatedPosition: rotateVector180(
+                    rotatedPosition: Vector.rotate180(
                         candidate.position,
                         this.pixelBody.layer.width,
                         this.pixelBody.layer.height
@@ -651,7 +640,7 @@ export default class LittleGuy {
             } else if (this.orientation.x == -1 && this.orientation.y == 0) {
                 // ←, need to rotate 90 deg CW
                 rotatedCandidates.push({
-                    rotatedPosition: rotateVector90CW(
+                    rotatedPosition: Vector.rotate90CW(
                         candidate.position,
                         this.pixelBody.layer.width,
                         this.pixelBody.layer.height
@@ -661,7 +650,7 @@ export default class LittleGuy {
             } else if (this.orientation.x == 1 && this.orientation.y == 0) {
                 // →, need to rotate 90 deg CCW
                 rotatedCandidates.push({
-                    rotatedPosition: rotateVector90CCW(
+                    rotatedPosition: Vector.rotate90CCW(
                         candidate.position,
                         this.pixelBody.layer.width,
                         this.pixelBody.layer.height

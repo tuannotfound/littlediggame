@@ -24,6 +24,8 @@ export default class Pixel {
         // 0-1, where 0 is no change to the color, 1 is fully black
         this._darkness = 0;
         this.bloodiedColor = null;
+
+        this.needsUpdate = true;
     }
 
     toJSON() {
@@ -76,6 +78,7 @@ export default class Pixel {
     }
 
     render(imageData) {
+        this.needsUpdate = false;
         let renderPosition = this.position;
         if (renderPosition.x < 0 || renderPosition.x >= imageData.width) {
             return;
@@ -94,7 +97,12 @@ export default class Pixel {
     }
 
     damage(damage) {
+        let alphaBefore = this.getRenderAlpha();
         this.health = Math.max(0, this.health - damage);
+        let alphaAfter = this.getRenderAlpha();
+        if (alphaBefore !== alphaAfter) {
+            this.needsUpdate = true;
+        }
     }
 
     // Accounts for if we're acting like dirt.

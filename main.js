@@ -75,6 +75,11 @@ document.onreadystatechange = function () {
             } else {
                 debugDiv.classList.add("hidden");
             }
+            if (game) {
+                // Really getting into the weeds here. Should probably add a
+                // callback for when the checkbox is changed.
+                game.planet.needsUpdate = true;
+            }
             console.log("Debug: " + window.DEBUG);
         });
 

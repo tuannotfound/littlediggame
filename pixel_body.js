@@ -52,6 +52,12 @@ export default class PixelBody {
     }
 
     update() {
+        for (const pixel of this.pixels) {
+            if (pixel.needsUpdate) {
+                this.needsUpdate = true;
+                break;
+            }
+        }
         if (!this.needsUpdate) {
             return;
         }

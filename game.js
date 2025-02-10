@@ -44,7 +44,7 @@ export default class Game {
         this.planetPosition = null;
 
         this.serpent = new Serpent(
-            12,
+            30,
             new Vector(
                 this.layer.width / this.zoomLevel,
                 this.layer.height / this.zoomLevel
@@ -405,6 +405,8 @@ export default class Game {
         }
         this.updateSpawnCost();
         this.updateLegend();
+        // Force the planet to redraw, just in case any new pixel types have been revealed.
+        this.planet.needsUpdate = true;
     }
 
     updateAspis() {

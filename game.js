@@ -44,7 +44,7 @@ export default class Game {
         this.planetPosition = null;
 
         this.serpent = new Serpent(
-            30,
+            12,
             new Vector(
                 this.layer.width / this.zoomLevel,
                 this.layer.height / this.zoomLevel

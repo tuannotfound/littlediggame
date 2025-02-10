@@ -3,11 +3,12 @@ import Vector from "./vector.js";
 import MathExtras from "./math_extras.js";
 import PixelFactory from "./diggables/pixel_factory.js";
 import PixelType from "./diggables/pixel_type.js";
+import PixelBody from "./pixel_body.js";
 
-export default class Serpent {
+export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    MAX_SIZE = 17;
-    MIN_SIZE = 3;
+    MAX_SIZE = 15;
+    MIN_SIZE = 1;
 
     constructor(
         segmentCount,
@@ -16,31 +17,23 @@ export default class Serpent {
         initialDirection = new Vector(0, -1),
         speed = 1
     ) {
+        super(bounds.x, bounds.y, true, "serpent");
         this.segmentCount = segmentCount;
-        this.bounds = bounds;
         this.position = initialPosition;
         this.direction = initialDirection;
         this.speed = speed;
-
-        this.upgrades = null;
         this.segments = [];
-
-        this.layer = new Layer("serpent", bounds.x, bounds.y);
 
         this.initialized = false;
     }
 
     init(upgrades) {
-        this.upgrades = upgrades;
-        this.layer.initOffscreen();
-        if (this.segments.length == 0) {
-            this.generateSegments();
-        }
+        super.init(upgrades);
 
         this.initialized = true;
     }
 
-    generateSegments() {
+    createInitialPixels() {
         if (this.segments.length > 0) {
             console.error(
                 Serpent.TAG + "Attempted to generate segments when segments already exist"
@@ -67,8 +60,9 @@ export default class Serpent {
             }
             console.log(Serpent.TAG + "Generating segment of size " + size);
             let segment = new Segment(
+                this,
                 size,
-                this.bounds,
+                new Vector(this.layer.width, this.layer.height),
                 this.position.copy(),
                 this.direction,
                 this.speed,
@@ -82,7 +76,6 @@ export default class Serpent {
     }
 
     onResize(bounds) {
-        this.bounds = bounds;
         this.layer.destroy();
         this.layer = new Layer("serpent", bounds.x, bounds.y);
         if (this.initialized) {
@@ -90,7 +83,7 @@ export default class Serpent {
         }
         // This is insufficient and the position needs to be accounted for somehow.
         for (const segment of this.segments) {
-            segment.bounds = bounds;
+            segment.bounds = new Vector(this.layer.width, this.layer.height);
         }
     }
 
@@ -99,23 +92,28 @@ export default class Serpent {
             return;
         }
         for (const segment of this.segments) {
-            segment.update();
+            this.needsUpdate = segment.update() || this.needsUpdate;
         }
-        let imageData = this.layer
-            .getContext()
-            .createImageData(this.layer.width, this.layer.height);
-        // Render from tail to head to ensure the head stays on top.
-        for (let i = this.segments.length - 1; i >= 0; i--) {
-            //for (let i = 0; i < this.segments.length; i++) {
-            this.segments[i].render(imageData);
+        super.update();
+    }
+
+    // Override
+    updateSurface() {
+        this.surfacePixels = [];
+
+        // Consider each segment independent of one another for
+        // calculating the surfaces.
+        for (const segment of this.segments) {
+            segment.updateSurface();
+            this.surfacePixels.push(...segment.surfacePixels);
         }
-        this.layer.getContext().putImageData(imageData, 0, 0);
     }
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 5;
-    constructor(size, bounds, position, direction, speed, upgrades) {
+    MAX_TURN_CHANCE_PCT = 0; //5;
+    constructor(serpent, size, bounds, position, direction, speed, upgrades) {
+        this.serpent = serpent;
         this.size = Math.round(size);
         this.bounds = bounds;
         // This is the center of the segment
@@ -140,6 +138,7 @@ class Segment {
         this.aftSegment = null;
 
         this.pixels = [];
+        this.surfacePixels = [];
         this.generatePixels();
     }
 
@@ -163,15 +162,14 @@ class Segment {
                 if (pixelPosition.x == 0 && pixelPosition.y == 0) {
                     indicatorDot = true;
                 }
-                let pixel = PixelFactory.create(
-                    pixelPosition,
-                    this.upgrades,
-                    indicatorDot ? PixelType.DIAMOND : PixelType.SERPENT
+                let pixelType = indicatorDot ? PixelType.DIAMOND : PixelType.SERPENT;
+                let pixel = this.serpent.addPixel(
+                    Vector.add(this.renderPosition, pixelPosition),
+                    pixelType
                 );
-                if (x == 0 || x == this.size - 1 || y == 0 || y == this.size - 1) {
-                    pixel.setSurface(true);
+                if (pixel) {
+                    this.pixels.push(pixel);
                 }
-                this.pixels.push(pixel);
             }
         }
     }
@@ -191,6 +189,8 @@ class Segment {
         return true;
     }
 
+    // Returns true if we actually moved (i.e. renderPosition changed),
+    // false otherwise.
     update() {
         if (!this.foreSegment) {
             // We're a head segment, decide if we're going to turn.
@@ -254,9 +254,6 @@ class Segment {
             this.position.add(Vector.mult(this.direction, this.speed));
             this.renderPosition.set(this.position);
             this.renderPosition.round();
-            if (window.DEBUG) {
-                console.log(Serpent.TAG + "Head segment @ " + this.renderPosition.toString());
-            }
         } else {
             // We're a body segment, so just follow the segment in front of us.
             let foreState =
@@ -278,8 +275,23 @@ class Segment {
         if (!Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
             // Not all updates result in a new render position. At slow speeds, we can go many
             // updates before we visually move, but we don't want this to count towards our
-            // time since last turn.
+            // time since last turn otherwise we'll be turning all the time.
             this.renderPositionChangesSinceLastTurn++;
+
+            let delta = Vector.sub(this.renderPosition, this.mostRecentState.renderPosition);
+
+            if (window.DEBUG) {
+                console.log(
+                    Serpent.TAG +
+                        "Head segment @ " +
+                        this.renderPosition.toString() +
+                        ", delta = " +
+                        delta.toString()
+                );
+            }
+            for (const pixel of this.pixels) {
+                pixel.position.add(delta);
+            }
 
             this.history.push({
                 renderPosition: this.renderPosition.copy(),
@@ -288,7 +300,18 @@ class Segment {
             while (this.history.length > this.historySize) {
                 this.history.shift();
             }
+            return true;
         }
+        return false;
+    }
+
+    updateSurface() {
+        // We can improve this by shrinking the bounds to just be around our actual pixels.
+        this.surfacePixels = this.serpent.findSurfacePixels(
+            this.pixels,
+            this.bounds.x,
+            this.bounds.y
+        );
     }
 
     setForeSegment(segment) {
@@ -302,7 +325,9 @@ class Segment {
 
     rotate(rotationFunc) {
         for (const pixel of this.pixels) {
-            pixel.position.set(rotationFunc(pixel.position, 1, 1));
+            let localPosition = Vector.sub(this.renderPosition, pixel.position);
+            localPosition = rotationFunc(localPosition, 1, 1);
+            pixel.position.set(Vector.add(this.renderPosition, localPosition));
         }
     }
 
@@ -316,50 +341,46 @@ class Segment {
             return null;
         }
 
-        // Going to get ugly, buckle up.
+        // Couldn't figure out a more clever way of doing this, so it's going to get
+        // ugly. Buckle up.
         if (pd.x == cd.x || pd.y == cd.y) {
-            console.log(Serpent.TAG + "180");
+            if (!this.foreSegment) {
+                console.log(Serpent.TAG + "180");
+            }
             return Vector.rotate180;
         }
-        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CCW rotation.
-        let ccw = [
+        // At one point, CW and CCW were swapped. Things made sense. But then, somehow, during the
+        // switch-over for Serpent to become a PixelBody, things got swapped. I don't know why.
+        // But this works, for whatever reason. If it seems wrong, I agree with you.
+        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CW rotation.
+        const cw = [
             [0, 1, 1, 0],
             [0, -1, -1, 0],
             [1, 0, 0, -1],
             [-1, 0, 0, 1],
         ];
-        for (const i of ccw) {
-            if (pd.x == i[0] && pd.y == i[1] && cd.x == i[2] && cd.y == i[3]) {
-                console.log(
-                    Serpent.TAG +
-                        "CCW, this.renderPositionChangesSinceLastTurn = " +
-                        this.renderPositionChangesSinceLastTurn
-                );
-                return Vector.rotate90CCW;
+        for (const rot of cw) {
+            if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
+                if (!this.foreSegment) {
+                    console.log(Serpent.TAG + "CW");
+                }
+                return Vector.rotate90CW;
             }
         }
-        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CW rotation.
-        let cw = [
+        // Sets of [pd.x, pd.y, cd.x, cd.y] that result in a CCW rotation.
+        const ccw = [
             [0, 1, -1, 0],
             [0, -1, 1, 0],
             [1, 0, 0, 1],
             [-1, 0, 0, -1],
         ];
-        for (const i of cw) {
-            if (pd.x == i[0] && pd.y == i[1] && cd.x == i[2] && cd.y == i[3]) {
-                console.log(
-                    Serpent.TAG +
-                        "CW, this.renderPositionChangesSinceLastTurn = " +
-                        this.renderPositionChangesSinceLastTurn
-                );
-                return Vector.rotate90CW;
+        for (const rot of ccw) {
+            if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
+                if (!this.foreSegment) {
+                    console.log(Serpent.TAG + "CCW");
+                }
+                return Vector.rotate90CCW;
             }
-        }
-    }
-
-    render(imageData) {
-        for (const pixel of this.pixels) {
-            pixel.render(imageData, Vector.sub(this.renderPosition, 0));
         }
     }
 

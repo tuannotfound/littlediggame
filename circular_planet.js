@@ -126,7 +126,7 @@ export default class CircularPlanet extends Planet {
                     let coords = new Vector(x + this.center.x, y + this.center.y);
                     let existing = this.getPixel(coords);
                     if (existing) {
-                        this.removePixel(existing);
+                        this.removePixel(existing, false);
                     }
                     this.addPixel(coords, PixelType.EGG);
                 }

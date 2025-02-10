@@ -6,7 +6,7 @@ import Constants from "./constants.js";
 
 // Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {
-    HEALTH_VISUAL_PCT_INTERVAL = 20;
+    static HEALTH_VISUAL_PCT_INTERVAL = 20;
 
     constructor(position, upgrades, type, initialHealth, initialAlpha = 255) {
         this.position = position.copy();
@@ -71,12 +71,12 @@ export default class Pixel {
             : 0;
         let healthPct =
             (100 * (this.health - actLikeDirtDiff)) / (this.initialHealth - actLikeDirtDiff);
-        healthPct = MathExtras.ceilToNearest(this.HEALTH_VISUAL_PCT_INTERVAL, healthPct);
+        healthPct = MathExtras.ceilToNearest(Pixel.HEALTH_VISUAL_PCT_INTERVAL, healthPct);
         return (maxAlpha * healthPct) / 100;
     }
 
-    render(imageData, offset) {
-        let renderPosition = offset ? Vector.add(this.position, offset) : this.position;
+    render(imageData) {
+        let renderPosition = this.position;
         if (renderPosition.x < 0 || renderPosition.x >= imageData.width) {
             return;
         }

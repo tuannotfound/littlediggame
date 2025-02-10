@@ -406,7 +406,7 @@ export default class LittleGuy {
         }
         this.digging = false;
         if (this.pixelBeingDug != null) {
-            this.pixelBody.removePixelAt(this.pixelBeingDug.position);
+            this.pixelBody.removePixel(this.pixelBeingDug);
             this.notifyDigComplete(this.pixelBeingDug);
         }
         this.goToNearestSurfacePixel();

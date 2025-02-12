@@ -766,6 +766,8 @@ export default class Game {
             );
         }
 
+        // TODO: Fix whatever bug is causing the serpent to be rendered on a different grid than
+        // the planet and little guys.
         this.serpent.update();
         if (this.serpent.initialized) {
             this.layer.getContext().drawImage(

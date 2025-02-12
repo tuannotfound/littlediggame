@@ -54,6 +54,7 @@ export default class Game {
                 this.layer.height / (this.zoomLevel * 2)
             ).round()
         );
+        this.serpentPosition = null;
 
         this.littleGuys = [];
         this.littleGuyListener = {
@@ -76,7 +77,7 @@ export default class Game {
         this.aspis = 0;
         this.aspisElement = null;
         this.upgradesAspisElement = null;
-        this.planetHealthElement = null;
+        this.healthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
         this.availableUpgradeCount = 0;
@@ -235,7 +236,7 @@ export default class Game {
         this.upgradesAspisElement = document.getElementById("upgrades_aspis");
         this.updateAspis();
 
-        this.planetHealthElement = document.getElementById("planet_health");
+        this.healthElement = document.getElementById("health");
         this.updateHealth();
 
         this.littleGuyCountElement = document.getElementById("little_guy_count");
@@ -312,6 +313,7 @@ export default class Game {
             );
         }
         this.updatePlanetPosition();
+        this.updateSerpentPosition();
     }
 
     maybeSave() {
@@ -336,7 +338,7 @@ export default class Game {
     }
 
     updatePlanetPosition() {
-        if (!this.planet || !this.planet.layer) {
+        if (!this.planet || !this.planet.layer || this.planet.health == 0) {
             return;
         }
         this.planetPosition = new Vector(
@@ -344,6 +346,17 @@ export default class Game {
             (this.height - this.planet.layer.height * this.zoomLevel) / 2
         );
         console.log("planet position = " + this.planetPosition.toString());
+    }
+
+    updateSerpentPosition() {
+        if (!this.serpent || !this.serpent.layer || !this.serpent.initialized) {
+            return;
+        }
+        this.serpentPosition = new Vector(
+            (this.width - this.serpent.layer.width * this.zoomLevel) / 2,
+            (this.height - this.serpent.layer.height * this.zoomLevel) / 2
+        );
+        console.log("serpent position = " + this.serpentPosition.toString());
     }
 
     onDigComplete(pixel) {
@@ -442,8 +455,8 @@ export default class Game {
     }
 
     updateHealth() {
-        this.planetHealthElement.innerHTML = (100 * this.planet.health).toFixed(1);
-        if (this.planet.health <= 0 && !this.serpent.initialized) {
+        this.healthElement.innerHTML = (100 * this.activePixelBody.health).toFixed(1);
+        if (!this.serpent.initialized && this.planet.health <= 0) {
             this.spawnSerpent();
         }
     }
@@ -476,10 +489,13 @@ export default class Game {
         }
     }
 
-    gameToPlanetCoords(gameCoords) {
+    gameToActiveBodyCoords(gameCoords) {
+        let activeBodyPosition = this.serpent.initialized
+            ? this.serpentPosition
+            : this.planetPosition;
         return new Vector(
-            (gameCoords.x - this.planetPosition.x) / this.zoomLevel,
-            (gameCoords.y - this.planetPosition.y) / this.zoomLevel
+            (gameCoords.x - activeBodyPosition.x) / this.zoomLevel,
+            (gameCoords.y - activeBodyPosition.y) / this.zoomLevel
         ).round();
     }
 
@@ -501,20 +517,24 @@ export default class Game {
         }
 
         let gameCoords = new Vector(event.offsetX, event.offsetY);
-        let planetCoords = this.gameToPlanetCoords(gameCoords);
+        let activeBodyCoords = this.gameToActiveBodyCoords(gameCoords);
         if (window.DEBUG) {
             console.log(
                 "Translating mouse click @ " +
                     gameCoords.toString() +
                     " to " +
-                    planetCoords.toString()
+                    activeBodyCoords.toString()
             );
         }
-        let closestSurfacePixel = this.planet.getClosestSurfacePixel(planetCoords);
+        let closestSurfacePixel = this.activePixelBody.getClosestSurfacePixel(activeBodyCoords);
         if (!closestSurfacePixel) {
             return;
         }
         this.spawn(closestSurfacePixel.position, false);
+    }
+
+    get activePixelBody() {
+        return this.serpent.initialized ? this.serpent : this.planet;
     }
 
     startNotEnoughAspisAnimation(others) {
@@ -562,7 +582,7 @@ export default class Game {
             this.stopNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
         }
 
-        let littleGuy = new LittleGuy(this.planet, position, this.upgrades, immaculate);
+        let littleGuy = new LittleGuy(this.activePixelBody, position, this.upgrades, immaculate);
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
         this.littleGuys.push(littleGuy);
@@ -586,9 +606,15 @@ export default class Game {
 
     spawnSerpent() {
         if (this.serpent.initialized) {
+            console.error("Attempted to spawn serpent when one already exists");
             return;
         }
         this.serpent.init(this.upgrades);
+        this.updateSerpentPosition();
+        // Swap out the planet icon for the serpent
+        document.getElementById("planet_icon").classList.add("hidden");
+        document.getElementById("serpent_icon").classList.remove("hidden");
+        this.updateHealth();
     }
 
     // Center is in planet space
@@ -604,7 +630,7 @@ export default class Game {
                 if (dist > radius) {
                     continue;
                 }
-                let pixel = this.planet.getPixel(new Vector(x, y));
+                let pixel = this.activePixelBody.getPixel(new Vector(x, y));
                 if (!pixel || !pixel.isSurface || pixel.isBloodied) {
                     continue;
                 }
@@ -687,11 +713,12 @@ export default class Game {
             this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
         ) {
             console.log("Immaculate conception occurred");
-            let planetCoords = new Vector(
-                Math.random() * this.planet.layer.width,
-                Math.random() * this.planet.layer.height
+            let activePixelBody = this.activePixelBody;
+            let pixelBodyCoords = new Vector(
+                Math.random() * activePixelBody.layer.width,
+                Math.random() * activePixelBody.layer.height
             );
-            let closestSurfacePixel = this.planet.getClosestSurfacePixel(planetCoords);
+            let closestSurfacePixel = activePixelBody.getClosestSurfacePixel(pixelBodyCoords);
             if (closestSurfacePixel) {
                 this.spawn(closestSurfacePixel.position, true);
             }
@@ -727,6 +754,7 @@ export default class Game {
                 0, // source y
                 littleGuy.layer.width, // source width
                 littleGuy.layer.height, // source height
+                // TODO: This needs to be updated to handle different pixel bodies (e.g. serpent)
                 this.planetPosition.x +
                     (this.planet.center.x + Math.round(littleGuy.position.x) - littleGuy.center.x) *
                         this.zoomLevel, // destination x

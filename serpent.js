@@ -15,7 +15,9 @@ export default class Serpent extends PixelBody {
         bounds,
         initialPosition,
         initialDirection = new Vector(0, -1),
-        speed = 1
+        // Moves per frame. Should be 1/N where N is a whole number for less
+        // janky movement.
+        speed = 1 / 10
     ) {
         super(bounds.x, bounds.y, true, "serpent");
         this.segmentCount = segmentCount;

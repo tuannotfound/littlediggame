@@ -17,6 +17,7 @@ export default class LittleGuy {
     // Burnt toast.
     static DEATH_BY_EGG_COLOR = new Color(26, 19, 10).immutableCopy();
     static TRANSPARENT_COLOR = new Color(0, 0, 0, 0).immutableCopy();
+    static MIN_FRAMES_BETWEEN_MOVES = 10;
     // The likelihood this little guy will wander in a given frame.
     static MOVE_PROBABILITY_PCT = 2;
     static DIG_PROBABILITY_PCT = 0.005;
@@ -37,15 +38,15 @@ export default class LittleGuy {
 
         let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
+        console.log("Setting orientation to " + this.orientation.toString());
         this.layer = new Layer("little_guy", 3, 3);
         this.center = new Vector(1, 1);
         this.previousPositions = [];
         this.previousDirection = 0;
-        // Cache the nearest surface pixel every time we move. Will be null whenever it needs to be
-        // refreshed in the next update.
         this.closestSurfacePixel = null;
         this.digging = false;
         this.pixelBeingDug = null;
+        this.framesSinceLastMove = 0;
         // Whether we're dead or alive.
         this.alive = true;
         this.ascentionProgressPct = 0;
@@ -283,6 +284,51 @@ export default class LittleGuy {
         }
     }
 
+    updateOrientation() {
+        if (this.closestSurfacePixel == null) {
+            return;
+        }
+        // First check if our current orientation is valid.
+        let testPixel = this.pixelBody.getPixel(
+            Vector.add(this.positionInPixelBodySpace, this.orientation)
+        );
+        if (testPixel == null) {
+            console.info("Orientation is good, no need to update");
+            // No work to be done, we can be happy with our current orientation.
+            return;
+        }
+
+        // Check all possible orientations (we'll possibly recheck our current orientation, but
+        // whatever, it's cheap).
+        let orientations = [
+            new Vector(0, 1),
+            new Vector(-1, 0),
+            new Vector(0, -1),
+            new Vector(1, 0),
+        ];
+        for (const orientation of orientations) {
+            testPixel = this.pixelBody.getPixel(
+                Vector.add(this.positionInPixelBodySpace, orientation)
+            );
+            if (testPixel == null) {
+                console.info(
+                    "Updating orientation from " +
+                        this.orientation.toString() +
+                        " to " +
+                        orientation.toString()
+                );
+                // Found a valid orientation, no need to keep looking.
+                this.orientation = orientation;
+                this.updateRenderData();
+                return;
+            }
+        }
+        // Uh oh, if we're here then somehow the pixel we're standing on is fully surrounded by
+        // other pixels (which means it's not really a surface pixel). Uh. Whatever, let's just
+        // log it and move on with our lives.
+        console.error("No valid orientation found");
+    }
+
     update() {
         if (!this.active) {
             return;
@@ -300,9 +346,15 @@ export default class LittleGuy {
             this.updateRenderData();
             return;
         }
-        this.closestSurfacePixel = this.pixelBody.getClosestSurfacePixel(
-            this.positionInPixelBodySpace.copy()
-        );
+        this.framesSinceLastMove++;
+        if (this.closestSurfacePixel == null) {
+            this.closestSurfacePixel = this.findPixelToStandOn();
+            this.updateOrientation();
+        }
+        // First update our position to match the pixel we're standing on, in case it moved.
+        this.positionInPixelBodySpace = this.closestSurfacePixel.position;
+        this.position = this.toLocalSpace(this.positionInPixelBodySpace).add(this.orientation);
+
         if (!this.closestSurfacePixel) {
             this.die();
             return;
@@ -322,8 +374,11 @@ export default class LittleGuy {
         if (forcedToDig || Math.random() < LittleGuy.DIG_PROBABILITY_PCT) {
             this.startDigging();
         }
-        this.dig();
-        this.wander();
+        if (this.digging) {
+            this.dig();
+        } else {
+            this.wander();
+        }
     }
 
     bury() {
@@ -368,31 +423,34 @@ export default class LittleGuy {
         }
     }
 
+    // Will return null if the pixel body has zero pixels left, otherwise will return the best match
+    // for whatever pixel we're standing on or near.
+    findPixelToStandOn() {
+        // Look directly at our feet first
+        let underFoot = this.pixelBody.getPixel(this.positionInPixelBodySpace);
+        if (underFoot && underFoot.isSurface) {
+            return underFoot;
+        }
+        // Look just below our feet next. Note: I don't know why this isn't always the best
+        // option, but sometimes there's a pixel right @ positionInPlaceSpace that we need to
+        // set as the highest priority. Life is full of mysteries.
+        let underFootCoords = Vector.sub(this.positionInPixelBodySpace, this.orientation);
+        underFoot = this.pixelBody.getPixel(underFootCoords);
+        if (underFoot && underFoot.isSurface) {
+            return underFoot;
+        }
+        // This should only happen if we're, like, floating? Flying around? If this little guy
+        // is being a total /bird/, then we need to fall back to this.
+        // (Can also happen if we just finished digging up the pixel we were standing on)
+        return this.pixelBody.getClosestSurfacePixel(this.positionInPixelBodySpace);
+    }
+
     startDigging() {
         if (this.digging) {
             return;
         }
         this.digging = true;
-        // Look directly at our feet first
-        let underFoot = this.pixelBody.getPixel(this.positionInPixelBodySpace);
-        if (underFoot && underFoot.isSurface) {
-            this.pixelBeingDug = underFoot;
-        } else {
-            // Look just below our feet next. Note: I don't know why this isn't always the best
-            // option, but sometimes there's a pixel right @ positionInPlaceSpace that we need to
-            // set as the highest priority. Life is full of mysteries.
-            let underFootCoords = Vector.sub(this.positionInPixelBodySpace, this.orientation);
-            underFoot = this.pixelBody.getPixel(underFootCoords);
-            if (underFoot && underFoot.isSurface) {
-                this.pixelBeingDug = underFoot;
-            } else {
-                // This should only happen if we're, like, floating? Flying around? If this little guy
-                // is being a total /bird/, then we need to fall back to this.
-                this.pixelBeingDug = this.pixelBody.getClosestSurfacePixel(
-                    this.positionInPixelBodySpace
-                );
-            }
-        }
+        this.pixelBeingDug = this.findPixelToStandOn();
         if (this.pixelBeingDug == null) {
             this.digging = false;
             return;
@@ -425,7 +483,7 @@ export default class LittleGuy {
     }
 
     goToNearestSurfacePixel() {
-        let newSurfacePixel = this.pixelBody.getClosestSurfacePixel(this.positionInPixelBodySpace);
+        let newSurfacePixel = this.findPixelToStandOn();
         if (!newSurfacePixel) {
             this.die();
             return;
@@ -433,11 +491,21 @@ export default class LittleGuy {
         this.positionInPixelBodySpace = newSurfacePixel.position;
         // This is relative to the center of the pixelBody
         this.position = this.toLocalSpace(this.positionInPixelBodySpace);
+        this.framesSinceLastMove = 0;
+
+        // Take a guess at a good orientation to be standing at. Really only makes sense for
+        // planets, but we re-check it in updateOrientation(), so it really just sets our preference
+        // for an orientation.
         let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
-        this.position.add(this.orientation);
+        console.log(
+            "goToNearestSurfacePixel - setting orientation to " + this.orientation.toString()
+        );
         this.previousPositions = [];
         this.closestSurfacePixel = newSurfacePixel;
+        this.updateOrientation();
+        this.updateRenderData();
+        //this.position.add(this.orientation);
     }
 
     dig() {
@@ -464,15 +532,17 @@ export default class LittleGuy {
 
     wander() {
         if (this.digging) {
-            this.closestSurfacePixel = null;
+            return;
+        }
+        if (this.framesSinceLastMove < LittleGuy.MIN_FRAMES_BETWEEN_MOVES) {
             return;
         }
         let willMove = Math.random() * 100 <= LittleGuy.MOVE_PROBABILITY_PCT;
         if (!willMove) {
-            this.closestSurfacePixel = null;
             return;
         }
-        // Prefer continuing in the current direction to avoid quickly going back and forth too much
+        // Prefer continuing in the current direction to avoid quickly going back and forth too
+        // much.
         let threshold =
             this.previousDirection < 0
                 ? LittleGuy.DIRECTION_PERSISTENCE_FACTOR
@@ -592,6 +662,7 @@ export default class LittleGuy {
             if (window.DEBUG) {
                 console.log("No candidates");
             }
+            this.goToNearestSurfacePixel();
             return;
         }
 
@@ -664,7 +735,6 @@ export default class LittleGuy {
         if (direction < 0) {
             for (let i = 0; i < rotatedCandidates.length; i++) {
                 // Only consider candidates to the left of us, post rotation.
-
                 if (window.DEBUG) {
                     console.log(
                         "Looking at candidate @ " +
@@ -733,6 +803,7 @@ export default class LittleGuy {
         // 5. Move to that position.
         //let selectedCandidate = candidates[direction > 0 ? 0 : candidates.length - 1];
         let newPosition = selectedCandidate.position.copy();
+        console.log("Setting orientation to " + selectedCandidate.orientation.toString());
         this.orientation = selectedCandidate.orientation;
         if (window.DEBUG) {
             console.log(
@@ -747,9 +818,9 @@ export default class LittleGuy {
         this.position.set(newPosition);
         this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
         this.addPreviousPosition(this.positionInPixelBodySpace);
+        this.closestSurfacePixel = this.findPixelToStandOn();
+        this.updateOrientation();
         this.updateRenderData();
-        this.closestSurfacePixel = this.pixelBody.getClosestSurfacePixel(
-            this.positionInPixelBodySpace
-        );
+        this.framesSinceLastMove = 0;
     }
 }

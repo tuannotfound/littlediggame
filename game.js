@@ -290,8 +290,8 @@ export default class Game {
                     (Math.min(this.MAX_WIDTH, this.MAX_HEIGHT) -
                         Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))
         );
-        this.width = MathExtras.roundToNearest(this.zoomLevel, this.width);
-        this.height = MathExtras.roundToNearest(this.zoomLevel, this.height);
+        this.width = MathExtras.floorToNearest(this.zoomLevel, this.width);
+        this.height = MathExtras.floorToNearest(this.zoomLevel, this.height);
 
         console.log(
             "Setting canvas to " +

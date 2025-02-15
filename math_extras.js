@@ -31,6 +31,10 @@ export default class MathExtras {
         return Math.round(value / nearest) * nearest;
     }
 
+    static floorToNearest(nearest, value) {
+        return Math.floor(value / nearest) * nearest;
+    }
+
     // Scales 'value', which lies between 'fromRangeMin' and 'fromRangeMax', into the corresponding
     // position between 'toRangeMin' and 'toRangeMax'.
     // e.g. for:

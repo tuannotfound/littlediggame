@@ -54,7 +54,6 @@ export default class Game {
                 this.layer.height / (this.zoomLevel * 2)
             ).round()
         );
-        this.serpentPosition = null;
 
         this.littleGuys = [];
         this.littleGuyListener = {
@@ -279,15 +278,17 @@ export default class Game {
             this.MIN_HEIGHT,
             this.MAX_HEIGHT
         );
-        this.bounds = new Vector(this.width, this.height);
         // Update zoom
         let smallest = Math.min(this.width, this.height);
-        this.zoomLevel =
+        this.zoomLevel = Math.round(
             this.MIN_ZOOM +
-            ((this.MAX_ZOOM - this.MIN_ZOOM) *
-                (smallest - Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))) /
-                (Math.min(this.MAX_WIDTH, this.MAX_HEIGHT) -
-                    Math.min(this.MIN_WIDTH, this.MIN_HEIGHT));
+                ((this.MAX_ZOOM - this.MIN_ZOOM) *
+                    (smallest - Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))) /
+                    (Math.min(this.MAX_WIDTH, this.MAX_HEIGHT) -
+                        Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))
+        );
+        this.width = MathExtras.roundToNearest(this.zoomLevel, this.width);
+        this.height = MathExtras.roundToNearest(this.zoomLevel, this.height);
 
         console.log(
             "Setting canvas to " +
@@ -309,11 +310,15 @@ export default class Game {
         }
         if (this.serpent) {
             this.serpent.onResize(
-                new Vector(this.bounds.x / this.zoomLevel, this.bounds.x / this.zoomLevel).round()
+                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
+            );
+        }
+        if (this.particles) {
+            this.particles.onResize(
+                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
             );
         }
         this.updatePlanetPosition();
-        this.updateSerpentPosition();
     }
 
     maybeSave() {
@@ -345,18 +350,10 @@ export default class Game {
             (this.width - this.planet.layer.width * this.zoomLevel) / 2,
             (this.height - this.planet.layer.height * this.zoomLevel) / 2
         );
+        // Ensure the planet shares the same grid as the rest of the game.
+        this.planetPosition.x = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.x);
+        this.planetPosition.y = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.y);
         console.log("planet position = " + this.planetPosition.toString());
-    }
-
-    updateSerpentPosition() {
-        if (!this.serpent || !this.serpent.layer || !this.serpent.initialized) {
-            return;
-        }
-        this.serpentPosition = new Vector(
-            (this.width - this.serpent.layer.width * this.zoomLevel) / 2,
-            (this.height - this.serpent.layer.height * this.zoomLevel) / 2
-        );
-        console.log("serpent position = " + this.serpentPosition.toString());
     }
 
     onDigComplete(pixel) {
@@ -490,9 +487,7 @@ export default class Game {
     }
 
     gameToActiveBodyCoords(gameCoords) {
-        let activeBodyPosition = this.serpent.initialized
-            ? this.serpentPosition
-            : this.planetPosition;
+        let activeBodyPosition = this.serpent.initialized ? new Vector() : this.planetPosition;
         return new Vector(
             (gameCoords.x - activeBodyPosition.x) / this.zoomLevel,
             (gameCoords.y - activeBodyPosition.y) / this.zoomLevel
@@ -610,7 +605,6 @@ export default class Game {
             return;
         }
         this.serpent.init(this.upgrades);
-        this.updateSerpentPosition();
         // Swap out the planet icon for the serpent
         document.getElementById("planet_icon").classList.add("hidden");
         document.getElementById("serpent_icon").classList.remove("hidden");
@@ -742,6 +736,23 @@ export default class Game {
             this.planet.layer.height * this.zoomLevel // destination height
         );
 
+        // Serpent.
+        if (this.serpent.initialized) {
+            this.serpent.update();
+            this.layer.getContext().drawImage(
+                this.serpent.layer.canvas,
+                0, // source x
+                0, // source y
+                this.serpent.layer.width, // source width
+                this.serpent.layer.height, // source height
+                // The serpent shares the same size as the main canvas, so no need to translate.
+                0, // destination x
+                0, // destination y
+                this.serpent.layer.width * this.zoomLevel, // destination width
+                this.serpent.layer.height * this.zoomLevel // destination height
+            );
+        }
+
         // Little guys
         for (const littleGuy of this.littleGuys) {
             littleGuy.update(elapsedMs);
@@ -766,23 +777,6 @@ export default class Game {
             );
         }
 
-        // TODO: Fix whatever bug is causing the serpent to be rendered on a different grid than
-        // the planet and little guys.
-        this.serpent.update();
-        if (this.serpent.initialized) {
-            this.layer.getContext().drawImage(
-                this.serpent.layer.canvas,
-                0, // source x
-                0, // source y
-                this.serpent.layer.width, // source width
-                this.serpent.layer.height, // source height
-                (-this.serpent.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
-                (-this.serpent.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
-                this.serpent.layer.width * this.zoomLevel, // destination width
-                this.serpent.layer.height * this.zoomLevel // destination height
-            );
-        }
-
         // Particles
         // Render them last as they go on top of everything else.
         // Don't do particles on higher game speeds (used for testing only)
@@ -794,8 +788,10 @@ export default class Game {
                 0, // source y
                 this.particles.layer.width, // source width
                 this.particles.layer.height, // source height
-                (-this.particles.layer.width * this.zoomLevel) / 2 + this.width / 2, // destination x
-                (-this.particles.layer.height * this.zoomLevel) / 2 + this.height / 2, // destination y
+                // The particles layer shares the same size as the main canvas, so no need to
+                // translate.
+                0, // destination x
+                0, // destination y
                 this.particles.layer.width * this.zoomLevel, // destination width
                 this.particles.layer.height * this.zoomLevel // destination height
             );

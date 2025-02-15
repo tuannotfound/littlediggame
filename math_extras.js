@@ -27,6 +27,10 @@ export default class MathExtras {
         return Math.ceil(value / nearest) * nearest;
     }
 
+    static roundToNearest(nearest, value) {
+        return Math.round(value / nearest) * nearest;
+    }
+
     // Scales 'value', which lies between 'fromRangeMin' and 'fromRangeMax', into the corresponding
     // position between 'toRangeMin' and 'toRangeMax'.
     // e.g. for:

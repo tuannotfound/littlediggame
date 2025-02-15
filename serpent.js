@@ -77,12 +77,8 @@ export default class Serpent extends PixelBody {
         }
     }
 
-    onResize(bounds) {
-        this.layer.destroy();
-        this.layer = new Layer("serpent", bounds.x, bounds.y);
-        if (this.initialized) {
-            this.layer.initOffscreen();
-        }
+    onResize(newSize) {
+        this.layer.onResize(newSize);
         // This is insufficient and the position needs to be accounted for somehow.
         for (const segment of this.segments) {
             segment.bounds = new Vector(this.layer.width, this.layer.height);

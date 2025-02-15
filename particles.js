@@ -11,12 +11,17 @@ export default class Particles {
         this.width = width;
         this.height = height;
         this.particles = [];
-        this.layer = null;
+        this.layer = new Layer("particles", this.width, this.height);
     }
 
     init() {
-        this.layer = new Layer("particles", this.width, this.height);
         this.layer.initOffscreen();
+    }
+
+    onResize(newSize) {
+        this.width = newSize.width;
+        this.height = newSize.height;
+        this.layer.onResize(newSize);
     }
 
     spawn(position, color, initialVelocity, gravity, count, delayMs) {

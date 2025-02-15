@@ -5,8 +5,9 @@ import PixelBody from "./pixel_body.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    MAX_SIZE = 15;
-    MIN_SIZE = 1;
+    static MAX_SIZE = 3;
+    static MIN_SIZE = 1;
+    static BORDER_BUFFER_PIXELS = 2;
 
     constructor(
         segmentCount,
@@ -15,7 +16,7 @@ export default class Serpent extends PixelBody {
         initialDirection = new Vector(0, -1),
         // Moves per frame. Should be 1/N where N is a whole number for less
         // janky movement.
-        speed = 1 / 10
+        speed = 1 / 2
     ) {
         super(bounds.x, bounds.y, true, "serpent");
         this.segmentCount = segmentCount;
@@ -46,8 +47,8 @@ export default class Serpent extends PixelBody {
                     this.segmentCount - i,
                     0,
                     this.segmentCount,
-                    this.MIN_SIZE,
-                    this.MAX_SIZE - 1
+                    Serpent.MIN_SIZE,
+                    Serpent.MAX_SIZE - 1
                 )
             );
             // Ensure we always have an odd size so that we can have a center pixel.
@@ -103,6 +104,36 @@ export default class Serpent extends PixelBody {
             segment.updateSurface();
             this.surfacePixels.push(...segment.surfacePixels);
         }
+    }
+
+    // Override
+    removePixel(pixel, updateSurface = true) {
+        console.log("Serpent - removePixel(pixel, updateSurface = " + updateSurface);
+        super.removePixel(pixel, false);
+        // Also have to update the segment that held that pixel before updating
+        // the surface.
+        let pixelRemoved = false;
+        for (const segment of this.segments) {
+            pixelRemoved = segment.removePixel(pixel);
+            if (pixelRemoved) {
+                break;
+            }
+        }
+
+        if (!pixelRemoved) {
+            console.error("Attempted to remove a pixel not found in any segment");
+        }
+        if (updateSurface) {
+            this.updateSurface();
+        }
+    }
+
+    // Override
+    addPixel(position, type = PixelType.DIRT) {
+        if (type == PixelType.TOMBSTONE) {
+            return null;
+        }
+        return super.addPixel(position, type);
     }
 }
 
@@ -170,15 +201,24 @@ class Segment {
         }
     }
 
+    removePixel(pixel) {
+        const index = this.pixels.indexOf(pixel);
+        if (index < 0) {
+            return false;
+        }
+        this.pixels.splice(index, 1);
+        return true;
+    }
+
     canMoveForward() {
         const halfSize = Math.floor(this.size / 2);
         let nextRenderPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
         nextRenderPosition.round();
         if (
-            nextRenderPosition.x - halfSize < 0 ||
-            nextRenderPosition.x + halfSize >= this.bounds.x ||
-            nextRenderPosition.y - halfSize < 0 ||
-            nextRenderPosition.y + halfSize >= this.bounds.y
+            nextRenderPosition.x - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
+            nextRenderPosition.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS ||
+            nextRenderPosition.y - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
+            nextRenderPosition.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
         ) {
             return false;
         }
@@ -188,6 +228,9 @@ class Segment {
     // Returns true if we actually moved (i.e. renderPosition changed),
     // false otherwise.
     update() {
+        if (this.pixels.length == 0) {
+            return false;
+        }
         if (!this.foreSegment) {
             // We're a head segment, decide if we're going to turn.
             let forcedToTurn = !this.canMoveForward();
@@ -231,7 +274,7 @@ class Segment {
                         Serpent.TAG +
                             "Head segment is unable to go anywhere, all directions are invalid."
                     );
-                    return;
+                    return false;
                 }
                 console.log(
                     Serpent.TAG +

@@ -345,13 +345,13 @@ export default class LittleGuy {
             return;
         }
         this.framesSinceLastMove++;
-        if (this.closestSurfacePixel == null) {
+        if (this.closestSurfacePixel == null || this.closestSurfacePixel.health <= 0) {
+            // Find something new to stand on.
             this.closestSurfacePixel = this.findPixelToStandOn();
-            this.updateOrientation();
+            if (this.digging) {
+                this.pixelBeingDug = this.closestSurfacePixel;
+            }
         }
-        // First update our position to match the pixel we're standing on, in case it moved.
-        this.positionInPixelBodySpace = this.closestSurfacePixel.position;
-        this.position = this.toLocalSpace(this.positionInPixelBodySpace).add(this.orientation);
 
         if (!this.closestSurfacePixel) {
             this.die();
@@ -360,6 +360,22 @@ export default class LittleGuy {
             this.deathByEgg = true;
             this.die();
             return;
+        }
+
+        // Update our position to match the pixel we're standing on, in case it moved.
+        let prevOrientation = this.orientation.copy();
+        let prevPosition = this.position.copy();
+        this.updateOrientation();
+        this.positionInPixelBodySpace = Vector.add(
+            this.closestSurfacePixel.position,
+            this.orientation
+        );
+        this.position = this.toLocalSpace(this.positionInPixelBodySpace);
+        if (
+            !Vector.equals(prevOrientation, this.orientation) ||
+            !Vector.equals(prevPosition, this.position)
+        ) {
+            this.updateRenderData();
         }
 
         let forcedToDig = false;
@@ -388,9 +404,7 @@ export default class LittleGuy {
             tombstonePosition.add(this.orientation);
         }
         let added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
-        if (!added) {
-            console.error("Failed to add pixel on decompose @ " + tombstonePosition.toString());
-        } else {
+        if (added) {
             this.pixelBody.updateSurface();
         }
 
@@ -495,7 +509,6 @@ export default class LittleGuy {
         this.orientation = this.angleToOrientation(angle);
         this.updateOrientation();
 
-        let oldPosition = this.position.copy();
         // Make sure we're standing /on top of/ the surface pixel, not in it.
         this.positionInPixelBodySpace = Vector.add(
             this.closestSurfacePixel.position,

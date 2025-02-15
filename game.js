@@ -44,7 +44,7 @@ export default class Game {
         this.planetPosition = null;
 
         this.serpent = new Serpent(
-            30,
+            1,
             new Vector(
                 this.layer.width / this.zoomLevel,
                 this.layer.height / this.zoomLevel
@@ -376,7 +376,7 @@ export default class Game {
         if (value > 0) {
             this.updateAspis();
         }
-        let positionInParticlesSpace = this.planetToParticleSpace(pixel.position);
+        let positionInParticlesSpace = this.pixelBodyToParticleSpace(pixel.position);
         let color = new Color(pixel.getRenderColor());
         // The pixel itself will likely be invisible post-dig, so make sure we reset the alpha.
         color.a = 255;
@@ -388,10 +388,11 @@ export default class Game {
         this.maybeSave();
     }
 
-    planetToParticleSpace(planetCoords) {
+    pixelBodyToParticleSpace(planetCoords) {
+        let activePixelBody = this.activePixelBody;
         let particleCoords = new Vector(
-            this.particles.layer.width / 2 - this.planet.layer.width / 2,
-            this.particles.layer.height / 2 - this.planet.layer.height / 2
+            this.particles.layer.width / 2 - activePixelBody.layer.width / 2,
+            this.particles.layer.height / 2 - activePixelBody.layer.height / 2
         );
         particleCoords.add(planetCoords);
         return particleCoords;
@@ -620,7 +621,7 @@ export default class Game {
             return;
         }
         let radius = Math.floor(2 * (Math.random() + 1));
-        this.particles.bloodEffect(this.planetToParticleSpace(center));
+        this.particles.bloodEffect(this.pixelBodyToParticleSpace(center));
         for (let x = center.x - radius; x < center.x + radius; x++) {
             for (let y = center.y - radius; y < center.y + radius; y++) {
                 let dist = new Vector(center.x - x, center.y - y).mag();
@@ -653,7 +654,7 @@ export default class Game {
         if (littleGuy.deathByEgg) {
             this.knowsEggDeath = true;
             this.particles.fireEffect(
-                this.planetToParticleSpace(littleGuy.positionInPixelBodySpace)
+                this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
             this.updateLegend();
         }

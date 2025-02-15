@@ -9,7 +9,7 @@ export default class Serpent extends Pixel {
     // Unused so far
     static SPECKLE_COLOR = new Color(134, 250, 57).immutableCopy();
 
-    static HEALTH = 100000;
+    static HEALTH = 100;
 
     constructor(position, upgrades) {
         super(position, upgrades, PixelType.SERPENT, Serpent.HEALTH);

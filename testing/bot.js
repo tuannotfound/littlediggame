@@ -107,7 +107,7 @@ export default class Bot {
         if (this.game.aspis > this.peakAspis) {
             this.peakAspis = this.game.aspis;
         }
-        if (this.game.planet.health == 0) {
+        if (this.game.planet.health == 0 && this.game.serpent.health == 0) {
             this.stop();
         }
     }
@@ -116,10 +116,10 @@ export default class Bot {
         let expectedValue = this.calculateExpectedValueOfLittleGuy();
         while (this.shouldSpawn(expectedValue)) {
             let coords = new Vector(
-                Math.random() * this.game.planet.layer.width - 1,
-                Math.random() * this.game.planet.layer.height - 1
+                Math.random() * this.game.layer.width - 1,
+                Math.random() * this.game.layer.height - 1
             );
-            let closestSurfacePixel = this.game.planet.getClosestSurfacePixel(coords);
+            let closestSurfacePixel = this.game.activePixelBody.getClosestSurfacePixel(coords);
             if (!closestSurfacePixel) {
                 return;
             }
@@ -183,6 +183,7 @@ export default class Bot {
             autoLittleGuyCount,
             this.calculateExpectedValueOfLittleGuy(),
             this.game.planet.health,
+            this.game.serpent.health,
             this.game.upgrades,
             this.findCheapestUpgrade(),
             this.mostRecentUpgrade,
@@ -210,7 +211,7 @@ export default class Bot {
         // Looking at the surface of the planet, we can average out the value of each pixel and
         // multiply that by the number of digs each little guy will perform to get the EV of
         // spawning a new little guy.
-        let surface = this.game.planet.surfacePixels;
+        let surface = this.game.activePixelBody.surfacePixels;
         if (surface.length == 0) {
             return 0;
         }
@@ -246,6 +247,7 @@ class Event {
         autoLittleGuyCount,
         littleGuyEv,
         worldHealth,
+        serpentHealth,
         upgrades,
         cheapestUpgrade,
         mostRecentUpgrade,
@@ -259,6 +261,7 @@ class Event {
         this.littleGuyEv = littleGuyEv;
 
         this.worldHealth = worldHealth;
+        this.serpentHealth = serpentHealth;
 
         this.setUpgradeState(upgrades);
         this.cheapestUpgradeCost = cheapestUpgrade ? cheapestUpgrade.cost : 0;
@@ -298,6 +301,7 @@ class Event {
             "autoLittleGuyCount",
             "littleGuyEv",
             "worldHealth",
+            "serpentHealth",
             "upgradeCount",
             "cheapestUpgradeCost",
             "progressToNextUpgrade",
@@ -324,6 +328,7 @@ class Event {
         data.push(this.autoLittleGuyCount);
         data.push(this.littleGuyEv);
         data.push(this.worldHealth);
+        data.push(this.serpentHealth);
         data.push(this.upgradeCount);
         data.push(this.cheapestUpgradeCost);
         data.push(this.progressToNextUpgrade);

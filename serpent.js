@@ -1,7 +1,5 @@
-import Layer from "./layer.js";
 import Vector from "./vector.js";
 import MathExtras from "./math_extras.js";
-import PixelFactory from "./diggables/pixel_factory.js";
 import PixelType from "./diggables/pixel_type.js";
 import PixelBody from "./pixel_body.js";
 

@@ -68,7 +68,10 @@ export default class Game {
             },
         };
 
-        this.particles = new Particles(this.width, this.height);
+        this.particles = new Particles(
+            this.layer.width / this.zoomLevel,
+            this.layer.height / this.zoomLevel
+        );
 
         this.knowsDeath = false;
         this.knowsEggDeath = false;

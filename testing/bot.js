@@ -14,6 +14,8 @@ export default class Bot {
         this.now = 0;
         this.then = 0;
 
+        this.startTimeMillis = 0;
+
         this.peakAspis = 0;
         this.mostRecentUpgrade = "";
         this.lastUpgradeTimestamp = 0;
@@ -24,9 +26,10 @@ export default class Bot {
             return;
         }
         console.log(this.TAG + "Starting bot");
+        this.startTimeMillis = performance.now();
         this.running = true;
         this.game.gameSpeed = this.GAME_SPEED;
-        this.then = window.performance.now();
+        this.then = performance.now();
         this.tick(this.then);
     }
 
@@ -116,8 +119,8 @@ export default class Bot {
         let expectedValue = this.calculateExpectedValueOfLittleGuy();
         while (this.shouldSpawn(expectedValue)) {
             let coords = new Vector(
-                Math.random() * this.game.layer.width - 1,
-                Math.random() * this.game.layer.height - 1
+                Math.random() * this.game.activePixelBody.layer.width - 1,
+                Math.random() * this.game.activePixelBody.layer.height - 1
             );
             let closestSurfacePixel = this.game.activePixelBody.getClosestSurfacePixel(coords);
             if (!closestSurfacePixel) {
@@ -176,7 +179,7 @@ export default class Bot {
             (performance.now() - this.lastUpgradeTimestamp) * this.GAME_SPEED;
         let event = new Event(
             // In minutes
-            (performance.now() * this.GAME_SPEED) / (1000 * 60),
+            ((performance.now() - this.startTimeMillis) * this.GAME_SPEED) / (1000 * 60),
             this.game.aspis,
             this.peakAspis,
             manualLittleGuyCount,
@@ -246,7 +249,7 @@ class Event {
         manualLittleGuyCount,
         autoLittleGuyCount,
         littleGuyEv,
-        worldHealth,
+        planetHealth,
         serpentHealth,
         upgrades,
         cheapestUpgrade,
@@ -260,7 +263,7 @@ class Event {
         this.autoLittleGuyCount = autoLittleGuyCount;
         this.littleGuyEv = littleGuyEv;
 
-        this.worldHealth = worldHealth;
+        this.planetHealth = planetHealth;
         this.serpentHealth = serpentHealth;
 
         this.setUpgradeState(upgrades);
@@ -281,7 +284,7 @@ class Event {
         }
         this.aspisPerDirt = upgrades.aspisPer[PixelType.DIRT.name];
         this.aspisPerTombstone = upgrades.aspisPer[PixelType.TOMBSTONE.name];
-        this.aspisPerAspis = upgrades.unlockGold ? upgrades.aspisPer[PixelType.GOLD.name] : 0;
+        this.aspisPerGold = upgrades.unlockGold ? upgrades.aspisPer[PixelType.GOLD.name] : 0;
         this.aspisPerDiamond = upgrades.unlockDiamonds
             ? upgrades.aspisPer[PixelType.DIAMOND.name]
             : 0;
@@ -300,7 +303,7 @@ class Event {
             "manualLittleGuyCount",
             "autoLittleGuyCount",
             "littleGuyEv",
-            "worldHealth",
+            "planetHealth",
             "serpentHealth",
             "upgradeCount",
             "cheapestUpgradeCost",
@@ -327,7 +330,7 @@ class Event {
         data.push(this.manualLittleGuyCount);
         data.push(this.autoLittleGuyCount);
         data.push(this.littleGuyEv);
-        data.push(this.worldHealth);
+        data.push(this.planetHealth);
         data.push(this.serpentHealth);
         data.push(this.upgradeCount);
         data.push(this.cheapestUpgradeCost);

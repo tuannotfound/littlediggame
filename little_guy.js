@@ -4,12 +4,21 @@ import PixelType from "./diggables/pixel_type.js";
 import Color from "./color.js";
 
 export default class LittleGuy {
-    static DEFAULT_HEAD_COLOR = new Color(242, 222, 187).immutableCopy();
+    static HEAD_COLORS = [
+        new Color(252, 220, 210).immutableCopy(),
+        new Color(245, 192, 157).immutableCopy(),
+        new Color(241, 170, 144).immutableCopy(),
+        new Color(249, 220, 177).immutableCopy(),
+        new Color(254, 209, 165).immutableCopy(),
+        new Color(250, 173, 115).immutableCopy(),
+        new Color(219, 177, 137).immutableCopy(),
+        new Color(204, 142, 74).immutableCopy(),
+        new Color(205, 125, 54).immutableCopy(),
+        new Color(178, 92, 32).immutableCopy(),
+        new Color(134, 76, 43).immutableCopy(),
+        new Color(86, 49, 23).immutableCopy(),
+    ];
     static DEFAULT_BODY_COLOR = new Color(87, 125, 180).immutableCopy();
-    // Yellow helmet. Safety first.
-    static DIGGING_HEAD_COLOR = new Color(245, 221, 66).immutableCopy();
-    // Filthy, dirt-covered overalls.
-    static DIGGING_BODY_COLOR = new Color(107, 56, 28).immutableCopy();
     // Angelic robes.
     static ASCENDING_BODY_COLOR = new Color(215, 215, 215).immutableCopy();
     // Lil' devil.
@@ -39,12 +48,16 @@ export default class LittleGuy {
         let angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
 
+        let headColorIndex = Math.floor(Math.random() * LittleGuy.HEAD_COLORS.length);
+        this.headColor = Color.wiggle(LittleGuy.HEAD_COLORS[headColorIndex], 5);
+
         this.layer = new Layer("little_guy", 3, 3);
         this.center = new Vector(1, 1);
         this.previousPositions = [];
         this.previousDirection = 0;
         this.closestSurfacePixel = null;
         this.digging = false;
+        this.diggingFrames = 0;
         this.pixelBeingDug = null;
         this.framesSinceLastMove = 0;
         // Whether we're dead or alive.
@@ -72,6 +85,7 @@ export default class LittleGuy {
             positionInPixelBodySpace: this.positionInPixelBodySpace,
             immaculate: this.immaculate,
             orientation: this.orientation,
+            headColor: this.headColor,
             previousPositions: this.previousPositions,
             previousDirection: this.previousDirection,
             digging: this.digging,
@@ -94,6 +108,7 @@ export default class LittleGuy {
             json.immaculate
         );
         littleGuy.orientation = Vector.fromJSON(json.orientation);
+        littleGuy.headColor = Color.fromJSON(json.headColor);
         for (const previousPositionJson of json.previousPositions) {
             littleGuy.previousPositions.push(Vector.fromJSON(previousPositionJson));
         }
@@ -173,7 +188,7 @@ export default class LittleGuy {
         if (!this.alive) {
             if (this.upgrades.afterlife) {
                 let alpha = this.getAscensionAlpha();
-                let color = LittleGuy.DEFAULT_HEAD_COLOR.copy();
+                let color = this.headColor.copy();
                 color.a = alpha;
                 return color;
             } else if (this.deathByEgg) {
@@ -184,10 +199,10 @@ export default class LittleGuy {
                 }
             }
         }
-        if (this.digging) {
-            return LittleGuy.DIGGING_HEAD_COLOR;
+        if (this.shouldRenderDigPose()) {
+            return LittleGuy.TRANSPARENT_COLOR;
         }
-        return LittleGuy.DEFAULT_HEAD_COLOR;
+        return this.headColor;
     }
 
     getBodyColor() {
@@ -203,10 +218,21 @@ export default class LittleGuy {
                 return LittleGuy.DEATH_BY_EGG_COLOR;
             }
         }
-        if (this.digging) {
-            return LittleGuy.DIGGING_BODY_COLOR;
+        if (this.shouldRenderDigPose()) {
+            return this.headColor;
         }
         return LittleGuy.DEFAULT_BODY_COLOR;
+    }
+
+    shouldRenderDigPose() {
+        // The dig pose is where the head replaces the body, as if the little guy is crouched down
+        // at work. The little guy should pop in and out of the dig pose during dig operations.
+        if (!this.digging) {
+            return false;
+        }
+
+        // Assuming 60 FPS, we want to enter the dig pose for frames 0-20.
+        return this.diggingFrames % 60 < 20;
     }
 
     getAscensionAlpha() {
@@ -462,6 +488,7 @@ export default class LittleGuy {
             return;
         }
         this.digging = true;
+        this.diggingFrames = 0;
         this.pixelBeingDug = this.findPixelToStandOn();
         if (this.pixelBeingDug == null) {
             this.digging = false;
@@ -481,12 +508,11 @@ export default class LittleGuy {
         }
         this.goToNearestSurfacePixel();
 
-        this.updateRenderData();
-
         this.digsRemaining--;
         if (this.digsRemaining <= 0) {
             this.die();
         }
+        this.updateRenderData();
     }
 
     die() {
@@ -537,6 +563,11 @@ export default class LittleGuy {
                 this.digging = false;
                 return;
             }
+        }
+        let wasRenderingDigPose = this.shouldRenderDigPose();
+        this.diggingFrames++;
+        if (wasRenderingDigPose != this.shouldRenderDigPose()) {
+            this.updateRenderData();
         }
 
         this.pixelBeingDug.damage(this.upgrades.digSpeed);

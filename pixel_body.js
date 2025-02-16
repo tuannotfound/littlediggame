@@ -22,6 +22,7 @@ export default class PixelBody {
         this.surfacePixels = [];
         this.upgrades = null;
         this.needsUpdate = false;
+        this.initialCount = 0;
     }
 
     toJSON() {
@@ -296,6 +297,9 @@ export default class PixelBody {
     }
 
     get health() {
+        if (this.initialCount == 0) {
+            return 1;
+        }
         return this.pixels.length / this.initialCount;
     }
 }

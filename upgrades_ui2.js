@@ -1,9 +1,12 @@
-import dagre from "@dagrejs/dagre";
 import LinkerLine from "linkerline";
 import Draggable from "./draggable.js";
+import Color from "./color.js";
 
 export default class UpgradesUi {
-    LINE_UPDATE_INTERVAL_MS = 60 / 1000;
+    static LINE_UPDATE_INTERVAL_MS = 60 / 1000;
+    static LINE_COLOR_LOCKED = new Color(200, 200, 200).immutableCopy();
+    static LINE_COLOR_CAN_AFFORD = new Color(95, 214, 105).immutableCopy();
+    static LINE_COLOR_CANNOT_AFFORD = new Color(226, 79, 79).immutableCopy();
 
     constructor() {
         this.graph = null;
@@ -100,13 +103,14 @@ export default class UpgradesUi {
         }
     }
 
+    getLineMapKey(fromId, toId) {
+        return fromId + "->" + toId;
+    }
+
     createLines() {
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             let button = this.buttonMap.get(upgrade.id);
             for (const prereqId of upgrade.prereqs.keys()) {
-                if (!this.linesMap.has(prereqId)) {
-                    this.linesMap.set(prereqId, []);
-                }
                 let prereqButton = this.buttonMap.get(prereqId);
                 let line = new LinkerLine({
                     parent: this.container,
@@ -114,7 +118,7 @@ export default class UpgradesUi {
                     end: button,
                 });
                 line.setOptions({
-                    color: "rgb(150, 150, 150)",
+                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
                     size: 2,
                     dash: true,
                     endPlug: "square",
@@ -122,8 +126,7 @@ export default class UpgradesUi {
                     startSocket: "right",
                     endSocket: "left",
                 });
-                line.hide();
-                this.linesMap.get(prereqId).push(line);
+                this.linesMap.set(this.getLineMapKey(prereqId, upgrade.id), line);
             }
         }
     }
@@ -163,13 +166,7 @@ export default class UpgradesUi {
         );
         obscuredDetailsEl.style.height = "0px";
         LinkerLine.positionAll();
-        let lines = this.linesMap.get(upgrade.id);
-        // Not all upgrades have a line originating from them.
-        if (lines) {
-            for (const line of lines) {
-                line.show("draw", { duration: 500 });
-            }
-        }
+        this.updateLines(upgrade);
     }
 
     getTotalHeightOfChildren(el) {
@@ -189,15 +186,8 @@ export default class UpgradesUi {
         button.setAttribute("disabled", true);
         button.classList.remove("cannot_afford");
         button.classList.add("purchased");
-
-        let lines = this.linesMap.get(upgrade.id);
-        // Not all upgrades have a line originating from them.
-        if (lines) {
-            for (const line of lines) {
-                line.setOptions({ color: "rgb(60, 180, 90)", dash: false });
-            }
-        }
         LinkerLine.positionAll();
+        this.updateLines(upgrade);
     }
 
     handleUpgradeButtonClick(e) {
@@ -215,16 +205,54 @@ export default class UpgradesUi {
         }
     }
 
+    updateLines(upgrade) {
+        if (upgrade.purchased) {
+            // Grey out all of the lines leading up to this upgrade
+            for (const preReqId of upgrade.prereqs.keys()) {
+                let line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
+                line.setOptions({ color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(), dash: false });
+            }
+            for (const downstreamId of upgrade.downstream.keys()) {
+                let line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
+                line.setOptions({
+                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
+                    dash: false,
+                });
+            }
+        } else if (upgrade.unlocked) {
+            // Update all of the lines leading up to this upgrade based on whether it can be afforded
+            let canAfford = this.getCurrentAspisFunc() >= upgrade.cost;
+            let lineColor = canAfford
+                ? UpgradesUi.LINE_COLOR_CAN_AFFORD.asCssString()
+                : UpgradesUi.LINE_COLOR_CANNOT_AFFORD.asCssString();
+            for (const preReqId of upgrade.prereqs.keys()) {
+                let line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
+                line.setOptions({ color: lineColor, dash: false });
+            }
+            for (const downstreamId of upgrade.downstream.keys()) {
+                let line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
+                line.setOptions({
+                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
+                    dash: true,
+                });
+            }
+        }
+    }
+
     onAspisChanged(aspis) {
         for (const [id, button] of this.buttonMap) {
             if (!this.upgrades.upgradeTree.has(id)) {
-                return;
+                continue;
             }
             let upgrade = this.upgrades.upgradeTree.get(id);
+            if (!upgrade.unlocked) {
+                continue;
+            }
             if (upgrade.purchased) {
                 button.classList.remove("cannot_afford");
                 continue;
             }
+            this.updateLines(upgrade);
             if (upgrade.cost > aspis) {
                 button.classList.add("cannot_afford");
             } else {
@@ -303,7 +331,7 @@ export default class UpgradesUi {
 
     maybeUpdateLines() {
         let now = performance.now();
-        if (now - this.lastLineUpdate > this.LINE_UPDATE_INTERVAL_MS) {
+        if (now - this.lastLineUpdate > UpgradesUi.LINE_UPDATE_INTERVAL_MS) {
             this.lastLineUpdate = now;
             LinkerLine.positionAll();
         }

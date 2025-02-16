@@ -52,6 +52,10 @@ export default class Color {
         return Object.freeze(new Color(this));
     }
 
+    asCssString() {
+        return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+    }
+
     static clampValue(value) {
         return MathExtras.clamp(value, 0, 255);
     }

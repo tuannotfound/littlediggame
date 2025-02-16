@@ -81,6 +81,10 @@ export default class Serpent extends PixelBody {
         // This is insufficient and the position needs to be accounted for somehow.
         for (const segment of this.segments) {
             segment.bounds = new Vector(this.layer.width, this.layer.height);
+
+            if (!segment.foreSegment && !segment.isWithinBounds(segment.position)) {
+                segment.moveWithinBounds();
+            }
         }
     }
 
@@ -210,19 +214,83 @@ class Segment {
         return true;
     }
 
-    canMoveForward() {
+    isWithinBounds(position) {
         const halfSize = Math.floor(this.size / 2);
-        let nextRenderPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
-        nextRenderPosition.round();
         if (
-            nextRenderPosition.x - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
-            nextRenderPosition.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS ||
-            nextRenderPosition.y - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
-            nextRenderPosition.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
+            position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
+            position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS ||
+            position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
+            position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
         ) {
+            if (position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
+                console.log(
+                    "Not within bounds because " +
+                        position.x +
+                        " - " +
+                        halfSize +
+                        " < " +
+                        Serpent.BORDER_BUFFER_PIXELS
+                );
+            }
+            if (position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS) {
+                console.log(
+                    "Not within bounds because " +
+                        position.x +
+                        " + " +
+                        halfSize +
+                        " >= " +
+                        this.bounds.x +
+                        " - " +
+                        Serpent.BORDER_BUFFER_PIXELS
+                );
+            }
+            if (position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
+                console.log(
+                    "Not within bounds because " +
+                        position.y +
+                        " - " +
+                        halfSize +
+                        " < " +
+                        Serpent.BORDER_BUFFER_PIXELS
+                );
+            }
+            if (position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS) {
+                console.log(
+                    "Not within bounds because " +
+                        position.y +
+                        " + " +
+                        halfSize +
+                        " >= " +
+                        this.bounds.y +
+                        " - " +
+                        Serpent.BORDER_BUFFER_PIXELS
+                );
+            }
             return false;
         }
         return true;
+    }
+
+    moveWithinBounds() {
+        const halfSize = Math.floor(this.size / 2);
+        this.position.x = MathExtras.clamp(
+            this.position.x,
+            Serpent.BORDER_BUFFER_PIXELS + halfSize,
+            this.bounds.x - Serpent.BORDER_BUFFER_PIXELS - halfSize - 1
+        );
+        this.position.y = MathExtras.clamp(
+            this.position.y,
+            Serpent.BORDER_BUFFER_PIXELS + halfSize,
+            this.bounds.y - Serpent.BORDER_BUFFER_PIXELS - halfSize - 1
+        );
+        this.renderPosition = this.position.copy().round();
+        this.updateForMove();
+    }
+
+    canMoveForward() {
+        let nextRenderPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
+        nextRenderPosition.round();
+        return this.isWithinBounds(nextRenderPosition);
     }
 
     // Returns true if we actually moved (i.e. renderPosition changed),
@@ -272,7 +340,10 @@ class Segment {
                     // TBD: Detect + move to just within the bounds.
                     console.error(
                         Serpent.TAG +
-                            "Head segment is unable to go anywhere, all directions are invalid."
+                            "Head segment is unable to go anywhere, all directions are invalid. Position = " +
+                            this.position.toString() +
+                            ", bounds = " +
+                            this.bounds.toString()
                     );
                     return false;
                 }
@@ -311,37 +382,41 @@ class Segment {
             this.renderPosition = this.position.copy();
         }
 
-        if (!Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
-            // Not all updates result in a new render position. At slow speeds, we can go many
-            // updates before we visually move, but we don't want this to count towards our
-            // time since last turn otherwise we'll be turning all the time.
-            this.renderPositionChangesSinceLastTurn++;
+        return this.updateForMove();
+    }
 
-            let delta = Vector.sub(this.renderPosition, this.mostRecentState.renderPosition);
-
-            if (window.DEBUG) {
-                console.log(
-                    Serpent.TAG +
-                        "Head segment @ " +
-                        this.renderPosition.toString() +
-                        ", delta = " +
-                        delta.toString()
-                );
-            }
-            for (const pixel of this.pixels) {
-                pixel.position.add(delta);
-            }
-
-            this.history.push({
-                renderPosition: this.renderPosition.copy(),
-                direction: this.direction.copy(),
-            });
-            while (this.history.length > this.historySize) {
-                this.history.shift();
-            }
-            return true;
+    updateForMove() {
+        if (Vector.equals(this.renderPosition, this.mostRecentState.renderPosition)) {
+            return false;
         }
-        return false;
+        // Not all updates result in a new render position. At slow speeds, we can go many
+        // updates before we visually move, but we don't want this to count towards our
+        // time since last turn otherwise we'll be turning all the time.
+        this.renderPositionChangesSinceLastTurn++;
+
+        let delta = Vector.sub(this.renderPosition, this.mostRecentState.renderPosition);
+
+        if (window.DEBUG) {
+            console.log(
+                Serpent.TAG +
+                    "Head segment @ " +
+                    this.renderPosition.toString() +
+                    ", delta = " +
+                    delta.toString()
+            );
+        }
+        for (const pixel of this.pixels) {
+            pixel.position.add(delta);
+        }
+
+        this.history.push({
+            renderPosition: this.renderPosition.copy(),
+            direction: this.direction.copy(),
+        });
+        while (this.history.length > this.historySize) {
+            this.history.shift();
+        }
+        return true;
     }
 
     updateSurface() {

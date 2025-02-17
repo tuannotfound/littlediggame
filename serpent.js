@@ -5,7 +5,7 @@ import PixelBody from "./pixel_body.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    static MAX_SIZE = 3;
+    static MAX_SIZE = 10;
     static MIN_SIZE = 1;
     static BORDER_BUFFER_PIXELS = 2;
 
@@ -119,9 +119,20 @@ export default class Serpent extends PixelBody {
         let pixelRemoved = false;
         for (const segment of this.segments) {
             pixelRemoved = segment.removePixel(pixel);
-            if (pixelRemoved) {
-                break;
+            if (!pixelRemoved) {
+                continue;
             }
+            if (segment.pixels.length == 0) {
+                // Remove the segment from the serpent and update its surrounding segments.
+                this.segments.splice(this.segments.indexOf(segment), 1);
+                if (segment.foreSegment) {
+                    segment.foreSegment.aftSegment = null;
+                }
+                if (segment.aftSegment) {
+                    segment.aftSegment.foreSegment = null;
+                }
+            }
+            break;
         }
 
         if (!pixelRemoved) {
@@ -142,7 +153,7 @@ export default class Serpent extends PixelBody {
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 0; //5;
+    MAX_TURN_CHANCE_PCT = 5;
     constructor(serpent, size, bounds, position, direction, speed, upgrades) {
         this.serpent = serpent;
         this.size = Math.round(size);
@@ -206,11 +217,19 @@ class Segment {
     }
 
     removePixel(pixel) {
-        const index = this.pixels.indexOf(pixel);
+        let index = this.pixels.indexOf(pixel);
         if (index < 0) {
             return false;
         }
         this.pixels.splice(index, 1);
+
+        // May or may not be part of the surface.
+        if (pixel.isSurface) {
+            index = this.surfacePixels.indexOf(pixel);
+            if (index >= 0) {
+                this.surfacePixels.splice(index, 1);
+            }
+        }
         return true;
     }
 

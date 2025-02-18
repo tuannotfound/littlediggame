@@ -28,6 +28,11 @@ export default class Game {
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
     constructor(windowWidth, windowHeight) {
+        this.width = 0;
+        this.height = 0;
+        this.zoomLevel = 1;
+        this.bounds = new Vector();
+        this.layer = null;
         // Sets 'this' width, height, zoom, and bounds.
         this.onResize(windowWidth, windowHeight);
 
@@ -44,7 +49,7 @@ export default class Game {
         this.planetPosition = null;
 
         this.serpent = new Serpent(
-            12,
+            30,
             new Vector(
                 this.layer.width / this.zoomLevel,
                 this.layer.height / this.zoomLevel
@@ -275,32 +280,50 @@ export default class Game {
         console.log(
             "header height = " + header.offsetHeight + " + " + headerMargin + " = " + headerHeight
         );
-        this.width = MathExtras.clamp(windowWidth - 30, this.MIN_WIDTH, this.MAX_WIDTH);
-        this.height = MathExtras.clamp(
+        let newWidth = MathExtras.clamp(windowWidth - 30, this.MIN_WIDTH, this.MAX_WIDTH);
+        let newHeight = MathExtras.clamp(
             windowHeight - headerHeight - 30,
             this.MIN_HEIGHT,
             this.MAX_HEIGHT
         );
         // Update zoom
-        let smallest = Math.min(this.width, this.height);
-        this.zoomLevel = Math.round(
-            this.MIN_ZOOM +
-                ((this.MAX_ZOOM - this.MIN_ZOOM) *
-                    (smallest - Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))) /
-                    (Math.min(this.MAX_WIDTH, this.MAX_HEIGHT) -
-                        Math.min(this.MIN_WIDTH, this.MIN_HEIGHT))
+        let smallestDimen = newWidth < newHeight ? newWidth : newHeight;
+        let smallestDimenMin = newWidth < newHeight ? this.MIN_WIDTH : this.MIN_HEIGHT;
+        let smallestDimenMax = newWidth < newHeight ? this.MAX_WIDTH : this.MAX_HEIGHT;
+        let newZoomLevel = Math.round(
+            MathExtras.scaleBetween(
+                smallestDimen,
+                smallestDimenMin,
+                smallestDimenMax,
+                this.MIN_ZOOM,
+                this.MAX_ZOOM
+            )
         );
-        this.width = MathExtras.floorToNearest(this.zoomLevel, this.width);
-        this.height = MathExtras.floorToNearest(this.zoomLevel, this.height);
+        // Round down to the nearest zoom level to ensure the canvas is always a multiple of the
+        // zoom level and thus the pixels are always square.
+        newWidth = MathExtras.floorToNearest(newZoomLevel, newWidth);
+        newHeight = MathExtras.floorToNearest(newZoomLevel, newHeight);
+        if (this.width == newWidth && this.height == newHeight) {
+            return;
+        }
 
         console.log(
-            "Setting canvas to " +
+            "Updating canvas dimensions: " +
                 this.width +
                 " x " +
                 this.height +
-                " w/ zoom of " +
-                this.zoomLevel
+                " -> " +
+                newWidth +
+                " x " +
+                newHeight +
+                " and zoom: " +
+                this.zoomLevel +
+                " -> " +
+                newZoomLevel
         );
+        this.width = newWidth;
+        this.height = newHeight;
+        this.zoomLevel = newZoomLevel;
 
         // Create a new layer because resizing a canvas makes it blurry.
         let oldLayer = this.layer;
@@ -357,6 +380,22 @@ export default class Game {
         this.planetPosition.x = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.x);
         this.planetPosition.y = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.y);
         console.log("planet position = " + this.planetPosition.toString());
+    }
+
+    get activePixelBodyPosition() {
+        let activePixelBody = this.activePixelBody;
+        if (!activePixelBody) {
+            return null;
+        }
+        let position = new Vector(
+            this.width - activePixelBody.layer.width * this.zoomLevel,
+            this.height - activePixelBody.layer.height * this.zoomLevel
+        );
+        // Centered
+        position.div(2);
+        position.x = MathExtras.roundToNearest(this.zoomLevel, position.x);
+        position.y = MathExtras.roundToNearest(this.zoomLevel, position.y);
+        return position;
     }
 
     onDigComplete(pixel) {
@@ -758,6 +797,7 @@ export default class Game {
         }
 
         // Little guys
+        let activePixelBodyPosition = this.activePixelBodyPosition;
         for (const littleGuy of this.littleGuys) {
             littleGuy.update(elapsedMs);
             if (!littleGuy.active) {
@@ -770,11 +810,11 @@ export default class Game {
                 littleGuy.layer.width, // source width
                 littleGuy.layer.height, // source height
                 // TODO: This needs to be updated to handle different pixel bodies (e.g. serpent)
-                this.planetPosition.x +
-                    (this.planet.center.x + Math.round(littleGuy.position.x) - littleGuy.center.x) *
+                activePixelBodyPosition.x +
+                    (Math.round(littleGuy.positionInPixelBodySpace.x) - littleGuy.center.x) *
                         this.zoomLevel, // destination x
-                this.planetPosition.y +
-                    (this.planet.center.y + Math.round(littleGuy.position.y) - littleGuy.center.y) *
+                activePixelBodyPosition.y +
+                    (Math.round(littleGuy.positionInPixelBodySpace.y) - littleGuy.center.y) *
                         this.zoomLevel, // destination y
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height

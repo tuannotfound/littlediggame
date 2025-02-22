@@ -1,7 +1,9 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import Stats from "stats.js";
-import CircularPlanet from "./circular_planet.js";
+import CircularPlanet from "./planets/circular_planet.js";
+import SwissPlanet from "./planets/swiss_planet.js";
+import SpikyPlanet from "./planets/spiky_planet.js";
 import LittleGuy from "./little_guy.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
@@ -17,22 +19,23 @@ export default class Game {
     MAX_WIDTH = 1200;
     MIN_HEIGHT = 300;
     MAX_HEIGHT = 900;
-    MIN_ZOOM = 3.25;
-    MAX_ZOOM = 10;
     MIN_SAVE_INTERVAL_MS = 5000;
     AUTO_SAVE_INTERVAL_MS = 30000;
-    PLANET_RADIUS = 35;
+    PLANET_RADIUS = 30;
     TARGET_FPS = 60;
     FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
-    constructor(windowWidth, windowHeight) {
+    constructor(windowWidth, windowHeight, planet, upgrades) {
         this.width = 0;
         this.height = 0;
         this.zoomLevel = 1;
+        // this.targetZoomLevel = 1;
         this.bounds = new Vector();
         this.layer = null;
+        this.upgrades = upgrades ? upgrades : new Upgrades();
+        this.planet = planet ? planet : new CircularPlanet(this.PLANET_RADIUS);
         // Sets 'this' width, height, zoom, and bounds.
         this.onResize(windowWidth, windowHeight);
 
@@ -44,8 +47,6 @@ export default class Game {
 
         // Created during init()
         this.containerElement = null;
-        this.upgrades = null;
-        this.planet = null;
         this.planetPosition = null;
 
         this.serpent = new Serpent(
@@ -87,6 +88,7 @@ export default class Game {
         this.healthElement = null;
         this.spawnCost = 0;
         this.spawnCostElement = null;
+        this.digsPerDeathElement = null;
         this.availableUpgradeCount = 0;
 
         this.angelCount = 0;
@@ -121,12 +123,10 @@ export default class Game {
     }
 
     static fromJSON(json) {
-        let game = new Game(window.innerWidth, window.innerHeight);
         let upgrades = Upgrades.fromJSON(json.upgrades);
         let planet = CircularPlanet.fromJSON(json.planet, upgrades);
+        let game = new Game(window.innerWidth, window.innerHeight, planet, upgrades);
 
-        game.upgrades = upgrades;
-        game.planet = planet;
         game.planetPosition = Vector.fromJSON(json.planetPosition);
         for (let littleGuyJson of json.littleGuys) {
             let pixelBeingDug = null;
@@ -148,10 +148,6 @@ export default class Game {
         console.log("Initializing game");
         this.containerElement = containerElement;
         this.layer.initOnscreen(containerElement);
-
-        if (!this.upgrades) {
-            this.upgrades = new Upgrades();
-        }
         this.upgradesUi.init(
             document.getElementById("upgrades"),
             this.upgrades,
@@ -161,10 +157,6 @@ export default class Game {
             },
             () => this.aspis
         );
-
-        if (!this.planet) {
-            this.planet = new CircularPlanet(this.PLANET_RADIUS);
-        }
         this.updatePlanetPosition();
         this.planet.init(this.upgrades);
         console.log(
@@ -250,6 +242,9 @@ export default class Game {
         this.spawnCostElement = document.getElementById("spawn_cost");
         this.updateSpawnCost();
 
+        this.digsPerDeathElement = document.getElementById("digs_per_death");
+        this.updateDigsPerDeath();
+
         this.updateLegend();
 
         for (let i = 0; i < 4; i++) {
@@ -272,33 +267,33 @@ export default class Game {
         });
     }
 
+    calculateZoomLevel(width, height) {
+        let pixelBody = this.activePixelBody;
+        if (!pixelBody) {
+            return 1;
+        }
+        let pixelBodyWidth = pixelBody.layer.width;
+        let pixelBodyHeight = pixelBody.layer.height;
+
+        // Add some buffer around the pixel body w/ 0.8
+        let widthMaxZoom = Math.round((0.8 * width) / pixelBodyWidth);
+        let heightMaxZoom = Math.round((0.8 * height) / pixelBodyHeight);
+        // Limit ourselves by the smallest max zoom
+        return Math.round(Math.min(widthMaxZoom, heightMaxZoom));
+    }
+
     onResize(windowWidth, windowHeight) {
         let header = document.getElementById("header");
         let styles = window.getComputedStyle(header);
         let headerMargin = parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
         let headerHeight = header.offsetHeight + headerMargin;
-        console.log(
-            "header height = " + header.offsetHeight + " + " + headerMargin + " = " + headerHeight
-        );
         let newWidth = MathExtras.clamp(windowWidth - 30, this.MIN_WIDTH, this.MAX_WIDTH);
         let newHeight = MathExtras.clamp(
             windowHeight - headerHeight - 30,
             this.MIN_HEIGHT,
             this.MAX_HEIGHT
         );
-        // Update zoom
-        let smallestDimen = newWidth < newHeight ? newWidth : newHeight;
-        let smallestDimenMin = newWidth < newHeight ? this.MIN_WIDTH : this.MIN_HEIGHT;
-        let smallestDimenMax = newWidth < newHeight ? this.MAX_WIDTH : this.MAX_HEIGHT;
-        let newZoomLevel = Math.round(
-            MathExtras.scaleBetween(
-                smallestDimen,
-                smallestDimenMin,
-                smallestDimenMax,
-                this.MIN_ZOOM,
-                this.MAX_ZOOM
-            )
-        );
+        let newZoomLevel = this.calculateZoomLevel(newWidth, newHeight);
         // Round down to the nearest zoom level to ensure the canvas is always a multiple of the
         // zoom level and thus the pixels are always square.
         newWidth = MathExtras.floorToNearest(newZoomLevel, newWidth);
@@ -323,6 +318,7 @@ export default class Game {
         );
         this.width = newWidth;
         this.height = newHeight;
+        //this.targetZoomLevel = newZoomLevel;
         this.zoomLevel = newZoomLevel;
 
         // Create a new layer because resizing a canvas makes it blurry.
@@ -457,6 +453,7 @@ export default class Game {
             this.updateAspis();
         }
         this.updateSpawnCost();
+        this.updateDigsPerDeath();
         this.updateLegend();
         // Force the planet to redraw, just in case any new pixel types have been revealed.
         this.planet.needsUpdate = true;
@@ -572,7 +569,7 @@ export default class Game {
     }
 
     get activePixelBody() {
-        return this.serpent.initialized ? this.serpent : this.planet;
+        return this.serpent && this.serpent.initialized ? this.serpent : this.planet;
     }
 
     startNotEnoughAspisAnimation(others) {
@@ -635,11 +632,16 @@ export default class Game {
     }
 
     updateSpawnCost() {
+        // Maculate is the opposite of immaculate. Everybody knows this.
         let maculateCount = this.littleGuys.filter((lg) => !lg.immaculate).length;
         maculateCount = Math.max(0, maculateCount + 1 - this.upgrades.freeWorkerCount);
         this.spawnCost = Math.floor(maculateCount ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
+    }
+
+    updateDigsPerDeath() {
+        this.digsPerDeathElement.innerHTML = this.upgrades.digCount;
     }
 
     spawnSerpent() {
@@ -745,6 +747,13 @@ export default class Game {
     }
 
     runUpdate(elapsedMs) {
+        // This doesn't quite work yet.
+        // if (Math.abs(this.zoomLevel - this.targetZoomLevel) < 0.01) {
+        //     this.zoomLevel = this.targetZoomLevel;
+        // } else {
+        //     this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) / 10;
+        //     this.updatePlanetPosition();
+        // }
         if (
             this.upgrades.conceptionIntervalMs > 0 &&
             this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs

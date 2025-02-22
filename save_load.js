@@ -1,4 +1,4 @@
-import CircularPlanet from "./circular_planet.js";
+import CircularPlanet from "./planets/circular_planet.js";
 import Game from "./game.js";
 import Layer from "./layer.js";
 import LittleGuy from "./little_guy.js";

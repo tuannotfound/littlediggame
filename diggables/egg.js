@@ -7,7 +7,7 @@ export default class Egg extends Pixel {
     static SURFACE_COLOR = new Color(130, 126, 109).immutableCopy();
     static COLOR_VARIABILITY = 10;
     static DARKNESS_HIDE_THRESHOLD = 0.3;
-    static EGG_SPECKLE_CHANCE_PCT = 8;
+    static EGG_SPECKLE_CHANCE_PCT = 14;
     static SPECKLE_COLOR = new Color(196, 188, 159).immutableCopy();
 
     static HEALTH = 10000;

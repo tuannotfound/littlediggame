@@ -19,6 +19,7 @@ body {
     margin: 0px;
     padding: 8px;
     overscroll-behavior-y: none;
+    overflow-x: hidden;
 }
 
 canvas {
@@ -177,7 +178,7 @@ div:has(> #upgrades_aspis) {
     cursor: pointer;
     height: 60px;
     width: 60px;
-    margin: 5px;
+    margin: 15px;
 }
 
 #upgrades_window {

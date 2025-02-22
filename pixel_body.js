@@ -247,13 +247,6 @@ export default class PixelBody {
                 const pixel = pixelPositions.get(key); // Get pixel only when needed
                 if (isSurface(x, y)) {
                     surfacePixels.push(pixel);
-                    if (!pixel.isSurface) {
-                        console.log(
-                            "Flipping pixel @ " +
-                                pixel.position.toString() +
-                                " to be a surface pixel"
-                        );
-                    }
                     pixel.setSurface(true);
                 } else {
                     pixel.setSurface(false);

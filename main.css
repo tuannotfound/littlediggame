@@ -21,6 +21,14 @@ body {
     overscroll-behavior-y: none;
     overflow-x: hidden;
 }
+body {
+    background-color: rgb(235, 242, 248);
+}
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: rgb(26, 35, 42);
+    }
+}
 
 canvas {
     image-rendering: pixelated;

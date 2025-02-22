@@ -723,6 +723,7 @@ export default class Game {
         this.setPaused(true);
         this.layer.destroy();
         this.upgradesUi.destroy();
+        document.body.removeChild(this.stats.dom);
     }
 
     tick(newtime) {
@@ -772,7 +773,8 @@ export default class Game {
             this.lastConceptionTime = this.now;
         }
 
-        this.layer.getContext().clearRect(0, 0, this.width, this.height);
+        this.layer.getContext().fillStyle = "white";
+        this.layer.getContext().fillRect(0, 0, this.width, this.height);
 
         // Planet
         this.planet.update(elapsedMs);

@@ -36,8 +36,26 @@ export default class CircularPlanet extends Planet {
         this.circumferenceBeforeMatchup = 1.8 * Math.PI;
     }
 
+    toJSON() {
+        let json = super.toJSON();
+        json.maxRadiusDiffPx = this.maxRadiusDiffPx;
+        json.maxRadius = this.maxRadius;
+        json.minRadius = this.minRadius;
+        json.maxRadiusDeltaPerStep = this.maxRadiusDeltaPerStep;
+        json.circumferenceBeforeMatchup = this.circumferenceBeforeMatchup;
+        return json;
+    }
+
     static fromJSON(json, upgrades) {
-        let planet = new CircularPlanet(json.className, json.radius);
+        let planet = new CircularPlanet(json.radius);
+        planet.width = json.width;
+        planet.height = json.height;
+        planet.center = json.center;
+        planet.maxRadiusDiffPx = json.maxRadiusDiffPx;
+        planet.maxRadius = json.maxRadius;
+        planet.minRadius = json.minRadius;
+        planet.maxRadiusDeltaPerStep = json.maxRadiusDeltaPerStep;
+        planet.circumferenceBeforeMatchup = json.circumferenceBeforeMatchup;
         let pixels = [];
         for (const pixelJson of json.pixels) {
             pixels.push(Pixel.fromJSON(pixelJson, upgrades));

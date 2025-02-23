@@ -234,12 +234,12 @@ class Segment {
         segment.history = [];
         for (const historyJSON of json.history) {
             segment.history.push({
-                renderPosition: historyJSON.renderPosition,
-                direction: historyJSON.direction,
+                renderPosition: Vector.fromJSON(historyJSON.renderPosition),
+                direction: Vector.fromJSON(historyJSON.direction),
             });
         }
         segment.historySize = segment.history.length;
-        return serpent;
+        return segment;
     }
 
     toJSON() {

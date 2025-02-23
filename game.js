@@ -26,12 +26,15 @@ export default class Game {
     FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
+    ZOOM_DURATION_MS = 1000 * 2;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
         this.height = 0;
         this.zoomLevel = 1;
-        // this.targetZoomLevel = 1;
+        this.zoomLevelSrc = 1;
+        this.zoomLevelDst = 1;
+        this.zoomElapsedMs = 0;
         this.bounds = new Vector();
         this.layer = null;
         this.upgrades = upgrades ? upgrades : new Upgrades();
@@ -42,6 +45,8 @@ export default class Game {
             this.pixelBodies.push(new SpikyPlanet(22));
             this.pixelBodies.push(new EggPlanet(35));
             this.pixelBodies.push(new Serpent(140, 84));
+        } else {
+            this.pixelBodies = pixelBodies;
         }
         this.activePixelBodyPosition = new Vector();
         // Sets 'this' width, height, zoom, and bounds.
@@ -108,6 +113,7 @@ export default class Game {
         return {
             className: this.constructor.name,
             upgrades: this.upgrades,
+            // TODO: For some reason, on every save/load cycle, the layer size gets larger.
             pixelBodies: this.pixelBodies.map((pb) => pb.toJSON()),
             activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
@@ -123,16 +129,16 @@ export default class Game {
         let pixelBodies = [];
         for (let pixelBodyJson of json.pixelBodies) {
             if (pixelBodyJson.className == "CircularPlanet") {
-                pixelBodies.push(CircularPlanet.fromJSON(pixelBodyJson));
+                pixelBodies.push(CircularPlanet.fromJSON(pixelBodyJson, upgrades));
             } else if (pixelBodyJson.className == "Serpent") {
-                pixelBodies.push(Serpent.fromJSON(pixelBodyJson));
+                pixelBodies.push(Serpent.fromJSON(pixelBodyJson, upgrades));
             } else {
                 console.error("Unknown pixel body type: " + pixelBodyJson.className);
             }
         }
         let game = new Game(window.innerWidth, window.innerHeight, pixelBodies, upgrades);
 
-        game.activePixelBodyPosition = Vector.fromJSON(json.activePixelBodyPosition);
+        //game.activePixelBodyPosition = Vector.fromJSON(json.activePixelBodyPosition);
         for (let littleGuyJson of json.littleGuys) {
             let pixelBeingDug = null;
             if (littleGuyJson.pixelBeingDug) {
@@ -169,6 +175,7 @@ export default class Game {
             () => this.aspis
         );
         this.updateActivePixelBodyPosition();
+        this.updateParticlesZoom();
         this.activePixelBody.init(this.upgrades);
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
@@ -325,8 +332,10 @@ export default class Game {
         );
         this.width = newWidth;
         this.height = newHeight;
-        //this.targetZoomLevel = newZoomLevel;
         this.zoomLevel = newZoomLevel;
+        // Don't animate the zoom on resize.
+        this.zoomLevelSrc = newZoomLevel;
+        this.zoomLevelDst = newZoomLevel;
 
         // Create a new layer because resizing a canvas makes it blurry.
         let oldLayer = this.layer;
@@ -337,12 +346,16 @@ export default class Game {
             }
             oldLayer.destroy();
         }
+        this.updateActivePixelBodyPosition();
+        this.updateParticlesZoom();
+    }
+
+    updateParticlesZoom() {
         if (this.particles) {
             this.particles.onResize(
                 new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
             );
         }
-        this.updateActivePixelBodyPosition();
     }
 
     maybeSave() {
@@ -377,14 +390,18 @@ export default class Game {
         );
         // Centered
         this.activePixelBodyPosition.div(2);
-        this.activePixelBodyPosition.x = MathExtras.roundToNearest(
-            this.zoomLevel,
-            this.activePixelBodyPosition.x
-        );
-        this.activePixelBodyPosition.y = MathExtras.roundToNearest(
-            this.zoomLevel,
-            this.activePixelBodyPosition.y
-        );
+        if (this.zoomLevel == this.zoomLevelDst) {
+            // Only round once we've reached the target zoom level, otherwise the zoom is very
+            // jittery as the center position gets shifted around a handful of pixels.
+            this.activePixelBodyPosition.x = MathExtras.roundToNearest(
+                this.zoomLevel,
+                this.activePixelBodyPosition.x
+            );
+            this.activePixelBodyPosition.y = MathExtras.roundToNearest(
+                this.zoomLevel,
+                this.activePixelBodyPosition.y
+            );
+        }
         console.log(
             "Updated active pixel body position = " + this.activePixelBodyPosition.toString()
         );
@@ -505,19 +522,21 @@ export default class Game {
             return false;
         }
         this.activePixelBody.init(this.upgrades);
-        // TODO: Animate to this zoom level.
-        this.zoomLevel = this.calculateZoomLevel(this.width, this.height);
+        this.zoomElapsedMs = 0;
         this.updateActivePixelBodyPosition();
-        if (this.particles) {
-            this.particles.onResize(
-                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
-            );
-        }
+        this.updateParticlesZoom();
         if (this.activePixelBody.className == "Serpent") {
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
             document.getElementById("serpent_icon").classList.remove("hidden");
+        } else {
+            // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
+            // so just have the planet come into view as if we're zooming towards it instead.
+            // Just don't do this for the serpent since it's supposed to emerge from an egg.
+            this.zoomLevel = 1;
         }
+        this.zoomLevelSrc = this.zoomLevel;
+        this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
         return true;
     }
 
@@ -764,12 +783,22 @@ export default class Game {
 
     runUpdate(elapsedMs) {
         // This doesn't quite work yet.
-        // if (Math.abs(this.zoomLevel - this.targetZoomLevel) < 0.01) {
-        //     this.zoomLevel = this.targetZoomLevel;
-        // } else {
-        //     this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) / 10;
-        //     this.updateActivePixelBodyPosition();
-        // }
+        if (
+            Math.abs(this.zoomLevel - this.zoomLevelDst) < 0.01 ||
+            this.zoomLevelDst == this.zoomLevelSrc
+        ) {
+            this.zoomLevel = this.zoomLevelDst;
+        } else {
+            this.zoomElapsedMs += elapsedMs;
+            let zoomProgress = this.zoomElapsedMs / this.ZOOM_DURATION_MS;
+            this.zoomLevel = MathExtras.easeOutCubic(
+                this.zoomLevelSrc,
+                this.zoomLevelDst,
+                zoomProgress
+            );
+            this.updateActivePixelBodyPosition();
+            this.updateParticlesZoom();
+        }
         if (
             this.upgrades.conceptionIntervalMs > 0 &&
             this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs

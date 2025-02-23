@@ -3,6 +3,7 @@ import Color from "../color.js";
 import MathExtras from "../math_extras.js";
 import Vector from "../vector.js";
 import Constants from "./constants.js";
+import PixelFactory from "./pixel_factory.js";
 
 // Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {

@@ -28,6 +28,7 @@ export default class PixelBody {
 
     toJSON() {
         return {
+            className: this.className,
             width: this.width,
             height: this.height,
             allowOverlap: this.allowOverlap,

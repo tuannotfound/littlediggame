@@ -72,4 +72,85 @@ export default class MathExtras {
             ),
         };
     }
+    /**
+     * Interpolates between two values with a quadratic ease-out effect.
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static easeOutQuad(a, b, t) {
+        t = Math.max(0, Math.min(1, t));
+        return MathExtras.lerp(a, b, t * (2 - t));
+    }
+
+    /**
+     * Interpolates between two values with a cubic ease-out effect.
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static easeOutCubic(a, b, t) {
+        t = Math.max(0, Math.min(1, t));
+        t--;
+        return MathExtras.lerp(a, b, t * t * t + 1);
+    }
+
+    /**
+     * Interpolates between two values with a quadratic ease-in-out effect.
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static easeInOutQuad(a, b, t) {
+        t = Math.max(0, Math.min(1, t));
+        return t < 0.5
+            ? MathExtras.lerp(a, b, 2 * t * t)
+            : MathExtras.lerp(a, b, -1 + (4 - 2 * t) * t);
+    }
+
+    /**
+     * Interpolates between two values with a cubic ease-in-out effect.
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static easeInOutCubic(a, b, t) {
+        t = Math.max(0, Math.min(1, t));
+        return t < 0.5
+            ? MathExtras.lerp(a, b, 4 * t * t * t)
+            : MathExtras.lerp(a, b, (t - 1) * (2 * t - 2) * (2 * t - 2) + 1);
+    }
+
+    /**
+     * Interpolates between two values with a sinosoidal ease-in-out effect
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static easeInOutSine(a, b, t) {
+        t = Math.max(0, Math.min(1, t));
+        return MathExtras.lerp(a, b, -0.5 * (Math.cos(Math.PI * t) - 1));
+    }
+
+    /**
+     * Linearly interpolates between two values.
+     *
+     * @param {number} a - The starting value.
+     * @param {number} b - The ending value.
+     * @param {number} t - The interpolation factor (0.0 to 1.0).
+     * @returns {number} The interpolated value.
+     */
+    static lerp(a, b, t) {
+        return a + (b - a) * t;
+    }
 }

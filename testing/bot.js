@@ -110,7 +110,7 @@ export default class Bot {
         if (this.game.aspis > this.peakAspis) {
             this.peakAspis = this.game.aspis;
         }
-        if (this.game.planet.health == 0 && this.game.serpent.health == 0) {
+        if (!this.game.activePixelBody || this.game.activePixelBody.health == 0) {
             this.stop();
         }
     }
@@ -185,8 +185,7 @@ export default class Bot {
             manualLittleGuyCount,
             autoLittleGuyCount,
             this.calculateExpectedValueOfLittleGuy(),
-            this.game.planet.health,
-            this.game.serpent.health,
+            this.game.activePixelBody.health,
             this.game.upgrades,
             this.findCheapestUpgrade(),
             this.mostRecentUpgrade,
@@ -249,8 +248,7 @@ class Event {
         manualLittleGuyCount,
         autoLittleGuyCount,
         littleGuyEv,
-        planetHealth,
-        serpentHealth,
+        activePixelBodyHealth,
         upgrades,
         cheapestUpgrade,
         mostRecentUpgrade,
@@ -263,8 +261,7 @@ class Event {
         this.autoLittleGuyCount = autoLittleGuyCount;
         this.littleGuyEv = littleGuyEv;
 
-        this.planetHealth = planetHealth;
-        this.serpentHealth = serpentHealth;
+        this.activePixelBodyHealth = activePixelBodyHealth;
 
         this.setUpgradeState(upgrades);
         this.cheapestUpgradeCost = cheapestUpgrade ? cheapestUpgrade.cost : 0;
@@ -303,8 +300,7 @@ class Event {
             "manualLittleGuyCount",
             "autoLittleGuyCount",
             "littleGuyEv",
-            "planetHealth",
-            "serpentHealth",
+            "activePixelBodyHealth",
             "upgradeCount",
             "cheapestUpgradeCost",
             "progressToNextUpgrade",
@@ -330,8 +326,7 @@ class Event {
         data.push(this.manualLittleGuyCount);
         data.push(this.autoLittleGuyCount);
         data.push(this.littleGuyEv);
-        data.push(this.planetHealth);
-        data.push(this.serpentHealth);
+        data.push(this.activePixelBodyHealth);
         data.push(this.upgradeCount);
         data.push(this.cheapestUpgradeCost);
         data.push(this.progressToNextUpgrade);

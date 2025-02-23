@@ -335,12 +335,14 @@ export default class LittleGuy {
                 Vector.add(this.closestSurfacePixel.position, orientation)
             );
             if (testPixel == null) {
-                console.info(
-                    "Updating orientation from " +
-                        this.orientation.toString() +
-                        " to " +
-                        orientation.toString()
-                );
+                if (window.DEBUG) {
+                    console.info(
+                        "Updating orientation from " +
+                            this.orientation.toString() +
+                            " to " +
+                            orientation.toString()
+                    );
+                }
                 // Found a valid orientation, no need to keep looking.
                 this.orientation = orientation;
                 this.updateRenderData();
@@ -350,7 +352,9 @@ export default class LittleGuy {
         // Uh oh, if we're here then somehow the pixel we're standing on is fully surrounded by
         // other pixels (which means it's not really a surface pixel). Uh. Whatever, let's just
         // log it and move on with our lives.
-        console.error("No valid orientation found");
+        if (window.DEBUG) {
+            console.error("No valid orientation found");
+        }
     }
 
     update() {

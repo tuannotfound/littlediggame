@@ -1,9 +1,9 @@
-import CircularPlanet from "./planets/circular_planet.js";
+import CircularPlanet from "./pixel_bodies/circular_planet.js";
 import Game from "./game.js";
 import Layer from "./layer.js";
 import LittleGuy from "./little_guy.js";
 import Pixel from "./diggables/pixel.js";
-import Planet from "./planet.js";
+import Planet from "./pixel_bodies/planet.js";
 import Upgrades from "./upgrades.js";
 import Vector from "./vector.js";
 

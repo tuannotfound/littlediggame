@@ -1,12 +1,11 @@
-import Vector from "./vector.js";
 import PixelBody from "./pixel_body.js";
 
 export default class Planet extends PixelBody {
-    constructor(width, height, id = "planet") {
+    constructor(className, width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
         }
-        super(width, height, id);
+        super(className, width, height);
         this.radius = Math.max(width, height) / 2;
     }
 

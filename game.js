@@ -1,9 +1,10 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import Stats from "stats.js";
-import CircularPlanet from "./planets/circular_planet.js";
-import SwissPlanet from "./planets/swiss_planet.js";
-import SpikyPlanet from "./planets/spiky_planet.js";
+import CircularPlanet from "./pixel_bodies/circular_planet.js";
+import SwissPlanet from "./pixel_bodies/swiss_planet.js";
+import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
+import EggPlanet from "./pixel_bodies/egg_planet.js";
 import LittleGuy from "./little_guy.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
@@ -12,7 +13,7 @@ import UpgradesUi from "./upgrades_ui2.js";
 import PixelType from "./diggables/pixel_type.js";
 import Particles from "./particles.js";
 import Color from "./color.js";
-import Serpent from "./serpent.js";
+import Serpent from "./pixel_bodies/serpent.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -21,13 +22,12 @@ export default class Game {
     MAX_HEIGHT = 900;
     MIN_SAVE_INTERVAL_MS = 5000;
     AUTO_SAVE_INTERVAL_MS = 30000;
-    PLANET_RADIUS = 30;
     TARGET_FPS = 60;
     FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
 
-    constructor(windowWidth, windowHeight, planet, upgrades) {
+    constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
         this.height = 0;
         this.zoomLevel = 1;
@@ -35,7 +35,15 @@ export default class Game {
         this.bounds = new Vector();
         this.layer = null;
         this.upgrades = upgrades ? upgrades : new Upgrades();
-        this.planet = planet ? planet : new CircularPlanet(this.PLANET_RADIUS);
+        if (pixelBodies == null) {
+            this.pixelBodies = [];
+            this.pixelBodies.push(new CircularPlanet(8));
+            this.pixelBodies.push(new SwissPlanet(15));
+            this.pixelBodies.push(new SpikyPlanet(22));
+            this.pixelBodies.push(new EggPlanet(35));
+            this.pixelBodies.push(new Serpent(140, 84));
+        }
+        this.activePixelBodyPosition = new Vector();
         // Sets 'this' width, height, zoom, and bounds.
         this.onResize(windowWidth, windowHeight);
 
@@ -47,19 +55,6 @@ export default class Game {
 
         // Created during init()
         this.containerElement = null;
-        this.planetPosition = null;
-
-        this.serpent = new Serpent(
-            30,
-            new Vector(
-                this.layer.width / this.zoomLevel,
-                this.layer.height / this.zoomLevel
-            ).round(),
-            new Vector(
-                this.layer.width / (this.zoomLevel * 2),
-                this.layer.height / (this.zoomLevel * 2)
-            ).round()
-        );
 
         this.littleGuys = [];
         this.littleGuyListener = {
@@ -113,33 +108,49 @@ export default class Game {
         return {
             className: this.constructor.name,
             upgrades: this.upgrades,
-            planet: this.planet,
-            planetPosition: this.planetPosition,
+            pixelBodies: this.pixelBodies.map((pb) => pb.toJSON()),
+            activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
             aspis: this.aspis,
-            knowsDirt: this.knowsDirt,
             knowsDeath: this.knowsDeath,
+            knowsDirt: this.knowsDirt,
+            knowsEggDeath: this.knowsEggDeath,
         };
     }
 
     static fromJSON(json) {
         let upgrades = Upgrades.fromJSON(json.upgrades);
-        let planet = CircularPlanet.fromJSON(json.planet, upgrades);
-        let game = new Game(window.innerWidth, window.innerHeight, planet, upgrades);
+        let pixelBodies = [];
+        for (let pixelBodyJson of json.pixelBodies) {
+            if (pixelBodyJson.className == "CircularPlanet") {
+                pixelBodies.push(CircularPlanet.fromJSON(pixelBodyJson));
+            } else if (pixelBodyJson.className == "Serpent") {
+                pixelBodies.push(Serpent.fromJSON(pixelBodyJson));
+            } else {
+                console.error("Unknown pixel body type: " + pixelBodyJson.className);
+            }
+        }
+        let game = new Game(window.innerWidth, window.innerHeight, pixelBodies, upgrades);
 
-        game.planetPosition = Vector.fromJSON(json.planetPosition);
+        game.activePixelBodyPosition = Vector.fromJSON(json.activePixelBodyPosition);
         for (let littleGuyJson of json.littleGuys) {
             let pixelBeingDug = null;
             if (littleGuyJson.pixelBeingDug) {
                 let pixelBeingDugPosition = Vector.fromJSON(littleGuyJson.pixelBeingDug.position);
-                pixelBeingDug = planet.getPixel(pixelBeingDugPosition);
+                pixelBeingDug = game.activePixelBody.getPixel(pixelBeingDugPosition);
             }
-            let littleGuy = LittleGuy.fromJSON(littleGuyJson, planet, upgrades, pixelBeingDug);
+            let littleGuy = LittleGuy.fromJSON(
+                littleGuyJson,
+                game.activePixelBody,
+                upgrades,
+                pixelBeingDug
+            );
             game.littleGuys.push(littleGuy);
         }
         game.aspis = json.aspis;
-        game.knowsDirt = json.knowsDirt;
         game.knowsDeath = json.knowsDeath;
+        game.knowsDirt = json.knowsDirt;
+        game.knowsEggDeath = json.knowsEggDeath;
 
         return game;
     }
@@ -157,14 +168,10 @@ export default class Game {
             },
             () => this.aspis
         );
-        this.updatePlanetPosition();
-        this.planet.init(this.upgrades);
+        this.updateActivePixelBodyPosition();
+        this.activePixelBody.init(this.upgrades);
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
-        );
-        console.log(
-            "Planet canvas bounds: " +
-                new Vector(this.planet.layer.width, this.planet.layer.height).toString()
         );
 
         for (const littleGuy of this.littleGuys) {
@@ -191,9 +198,9 @@ export default class Game {
         saveGameBtn.removeAttribute("disabled");
 
         // ----- START Debug buttons -----
-        let serpentBtn = document.getElementById("spawn_serpent");
-        serpentBtn.addEventListener("click", () => {
-            this.spawnSerpent();
+        let nextPixelBodyBtn = document.getElementById("next_pixel_body");
+        nextPixelBodyBtn.addEventListener("click", () => {
+            this.goToNextPixelBody();
         });
         let seekGoldBtn = document.getElementById("seek_gold");
         seekGoldBtn.addEventListener("change", () => {
@@ -330,17 +337,12 @@ export default class Game {
             }
             oldLayer.destroy();
         }
-        if (this.serpent) {
-            this.serpent.onResize(
-                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
-            );
-        }
         if (this.particles) {
             this.particles.onResize(
                 new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
             );
         }
-        this.updatePlanetPosition();
+        this.updateActivePixelBodyPosition();
     }
 
     maybeSave() {
@@ -364,34 +366,28 @@ export default class Game {
         }
     }
 
-    updatePlanetPosition() {
-        if (!this.planet || !this.planet.layer || this.planet.health == 0) {
-            return;
-        }
-        this.planetPosition = new Vector(
-            (this.width - this.planet.layer.width * this.zoomLevel) / 2,
-            (this.height - this.planet.layer.height * this.zoomLevel) / 2
-        );
-        // Ensure the planet shares the same grid as the rest of the game.
-        this.planetPosition.x = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.x);
-        this.planetPosition.y = MathExtras.roundToNearest(this.zoomLevel, this.planetPosition.y);
-        console.log("planet position = " + this.planetPosition.toString());
-    }
-
-    get activePixelBodyPosition() {
+    updateActivePixelBodyPosition() {
         let activePixelBody = this.activePixelBody;
         if (!activePixelBody) {
             return null;
         }
-        let position = new Vector(
+        this.activePixelBodyPosition = new Vector(
             this.width - activePixelBody.layer.width * this.zoomLevel,
             this.height - activePixelBody.layer.height * this.zoomLevel
         );
         // Centered
-        position.div(2);
-        position.x = MathExtras.roundToNearest(this.zoomLevel, position.x);
-        position.y = MathExtras.roundToNearest(this.zoomLevel, position.y);
-        return position;
+        this.activePixelBodyPosition.div(2);
+        this.activePixelBodyPosition.x = MathExtras.roundToNearest(
+            this.zoomLevel,
+            this.activePixelBodyPosition.x
+        );
+        this.activePixelBodyPosition.y = MathExtras.roundToNearest(
+            this.zoomLevel,
+            this.activePixelBodyPosition.y
+        );
+        console.log(
+            "Updated active pixel body position = " + this.activePixelBodyPosition.toString()
+        );
     }
 
     onDigComplete(pixel) {
@@ -455,8 +451,10 @@ export default class Game {
         this.updateSpawnCost();
         this.updateDigsPerDeath();
         this.updateLegend();
-        // Force the planet to redraw, just in case any new pixel types have been revealed.
-        this.planet.needsUpdate = true;
+        if (this.activePixelBody) {
+            // Force the planet to redraw, just in case any new pixel types have been revealed.
+            this.activePixelBody.needsUpdate = true;
+        }
     }
 
     updateAspis() {
@@ -492,10 +490,40 @@ export default class Game {
     }
 
     updateHealth() {
-        this.healthElement.innerHTML = (100 * this.activePixelBody.health).toFixed(1);
-        if (!this.serpent.initialized && this.planet.health <= 0) {
-            this.spawnSerpent();
+        if (this.activePixelBody?.health <= 0) {
+            if (!this.goToNextPixelBody()) {
+                return;
+            }
         }
+        this.healthElement.innerHTML = (100 * this.activePixelBody.health).toFixed(1);
+    }
+
+    goToNextPixelBody() {
+        this.pixelBodies.shift();
+        if (this.pixelBodies.length == 0 || this.activePixelBody == null) {
+            this.endGame();
+            return false;
+        }
+        this.activePixelBody.init(this.upgrades);
+        // TODO: Animate to this zoom level.
+        this.zoomLevel = this.calculateZoomLevel(this.width, this.height);
+        this.updateActivePixelBodyPosition();
+        if (this.particles) {
+            this.particles.onResize(
+                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
+            );
+        }
+        if (this.activePixelBody.className == "Serpent") {
+            // Swap out the planet icon for the serpent
+            document.getElementById("planet_icon").classList.add("hidden");
+            document.getElementById("serpent_icon").classList.remove("hidden");
+        }
+        return true;
+    }
+
+    endGame() {
+        this.setPaused(true);
+        console.log("GAME OVER");
     }
 
     updateLegend() {
@@ -527,10 +555,9 @@ export default class Game {
     }
 
     gameToActiveBodyCoords(gameCoords) {
-        let activeBodyPosition = this.serpent.initialized ? new Vector() : this.planetPosition;
         return new Vector(
-            (gameCoords.x - activeBodyPosition.x) / this.zoomLevel,
-            (gameCoords.y - activeBodyPosition.y) / this.zoomLevel
+            (gameCoords.x - this.activePixelBodyPosition.x) / this.zoomLevel,
+            (gameCoords.y - this.activePixelBodyPosition.y) / this.zoomLevel
         ).round();
     }
 
@@ -569,7 +596,7 @@ export default class Game {
     }
 
     get activePixelBody() {
-        return this.serpent && this.serpent.initialized ? this.serpent : this.planet;
+        return this.pixelBodies.length > 0 ? this.pixelBodies[0] : null;
     }
 
     startNotEnoughAspisAnimation(others) {
@@ -642,18 +669,6 @@ export default class Game {
 
     updateDigsPerDeath() {
         this.digsPerDeathElement.innerHTML = this.upgrades.digCount;
-    }
-
-    spawnSerpent() {
-        if (this.serpent.initialized) {
-            console.error("Attempted to spawn serpent when one already exists");
-            return;
-        }
-        this.serpent.init(this.upgrades);
-        // Swap out the planet icon for the serpent
-        document.getElementById("planet_icon").classList.add("hidden");
-        document.getElementById("serpent_icon").classList.remove("hidden");
-        this.updateHealth();
     }
 
     // Center is in planet space
@@ -753,7 +768,7 @@ export default class Game {
         //     this.zoomLevel = this.targetZoomLevel;
         // } else {
         //     this.zoomLevel += (this.targetZoomLevel - this.zoomLevel) / 10;
-        //     this.updatePlanetPosition();
+        //     this.updateActivePixelBodyPosition();
         // }
         if (
             this.upgrades.conceptionIntervalMs > 0 &&
@@ -776,39 +791,24 @@ export default class Game {
         this.layer.getContext().fillStyle = "white";
         this.layer.getContext().fillRect(0, 0, this.width, this.height);
 
-        // Planet
-        this.planet.update(elapsedMs);
-        this.layer.getContext().drawImage(
-            this.planet.layer.canvas,
-            0, // source x
-            0, // source y
-            this.planet.layer.width, // source width
-            this.planet.layer.height, // source height
-            this.planetPosition.x, // destination x
-            this.planetPosition.y, // destination y
-            this.planet.layer.width * this.zoomLevel, // destination width
-            this.planet.layer.height * this.zoomLevel // destination height
-        );
-
-        // Serpent.
-        if (this.serpent.initialized) {
-            this.serpent.update();
+        // Active pixel body.
+        let pixelBody = this.activePixelBody;
+        if (pixelBody) {
+            pixelBody.update(elapsedMs);
             this.layer.getContext().drawImage(
-                this.serpent.layer.canvas,
+                pixelBody.layer.canvas,
                 0, // source x
                 0, // source y
-                this.serpent.layer.width, // source width
-                this.serpent.layer.height, // source height
-                // The serpent shares the same size as the main canvas, so no need to translate.
-                0, // destination x
-                0, // destination y
-                this.serpent.layer.width * this.zoomLevel, // destination width
-                this.serpent.layer.height * this.zoomLevel // destination height
+                pixelBody.layer.width, // source width
+                pixelBody.layer.height, // source height
+                this.activePixelBodyPosition.x, // destination x
+                this.activePixelBodyPosition.y, // destination y
+                pixelBody.layer.width * this.zoomLevel, // destination width
+                pixelBody.layer.height * this.zoomLevel // destination height
             );
         }
 
         // Little guys
-        let activePixelBodyPosition = this.activePixelBodyPosition;
         for (const littleGuy of this.littleGuys) {
             littleGuy.update(elapsedMs);
             if (!littleGuy.active) {
@@ -820,11 +820,10 @@ export default class Game {
                 0, // source y
                 littleGuy.layer.width, // source width
                 littleGuy.layer.height, // source height
-                // TODO: This needs to be updated to handle different pixel bodies (e.g. serpent)
-                activePixelBodyPosition.x +
+                this.activePixelBodyPosition.x +
                     (Math.round(littleGuy.positionInPixelBodySpace.x) - littleGuy.center.x) *
                         this.zoomLevel, // destination x
-                activePixelBodyPosition.y +
+                this.activePixelBodyPosition.y +
                     (Math.round(littleGuy.positionInPixelBodySpace.y) - littleGuy.center.y) *
                         this.zoomLevel, // destination y
                 littleGuy.layer.width * this.zoomLevel, // destination width

@@ -1,4 +1,4 @@
-import Planet from "../planet.js";
+import Planet from "./planet.js";
 import PixelType from "../diggables/pixel_type.js";
 import Pixel from "../diggables/pixel.js";
 import MathExtras from "../math_extras.js";
@@ -26,7 +26,7 @@ export default class CircularPlanet extends Planet {
     ) {
         let maxRadiusDiffPx = Math.round(radius * maxRadiusDiffFactor);
         let size = Math.round(2 * (radius + maxRadiusDiffPx + 1));
-        super(size, size, "circular_planet");
+        super("CircularPlanet", size, size);
         this.maxRadiusDiffPx = maxRadiusDiffPx;
         this.maxRadius = radius + maxRadiusDiffPx;
         this.minRadius = radius - maxRadiusDiffPx;
@@ -37,7 +37,7 @@ export default class CircularPlanet extends Planet {
     }
 
     static fromJSON(json, upgrades) {
-        let planet = new CircularPlanet(json.radius);
+        let planet = new CircularPlanet(json.className, json.radius);
         let pixels = [];
         for (const pixelJson of json.pixels) {
             pixels.push(Pixel.fromJSON(pixelJson, upgrades));

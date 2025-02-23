@@ -1,7 +1,8 @@
-import Vector from "./vector.js";
-import MathExtras from "./math_extras.js";
-import PixelType from "./diggables/pixel_type.js";
+import Vector from "../vector.js";
+import MathExtras from "../math_extras.js";
+import PixelType from "../diggables/pixel_type.js";
 import PixelBody from "./pixel_body.js";
+import Pixel from "../diggables/pixel.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
@@ -10,28 +11,64 @@ export default class Serpent extends PixelBody {
     static BORDER_BUFFER_PIXELS = 2;
 
     constructor(
-        segmentCount,
-        bounds,
-        initialPosition,
+        width,
+        height,
         initialDirection = new Vector(0, -1),
         // Moves per frame. Should be 1/N where N is a whole number for less
         // janky movement.
         speed = 1 / 2
     ) {
-        super(bounds.x, bounds.y, true, "serpent");
-        this.segmentCount = segmentCount;
-        this.position = initialPosition;
+        super("Serpent", width, height, true);
+        this.segmentCount = 0;
+        this.position = new Vector(width / 2, height / 2);
+        this.position.round();
         this.direction = initialDirection;
         this.speed = speed;
         this.segments = [];
-
-        this.initialized = false;
     }
 
-    init(upgrades) {
-        super.init(upgrades);
+    static fromJSON(json, upgrades) {
+        let serpent = new Serpent(
+            json.width,
+            json.height,
+            Vector.fromJSON(json.direction),
+            json.speed
+        );
+        serpent.upgrades = upgrades;
+        for (const segmentJson of json.segments) {
+            let segment = Segment.fromJSON(segmentJson, serpent);
+            if (segmentJson.hasForeSegment) {
+                segment.setForeSegment(serpent.segments[serpent.segments.length - 1]);
+            }
+            serpent.segments.push(segment);
+            serpent.pixels.push(...segment.pixels);
+        }
+        serpent.segmentCount = serpent.segments.length;
+        serpent.position = Vector.fromJSON(json.position);
+        serpent.position.round();
+        return serpent;
+    }
 
-        this.initialized = true;
+    toJSON() {
+        let json = super.toJSON();
+        json.segments = [];
+        for (const segment of this.segments) {
+            json.segments.push(segment.toJSON());
+        }
+        json.position = this.position;
+        json.direction = this.direction;
+        json.speed = this.speed;
+        return json;
+    }
+
+    init(upgrades, segmentCount) {
+        // Only need to set segment count if we haven't been loaded from save data.
+        if (this.segments.length <= 0) {
+            // Todo: get rid of this default 20
+            this.segmentCount = segmentCount ? segmentCount : 20;
+        }
+        console.log("Initializing Serpent w/ segment count of " + this.segmentCount);
+        super.init(upgrades);
     }
 
     createInitialPixels() {
@@ -69,6 +106,7 @@ export default class Serpent extends PixelBody {
                 this.speed,
                 this.upgrades
             );
+            segment.init();
             if (i > 0) {
                 segment.setForeSegment(this.segments[i - 1]);
             }
@@ -89,9 +127,6 @@ export default class Serpent extends PixelBody {
     }
 
     update() {
-        if (!this.initialized) {
-            return;
-        }
         for (const segment of this.segments) {
             this.needsUpdate = segment.update() || this.needsUpdate;
         }
@@ -153,7 +188,7 @@ export default class Serpent extends PixelBody {
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 5;
+    MAX_TURN_CHANCE_PCT = 0;
     constructor(serpent, size, bounds, position, direction, speed, upgrades) {
         this.serpent = serpent;
         this.size = Math.round(size);
@@ -181,6 +216,45 @@ class Segment {
 
         this.pixels = [];
         this.surfacePixels = [];
+    }
+
+    static fromJSON(json, serpent) {
+        let segment = new Segment(
+            serpent,
+            json.size,
+            new Vector(serpent.width, serpent.height),
+            Vector.fromJSON(json.position),
+            Vector.fromJSON(json.direction),
+            serpent.speed,
+            serpent.upgrades
+        );
+        for (const pixelJson of json.pixels) {
+            segment.pixels.push(Pixel.fromJSON(pixelJson, serpent.upgrades));
+        }
+        segment.history = [];
+        for (const historyJSON of json.history) {
+            segment.history.push({
+                renderPosition: historyJSON.renderPosition,
+                direction: historyJSON.direction,
+            });
+        }
+        segment.historySize = segment.history.length;
+        return serpent;
+    }
+
+    toJSON() {
+        let json = {
+            size: this.size,
+            position: this.position,
+            direction: this.direction,
+            pixels: this.pixels,
+            history: this.history,
+            hasForeSegment: this.foreSegment != null,
+        };
+        return json;
+    }
+
+    init() {
         this.generatePixels();
     }
 
@@ -241,49 +315,51 @@ class Segment {
             position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
             position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
         ) {
-            if (position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
-                console.log(
-                    "Not within bounds because " +
-                        position.x +
-                        " - " +
-                        halfSize +
-                        " < " +
-                        Serpent.BORDER_BUFFER_PIXELS
-                );
-            }
-            if (position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS) {
-                console.log(
-                    "Not within bounds because " +
-                        position.x +
-                        " + " +
-                        halfSize +
-                        " >= " +
-                        this.bounds.x +
-                        " - " +
-                        Serpent.BORDER_BUFFER_PIXELS
-                );
-            }
-            if (position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
-                console.log(
-                    "Not within bounds because " +
-                        position.y +
-                        " - " +
-                        halfSize +
-                        " < " +
-                        Serpent.BORDER_BUFFER_PIXELS
-                );
-            }
-            if (position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS) {
-                console.log(
-                    "Not within bounds because " +
-                        position.y +
-                        " + " +
-                        halfSize +
-                        " >= " +
-                        this.bounds.y +
-                        " - " +
-                        Serpent.BORDER_BUFFER_PIXELS
-                );
+            if (window.DEBUG) {
+                if (position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
+                    console.log(
+                        "Not within bounds because " +
+                            position.x +
+                            " - " +
+                            halfSize +
+                            " < " +
+                            Serpent.BORDER_BUFFER_PIXELS
+                    );
+                }
+                if (position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS) {
+                    console.log(
+                        "Not within bounds because " +
+                            position.x +
+                            " + " +
+                            halfSize +
+                            " >= " +
+                            this.bounds.x +
+                            " - " +
+                            Serpent.BORDER_BUFFER_PIXELS
+                    );
+                }
+                if (position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
+                    console.log(
+                        "Not within bounds because " +
+                            position.y +
+                            " - " +
+                            halfSize +
+                            " < " +
+                            Serpent.BORDER_BUFFER_PIXELS
+                    );
+                }
+                if (position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS) {
+                    console.log(
+                        "Not within bounds because " +
+                            position.y +
+                            " + " +
+                            halfSize +
+                            " >= " +
+                            this.bounds.y +
+                            " - " +
+                            Serpent.BORDER_BUFFER_PIXELS
+                    );
+                }
             }
             return false;
         }

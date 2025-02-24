@@ -136,20 +136,21 @@ export default class PixelBody {
         }
         this.pixels.splice(index, 1);
         let pixels = this.pixelPositions.get(pixel.position.toString());
-        if (pixels) {
-            let positionsIndex = pixels.indexOf(pixel);
-            if (positionsIndex > -1) {
-                pixels.splice(positionsIndex, 1);
-            }
-            if (pixels.length == 0) {
-                this.pixelPositions.delete(pixel.position.toString());
-            }
-            if (updateSurface) {
-                this.updateSurface();
-            }
-            this.needsUpdate = true;
-            return true;
+        if (!pixels) {
+            return false;
         }
+        let positionsIndex = pixels.indexOf(pixel);
+        if (positionsIndex > -1) {
+            pixels.splice(positionsIndex, 1);
+        }
+        if (pixels.length == 0) {
+            this.pixelPositions.delete(pixel.position.toString());
+        }
+        if (updateSurface) {
+            this.updateSurface();
+        }
+        this.needsUpdate = true;
+        return true;
     }
 
     createInitialPixels() {

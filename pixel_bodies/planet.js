@@ -7,6 +7,9 @@ export default class Planet extends PixelBody {
         }
         super(className, width, height);
         this.radius = Math.max(width, height) / 2;
+        // For optimizations
+        this.oneOverRadius = 1 / this.radius;
+        this.oneOverRadiusSquared = this.oneOverRadius * this.oneOverRadius;
     }
 
     toJSON() {
@@ -16,8 +19,11 @@ export default class Planet extends PixelBody {
     }
 
     updateSurface() {
+        let surfacePixelCountBefore = this.surfacePixels.length;
         super.updateSurface();
-        this.updateDarkness();
+        if (surfacePixelCountBefore != this.surfacePixels.length) {
+            this.updateDarkness();
+        }
     }
 
     updateDarkness() {
@@ -28,7 +34,12 @@ export default class Planet extends PixelBody {
                 continue;
             }
             let distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
-            pixel.darkness = 1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2;
+            // Original calculation:
+            // pixel.darkness = 1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2;
+            // Optimized to use pre-computed values and reduce division:
+            pixel.darkness =
+                2 * distanceToSurface * this.oneOverRadius -
+                distanceToSurface * distanceToSurface * this.oneOverRadiusSquared;
         }
     }
 }

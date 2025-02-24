@@ -115,6 +115,7 @@ export default class Game {
             upgrades: this.upgrades,
             // TODO: For some reason, on every save/load cycle, the layer size gets larger.
             pixelBodies: this.pixelBodies.map((pb) => pb.toJSON()),
+            // Do we actually need this?
             activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
             aspis: this.aspis,

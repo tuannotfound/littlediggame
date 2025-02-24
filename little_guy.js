@@ -201,10 +201,7 @@ export default class LittleGuy {
             }
         }
         if (this.shouldRenderDigPose()) {
-            console.log("shouldRenderDigPose = true");
             return LittleGuy.TRANSPARENT_COLOR;
-        } else {
-            console.log("shouldRenderDigPose = false");
         }
         return this.headColor;
     }

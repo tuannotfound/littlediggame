@@ -7,7 +7,9 @@ import PixelFactory from "./pixel_factory.js";
 
 // Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {
-    static HEALTH_VISUAL_PCT_INTERVAL = 20;
+    // Can be used to tweak when damage actually gets reflected in the alpha of the pixel. A value
+    // of 1 means any amount of damage gets shown immediately.
+    static HEALTH_VISUAL_PCT_INTERVAL = 1;
 
     constructor(position, upgrades, type, initialHealth, initialAlpha = 255) {
         this.position = position.copy();

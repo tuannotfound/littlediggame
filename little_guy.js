@@ -18,6 +18,7 @@ export default class LittleGuy {
         new Color(134, 76, 43).immutableCopy(),
         new Color(86, 49, 23).immutableCopy(),
     ];
+    static ASSUMED_FPS = 60;
     static DEFAULT_BODY_COLOR = new Color(87, 125, 180).immutableCopy();
     // Angelic robes.
     static ASCENDING_BODY_COLOR = new Color(215, 215, 215).immutableCopy();
@@ -200,7 +201,10 @@ export default class LittleGuy {
             }
         }
         if (this.shouldRenderDigPose()) {
+            console.log("shouldRenderDigPose = true");
             return LittleGuy.TRANSPARENT_COLOR;
+        } else {
+            console.log("shouldRenderDigPose = false");
         }
         return this.headColor;
     }
@@ -232,7 +236,7 @@ export default class LittleGuy {
         }
 
         // Assuming 60 FPS, we want to enter the dig pose for frames 0-20.
-        return this.diggingFrames % 60 < 20;
+        return this.diggingFrames % LittleGuy.ASSUMED_FPS < LittleGuy.ASSUMED_FPS / 3;
     }
 
     getAscensionAlpha() {
@@ -565,18 +569,21 @@ export default class LittleGuy {
             if (this.pixelBeingDug == null) {
                 // Just give up. Who cares? Whatever. Not me.
                 this.digging = false;
+                this.updateRenderData();
                 return;
             }
+        }
+        if (this.diggingFrames % LittleGuy.ASSUMED_FPS == 0) {
+            this.pixelBeingDug.damage(this.upgrades.digSpeed * LittleGuy.ASSUMED_FPS);
         }
         let wasRenderingDigPose = this.shouldRenderDigPose();
         this.diggingFrames++;
         if (wasRenderingDigPose != this.shouldRenderDigPose()) {
+            if (this.pixelBeingDug.getHealth() <= 0) {
+                // Only finish on pose state changes.
+                this.finishDigging();
+            }
             this.updateRenderData();
-        }
-
-        this.pixelBeingDug.damage(this.upgrades.digSpeed);
-        if (this.pixelBeingDug.getHealth() <= 0) {
-            this.finishDigging();
         }
     }
 

@@ -287,12 +287,14 @@ export default class Game {
         if (!pixelBody) {
             return 1;
         }
-        let pixelBodyWidth = pixelBody.layer.width;
-        let pixelBodyHeight = pixelBody.layer.height;
 
         // Add some buffer around the pixel body w/ 0.8
-        let widthMaxZoom = Math.round((0.8 * width) / pixelBodyWidth);
-        let heightMaxZoom = Math.round((0.8 * height) / pixelBodyHeight);
+        let widthMaxZoom = Math.round(
+            ((1 - pixelBody.renderBufferPct) * width) / pixelBody.layer.width
+        );
+        let heightMaxZoom = Math.round(
+            ((1 - pixelBody.renderBufferPct) * height) / pixelBody.layer.height
+        );
         // Limit ourselves by the smallest max zoom
         return Math.round(Math.min(widthMaxZoom, heightMaxZoom));
     }

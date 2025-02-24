@@ -294,10 +294,21 @@ export default class PixelBody {
         return pixels[0];
     }
 
+    hasPixel(pixel) {
+        if (pixel.isSurface) {
+            return this.surfacePixels.indexOf(pixel) >= 0;
+        }
+        return this.pixels.indexOf(pixel) >= 0;
+    }
+
     get health() {
         if (this.initialCount == 0) {
             return 1;
         }
         return this.pixels.length / this.initialCount;
+    }
+
+    get renderBufferPct() {
+        return 0.2;
     }
 }

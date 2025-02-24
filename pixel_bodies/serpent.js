@@ -185,6 +185,11 @@ export default class Serpent extends PixelBody {
         }
         return super.addPixel(position, type);
     }
+
+    // Override
+    get renderBufferPct() {
+        return 0.05;
+    }
 }
 
 class Segment {

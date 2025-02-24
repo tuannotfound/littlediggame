@@ -559,7 +559,8 @@ export default class LittleGuy {
             return;
         }
         // Make sure the pixel we're digging at is still present
-        if (!this.pixelBeingDug || !this.pixelBody.getPixel(this.pixelBeingDug.position)) {
+        if (!this.pixelBeingDug || !this.pixelBody.hasPixel(this.pixelBeingDug)) {
+            console.log("Shifting to new pixel during dig");
             // Update our position and get a new pixel to work on
             this.goToNearestSurfacePixel();
             this.pixelBeingDug = this.closestSurfacePixel;
@@ -576,11 +577,14 @@ export default class LittleGuy {
         let wasRenderingDigPose = this.shouldRenderDigPose();
         this.diggingFrames++;
         if (wasRenderingDigPose != this.shouldRenderDigPose()) {
-            if (this.pixelBeingDug.getHealth() <= 0) {
-                // Only finish on pose state changes.
-                this.finishDigging();
-            }
             this.updateRenderData();
+        }
+
+        if (this.pixelBeingDug.getHealth() <= 0) {
+            // TODO: Only finish on pose state changes.
+            // Moving this into the above conditional block breaks Serpent digging.
+            console.log("Finishing dig");
+            this.finishDigging();
         }
     }
 

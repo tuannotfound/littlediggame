@@ -37,6 +37,9 @@ export default class PixelBody {
     }
 
     init(upgrades) {
+        console.log(
+            this.className + " init - size = " + this.layer.width + "x" + this.layer.height + "px"
+        );
         this.upgrades = upgrades;
         this.layer.initOffscreen();
 

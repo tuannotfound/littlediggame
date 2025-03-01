@@ -31,13 +31,15 @@ export default class Color {
             this.g = g;
             this.b = b;
             this.a = 255; // Default alpha
+        } else if (arguments.length === 0) {
+            // Default to black
+            this.r = 0;
+            this.g = 0;
+            this.b = 0;
+            this.a = 255;
         } else {
             throw new Error("Invalid arguments for Color constructor");
         }
-    }
-
-    fromJSON(json) {
-        return Object.assign(new Color(), json);
     }
 
     clamp() {
@@ -54,6 +56,10 @@ export default class Color {
 
     asCssString() {
         return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+    }
+
+    static fromJSON(json) {
+        return Object.assign(new Color(), json);
     }
 
     static clampValue(value) {

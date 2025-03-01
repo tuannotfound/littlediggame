@@ -26,7 +26,16 @@ export default class CircularPlanet extends Planet {
     ) {
         let maxRadiusDiffPx = Math.round(radius * maxRadiusDiffFactor);
         let size = Math.round(2 * (radius + maxRadiusDiffPx + 1));
+        console.log(
+            "circular planet size = Math.round(2 * (" +
+                radius +
+                " + " +
+                maxRadiusDiffPx +
+                " + 1)) = " +
+                size
+        );
         super("CircularPlanet", size, size);
+        this.baseRadius = radius;
         this.maxRadiusDiffPx = maxRadiusDiffPx;
         this.maxRadius = radius + maxRadiusDiffPx;
         this.minRadius = radius - maxRadiusDiffPx;
@@ -38,6 +47,7 @@ export default class CircularPlanet extends Planet {
 
     toJSON() {
         let json = super.toJSON();
+        json.baseRadius = this.baseRadius;
         json.maxRadiusDiffPx = this.maxRadiusDiffPx;
         json.maxRadius = this.maxRadius;
         json.minRadius = this.minRadius;
@@ -47,10 +57,9 @@ export default class CircularPlanet extends Planet {
     }
 
     static fromJSON(json, upgrades) {
-        let planet = new CircularPlanet(json.radius);
+        let planet = new CircularPlanet(json.baseRadius);
         planet.width = json.width;
         planet.height = json.height;
-        planet.center = json.center;
         planet.maxRadiusDiffPx = json.maxRadiusDiffPx;
         planet.maxRadius = json.maxRadius;
         planet.minRadius = json.minRadius;

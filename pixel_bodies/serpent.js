@@ -193,7 +193,7 @@ export default class Serpent extends PixelBody {
 }
 
 class Segment {
-    MAX_TURN_CHANCE_PCT = 0;
+    MAX_TURN_CHANCE_PCT = 5;
     constructor(serpent, size, bounds, position, direction, speed, upgrades) {
         this.serpent = serpent;
         this.size = Math.round(size);

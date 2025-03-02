@@ -447,13 +447,15 @@ class Segment {
                     );
                     return false;
                 }
-                console.log(
-                    Serpent.TAG +
-                        "Head segment turning. Went from " +
-                        this.mostRecentState.direction.toString() +
-                        " to " +
-                        this.direction.toString()
-                );
+                if (window.DEBUG) {
+                    console.log(
+                        Serpent.TAG +
+                            "Head segment turning. Went from " +
+                            this.mostRecentState.direction.toString() +
+                            " to " +
+                            this.direction.toString()
+                    );
+                }
                 this.renderPositionChangesSinceLastTurn = 0;
 
                 let rotationFunc = this.getRotationFunc();
@@ -558,8 +560,9 @@ class Segment {
         // Couldn't figure out a more clever way of doing this, so it's going to get
         // ugly. Buckle up.
         if (pd.x == cd.x || pd.y == cd.y) {
+            // This should be rare.
             if (!this.foreSegment) {
-                console.log(Serpent.TAG + "180");
+                console.warn(Serpent.TAG + "180");
             }
             return Vector.rotate180;
         }
@@ -575,7 +578,7 @@ class Segment {
         ];
         for (const rot of cw) {
             if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
-                if (!this.foreSegment) {
+                if (!this.foreSegment && window.DEBUG) {
                     console.log(Serpent.TAG + "CW");
                 }
                 return Vector.rotate90CW;
@@ -590,7 +593,7 @@ class Segment {
         ];
         for (const rot of ccw) {
             if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
-                if (!this.foreSegment) {
+                if (!this.foreSegment && window.DEBUG) {
                     console.log(Serpent.TAG + "CCW");
                 }
                 return Vector.rotate90CCW;

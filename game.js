@@ -14,6 +14,7 @@ import PixelType from "./diggables/pixel_type.js";
 import Particles from "./particles.js";
 import Color from "./color.js";
 import Serpent from "./pixel_bodies/serpent.js";
+import Hourglass from "./hourglass.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -78,6 +79,7 @@ export default class Game {
             this.layer.width / this.zoomLevel,
             this.layer.height / this.zoomLevel
         );
+        this.hourglass = new Hourglass(25, 50, 600);
 
         this.knowsDeath = false;
         this.knowsEggDeath = false;
@@ -405,9 +407,6 @@ export default class Game {
                 this.activePixelBodyPosition.y
             );
         }
-        console.log(
-            "Updated active pixel body position = " + this.activePixelBodyPosition.toString()
-        );
     }
 
     onDigComplete(pixel) {
@@ -532,6 +531,8 @@ export default class Game {
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
             document.getElementById("serpent_icon").classList.remove("hidden");
+            // Initialize the hourglass
+            this.hourglass.init();
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.
@@ -860,6 +861,22 @@ export default class Game {
                         this.zoomLevel, // destination y
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height
+            );
+        }
+
+        // Hourglass
+        if (this.hourglass.initialized) {
+            this.hourglass.update(elapsedMs);
+            this.layer.getContext().drawImage(
+                this.hourglass.layer.canvas,
+                0, // source x
+                0, // source y
+                this.hourglass.layer.width, // source width
+                this.hourglass.layer.height, // source height
+                0, // destination x
+                0, // destination y
+                this.hourglass.layer.width * this.zoomLevel, // destination width
+                this.hourglass.layer.height * this.zoomLevel // destination height
             );
         }
 

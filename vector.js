@@ -102,6 +102,11 @@ Vector.prototype = {
         this.y = Math.floor(this.y);
         return this;
     },
+    ceil: function () {
+        this.x = Math.ceil(this.x);
+        this.y = Math.ceil(this.y);
+        return this;
+    },
     limit: function (max) {
         if (this.mag() > max) {
             this.normalize();

@@ -102,6 +102,9 @@ export default class Hourglass {
     static GLASS_VERTICAL_PCT = 30;
     static GLASS_WAIST_WIDTH_PCT = 0;
     static SAND_FILL_PCT = 70;
+    static INITIAL_ALPHA = 0;
+    static FINAL_ALPHA = 90;
+    static FINAL_ALPHA_PROGRESS = 0.5;
 
     constructor(width, height, durationSeconds, elapsedSeconds = 0) {
         this.size = new Vector(width, height);
@@ -315,17 +318,30 @@ export default class Hourglass {
         );
     }
 
+    get renderAlpha() {
+        return Math.round(
+            MathExtras.scaleBetween(
+                this.progress,
+                0,
+                Hourglass.FINAL_ALPHA_PROGRESS,
+                Hourglass.INITIAL_ALPHA,
+                Hourglass.FINAL_ALPHA
+            )
+        );
+    }
+
     updateRenderData() {
         let imageData = this.layer
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
 
+        let alpha = this.renderAlpha;
         for (const pixel of this.decorationPixels) {
             let index = (pixel.x + pixel.y * imageData.width) * 4;
             imageData.data[index] = this.decorationColor.r; // Red
             imageData.data[index + 1] = this.decorationColor.g; // Green
             imageData.data[index + 2] = this.decorationColor.b; // Blue
-            imageData.data[index + 3] = this.decorationColor.a; // Alpha
+            imageData.data[index + 3] = alpha; // Alpha
         }
         for (const layer of this.staticSandPixels.values()) {
             for (const sandPixel of layer) {
@@ -333,7 +349,7 @@ export default class Hourglass {
                 imageData.data[index] = sandPixel.color.r; // Red
                 imageData.data[index + 1] = sandPixel.color.g; // Green
                 imageData.data[index + 2] = sandPixel.color.b; // Blue
-                imageData.data[index + 3] = sandPixel.color.a; // Alpha
+                imageData.data[index + 3] = alpha; // Alpha
             }
         }
         for (const physicsPixel of this.physicsSandPixels.values()) {
@@ -343,7 +359,7 @@ export default class Hourglass {
             imageData.data[index] = physicsPixel.color.r; // Red
             imageData.data[index + 1] = physicsPixel.color.g; // Green
             imageData.data[index + 2] = physicsPixel.color.b; // Blue
-            imageData.data[index + 3] = physicsPixel.color.a; // Alpha
+            imageData.data[index + 3] = alpha; // Alpha
         }
         for (const [y, x] of this.glassPixels) {
             // Left side
@@ -351,14 +367,14 @@ export default class Hourglass {
             imageData.data[index] = this.glassColor.r; // Red
             imageData.data[index + 1] = this.glassColor.g; // Green
             imageData.data[index + 2] = this.glassColor.b; // Blue
-            imageData.data[index + 3] = this.glassColor.a; // Alpha
+            imageData.data[index + 3] = alpha; // Alpha
             // Mirrored right side
             let mirrorX = this.size.x - x - 1;
             index = (mirrorX + y * imageData.width) * 4;
             imageData.data[index] = this.glassColor.r; // Red
             imageData.data[index + 1] = this.glassColor.g; // Green
             imageData.data[index + 2] = this.glassColor.b; // Blue
-            imageData.data[index + 3] = this.glassColor.a; // Alpha
+            imageData.data[index + 3] = alpha; // Alpha
         }
 
         this.layer.getContext().putImageData(imageData, 0, 0);

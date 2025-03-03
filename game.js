@@ -28,6 +28,7 @@ export default class Game {
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
     ZOOM_DURATION_MS = 1000 * 2;
+    FINAL_LEVEL_DURATION_MINUTES = 5;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -79,7 +80,7 @@ export default class Game {
             this.layer.width / this.zoomLevel,
             this.layer.height / this.zoomLevel
         );
-        this.hourglass = new Hourglass(25, 50, 45);
+        this.hourglass = new Hourglass(27, 70, this.FINAL_LEVEL_DURATION_MINUTES * 60);
         this.hourglassPosition = new Vector();
 
         this.knowsDeath = false;
@@ -406,6 +407,7 @@ export default class Game {
             );
             // Centered
             this.hourglassPosition.div(2);
+            this.hourglassPosition.round();
         }
 
         if (this.zoomLevel == this.zoomLevelDst) {

@@ -8,7 +8,7 @@ class SandPixel {
 
     constructor(x, y) {
         this.position = new Vector(x, y);
-        this.color = Color.wiggle(SandPixel.BASE_COLOR, 5);
+        this.color = Color.wiggle(SandPixel.BASE_COLOR, 10);
     }
 }
 
@@ -27,7 +27,7 @@ class PhysicsSandPixel extends SandPixel {
 
         this.slipped = false;
 
-        this.gravity = new Vector(0, 0.25);
+        this.gravity = new Vector(0, 0.1);
     }
 
     update(deltaTimeMs, othersMap) {
@@ -91,22 +91,8 @@ class PhysicsSandPixel extends SandPixel {
     }
 
     limitToBounds(position) {
-        position.x = MathExtras.clamp(position.x, this.xMin, this.xMax);
+        position.x = MathExtras.clamp(position.x, this.xMin, this.xMax - 1);
         position.y = MathExtras.clamp(position.y, 0, this.yMax);
-    }
-
-    canMoveTo(position, othersMap) {
-        if (!this.isPositionInBounds(position)) {
-            return false;
-        }
-        if (othersMap.has(position.toString())) {
-            return false;
-        }
-        return true;
-    }
-
-    isPositionInBounds(position) {
-        return position.x >= this.xMin && position.x <= this.xMax && position.y <= this.yMax;
     }
 }
 
@@ -115,7 +101,7 @@ export default class Hourglass {
     static GLASS_WIDTH_PCT = 90;
     static GLASS_VERTICAL_PCT = 30;
     static GLASS_WAIST_WIDTH_PCT = 0;
-    static SAND_FILL_PCT = 80;
+    static SAND_FILL_PCT = 70;
 
     constructor(width, height, durationSeconds, elapsedSeconds = 0) {
         this.size = new Vector(width, height);
@@ -125,7 +111,7 @@ export default class Hourglass {
         this.layer = new Layer("hourglass", width, height);
 
         this.center = new Vector(width / 2, height / 2);
-        this.center.ceil();
+        this.center.floor();
 
         this.topBottomHeight = Math.ceil((this.size.y * Hourglass.TOP_BOTTOM_HEIGHT_PCT) / 100);
         this.decorationPixels = [];
@@ -139,6 +125,9 @@ export default class Hourglass {
         this.centerKey = this.center.toString();
         this.queuedSandPixels = [];
 
+        // Figured out later during static sand generation.
+        this.sandHorizontalMarginMin = 0;
+
         this.decorationColor = new Color(99, 93, 86);
         this.glassColor = new Color(210, 237, 247);
         this.sandColor = new Color(194, 167, 95);
@@ -146,9 +135,6 @@ export default class Hourglass {
         this.secondsPerSand = 0;
 
         this.initialized = false;
-
-        // tmp
-        this.dropped = 0;
     }
 
     init() {
@@ -228,18 +214,21 @@ export default class Hourglass {
     }
 
     generateSand() {
-        let yMin = (this.center.y * (100 - Hourglass.SAND_FILL_PCT)) / 100;
+        let yMin = Math.round((this.center.y * (100 - Hourglass.SAND_FILL_PCT)) / 100);
         let yMax = this.center.y;
 
+        let xMin = Infinity;
         for (let y = yMin; y < yMax; y++) {
             let layer = [];
             let leftBound = this.glassPixels.get(y) + 3;
+            xMin = Math.min(xMin, leftBound);
             let rightBound = this.size.x - leftBound;
             for (let x = leftBound; x < rightBound; x++) {
                 layer.push(new SandPixel(x, y));
             }
             this.staticSandPixels.set(y, layer);
         }
+        this.sandHorizontalMarginMin = xMin;
     }
 
     get progress() {
@@ -284,11 +273,6 @@ export default class Hourglass {
     }
 
     dropSand() {
-        // if (this.dropped == 10) {
-        //     return;
-        // }
-        this.dropped++;
-        console.log("dropSand");
         // Remove a piece of sand from the top layer
         // let smallestKey = this.staticSandPixels.keys().sort()[0];
         // let layer = this.staticSandPixels.get(smallestKey);
@@ -310,18 +294,22 @@ export default class Hourglass {
         if (layer.length === 0) {
             this.staticSandPixels.delete(smallestKey);
         }
-        // Shift the colors slightly to give the effect of the sand shifting
+        // Shift some of the colors slightly to give the effect of the gains of sand shifting
+        // as the hourglass drains.
         for (const layer of this.staticSandPixels.values()) {
             for (const sandPixel of layer) {
-                sandPixel.color = Color.wiggle(sandPixel.color, 2);
+                if (Math.random() > 0.05) {
+                    continue;
+                }
+                sandPixel.color = Color.wiggle(SandPixel.BASE_COLOR, 5);
             }
         }
         this.queuedSandPixels.push(
             new PhysicsSandPixel(
                 this.center.x,
                 this.center.y,
-                0,
-                this.size.x,
+                this.sandHorizontalMarginMin,
+                this.size.x - this.sandHorizontalMarginMin,
                 this.size.y - this.topBottomHeight - 1
             )
         );

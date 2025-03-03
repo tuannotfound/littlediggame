@@ -80,6 +80,7 @@ export default class Game {
             this.layer.height / this.zoomLevel
         );
         this.hourglass = new Hourglass(25, 50, 45);
+        this.hourglassPosition = new Vector();
 
         this.knowsDeath = false;
         this.knowsEggDeath = false;
@@ -389,12 +390,24 @@ export default class Game {
         if (!activePixelBody) {
             return null;
         }
-        this.activePixelBodyPosition = new Vector(
+        this.activePixelBodyPosition.setXY(
             this.width - activePixelBody.layer.width * this.zoomLevel,
             this.height - activePixelBody.layer.height * this.zoomLevel
         );
         // Centered
         this.activePixelBodyPosition.div(2);
+
+        // This makes this method poorly named, but going to update the hourglass position here too
+        // because nobody can stop me.
+        if (this.hourglass && this.hourglass.initialized) {
+            this.hourglassPosition.setXY(
+                this.width - this.hourglass.layer.width * this.zoomLevel,
+                this.height - this.hourglass.layer.height * this.zoomLevel
+            );
+            // Centered
+            this.hourglassPosition.div(2);
+        }
+
         if (this.zoomLevel == this.zoomLevelDst) {
             // Only round once we've reached the target zoom level, otherwise the zoom is very
             // jittery as the center position gets shifted around a handful of pixels.
@@ -406,6 +419,17 @@ export default class Game {
                 this.zoomLevel,
                 this.activePixelBodyPosition.y
             );
+
+            if (this.hourglass && this.hourglass.initialized) {
+                this.hourglassPosition.x = MathExtras.roundToNearest(
+                    this.zoomLevel,
+                    this.hourglassPosition.x
+                );
+                this.hourglassPosition.y = MathExtras.roundToNearest(
+                    this.zoomLevel,
+                    this.hourglassPosition.y
+                );
+            }
         }
     }
 
@@ -824,6 +848,22 @@ export default class Game {
         this.layer.getContext().fillStyle = "white";
         this.layer.getContext().fillRect(0, 0, this.width, this.height);
 
+        // Hourglass
+        if (this.hourglass.initialized) {
+            this.hourglass.update(elapsedMs);
+            this.layer.getContext().drawImage(
+                this.hourglass.layer.canvas,
+                0, // source x
+                0, // source y
+                this.hourglass.layer.width, // source width
+                this.hourglass.layer.height, // source height
+                this.hourglassPosition.x, // destination x
+                this.hourglassPosition.y, // destination y
+                this.hourglass.layer.width * this.zoomLevel, // destination width
+                this.hourglass.layer.height * this.zoomLevel // destination height
+            );
+        }
+
         // Active pixel body.
         let pixelBody = this.activePixelBody;
         if (pixelBody) {
@@ -861,22 +901,6 @@ export default class Game {
                         this.zoomLevel, // destination y
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height
-            );
-        }
-
-        // Hourglass
-        if (this.hourglass.initialized) {
-            this.hourglass.update(elapsedMs);
-            this.layer.getContext().drawImage(
-                this.hourglass.layer.canvas,
-                0, // source x
-                0, // source y
-                this.hourglass.layer.width, // source width
-                this.hourglass.layer.height, // source height
-                0, // destination x
-                0, // destination y
-                this.hourglass.layer.width * this.zoomLevel, // destination width
-                this.hourglass.layer.height * this.zoomLevel // destination height
             );
         }
 

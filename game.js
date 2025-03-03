@@ -79,7 +79,7 @@ export default class Game {
             this.layer.width / this.zoomLevel,
             this.layer.height / this.zoomLevel
         );
-        this.hourglass = new Hourglass(25, 50, 600);
+        this.hourglass = new Hourglass(25, 50, 45);
 
         this.knowsDeath = false;
         this.knowsEggDeath = false;

@@ -19,110 +19,94 @@ class PhysicsSandPixel extends SandPixel {
         this.xMin = xMin;
         this.xMax = xMax;
         this.yMax = yMax;
-        this.prevPosition = this.position.copy();
-        this.renderPosition = this.position.copy();
-        this.renderPosition.round();
-        this.prevRenderPosition = this.renderPosition.copy();
 
-        this.friction = 0.5;
-        this.groundFriction = 0.25;
+        this.prevPosition = new Vector(this.position);
+        this.renderPosition = new Vector(this.position);
+        this.renderPosition.round();
+        this.prevRenderPosition = new Vector(this.renderPosition);
+
         this.slipped = false;
 
-        this.gravity = new Vector(0, 1);
-
-        this.mass = 1;
-        this.unmovedFrames = 0;
-        this.active = true;
+        this.gravity = new Vector(0, 0.25);
     }
 
-    update() {
-        if (!this.active) {
-            return;
-        }
+    update(deltaTimeMs, othersMap) {
+        //let deltaTime = deltaTimeMs / 1000;
         let velocity = Vector.sub(this.position, this.prevPosition);
-        velocity.mult(this.friction);
-
         if (this.slipped) {
-            velocity.mult(this.groundFriction);
+            // Slip friction;
             this.slipped = false;
+            //velocity.x *= 0.1;
+            velocity.x = 0;
+            velocity.y *= 0.25;
         }
+        // Friction
+        // velocity.mult(0.75);
+        // if (velocity.mag() < 0.01) {
+        //     velocity.set(0, 0);
+        // }
+        this.prevPosition.set(this.position);
+        this.prevRenderPosition.set(this.renderPosition);
 
-        let newPosition = this.position.copy();
-        this.prevPosition.setXY(this.position.x, this.position.y);
-        newPosition.add(velocity);
-        newPosition.add(this.gravity);
+        let deltaTimeSquared = 0.5; //deltaTime * deltaTime;
+        let velocityDelta = Vector.mult(this.gravity, deltaTimeSquared);
+        let positionDelta = Vector.add(velocity, velocityDelta);
+        let newPosition = Vector.add(this.position, positionDelta);
+        this.limitToBounds(newPosition);
+        let newRenderPosition = new Vector(newPosition);
+        newRenderPosition.round();
 
+        let atopAnother = false;
+        let key = newRenderPosition.toString();
+        // Look upwards until we find a pixel to rest upon.
+        while (othersMap.has(key) && othersMap.get(key) !== this) {
+            atopAnother = true;
+            newRenderPosition.y -= 1;
+            key = newRenderPosition.toString();
+            if (newRenderPosition.y <= 0) {
+                break;
+            }
+        }
+        if (atopAnother) {
+            // Now see if we can slip to the left or right.
+            let renderPositionsToCheck = [
+                new Vector(newRenderPosition.x - 1, newRenderPosition.y + 1),
+                new Vector(newRenderPosition.x + 1, newRenderPosition.y + 1),
+            ];
+            if (Math.random() < 0.5) {
+                renderPositionsToCheck.reverse();
+            }
+            for (const position of renderPositionsToCheck) {
+                this.limitToBounds(position);
+                if (!othersMap.has(position.toString())) {
+                    newRenderPosition.set(position);
+                    newPosition.set(position);
+                    this.slipped = true;
+                    break;
+                }
+            }
+        }
+        this.renderPosition.set(newRenderPosition);
         this.position.set(newPosition);
-        this.prevRenderPosition = this.renderPosition.copy();
-        this.renderPosition.set(newPosition);
-        this.renderPosition.round();
-    }
-    setActive(active) {
-        if (this.active == active) {
-            return;
-        }
-        this.active = active;
-        if (active) {
-            this.unmovedFrames = 0;
-        }
     }
 
-    checkCollision(othersMap) {
-        if (!this.active) {
-            return;
-        }
-
-        // Check collision against others
-        let key = this.renderPosition.toString();
-        let didCollide = othersMap.has(key);
-        if (didCollide) {
-            this.checkSlipCollision(othersMap);
-        }
+    limitToBounds(position) {
+        position.x = MathExtras.clamp(position.x, this.xMin, this.xMax);
+        position.y = MathExtras.clamp(position.y, 0, this.yMax);
     }
 
-    checkSlipCollision(othersMap) {
-        let positionsToCheck = [
-            new Vector(this.renderPosition.x - 1, this.renderPosition.y + 1),
-            new Vector(this.renderPosition.x + 1, this.renderPosition.y + 1),
-        ];
-        for (const position of positionsToCheck) {
-            if (!othersMap.has(position.toString())) {
-                this.slipped = true;
-                this.position.set(position);
-                this.renderPosition.set(position);
-                return;
-            }
+    canMoveTo(position, othersMap) {
+        if (!this.isPositionInBounds(position)) {
+            return false;
         }
-        // Didn't find a spot to slip into, just revert back to the previous position.
-        this.position.set(this.prevPosition);
-        this.renderPosition.set(this.prevRenderPosition);
+        if (othersMap.has(position.toString())) {
+            return false;
+        }
+        return true;
     }
 
-    checkBounds() {
-        if (this.renderPosition.x < this.xMin || this.renderPosition.x > this.xMax) {
-            this.renderPosition.x = MathExtras.clamp(this.renderPosition.x, this.xMin, this.xMax);
-            this.position.x = this.renderPosition.x;
-        } else if (this.renderPosition.y > this.yMax) {
-            this.renderPosition.y = this.yMax;
-            this.position.y = this.renderPosition.y;
-        }
-    }
-
-    checkInactive() {
-        if (
-            this.renderPosition.x == this.prevRenderPosition.x &&
-            this.renderPosition.y == this.prevRenderPosition.y
-        ) {
-            if (this.active) {
-                this.unmovedFrames++;
-            }
-        } else {
-            this.unmovedFrames = 0;
-            this.setActive(true);
-        }
-        if (this.unmovedFrames >= PhysicsSandPixel.UNMOVED_FRAMES_BEFORE_INACTIVE) {
-            this.setActive(false);
-        }
+    isPositionInBounds(position) {
+        return position.x >= this.xMin && position.x <= this.xMax && position.y <= this.yMax;
     }
 }
 
@@ -283,14 +267,10 @@ export default class Hourglass {
         let updatedPhysicsSandPixels = new Map(this.physicsSandPixels);
         let updateCount = 0;
         for (let physicsPixel of this.physicsSandPixels.values()) {
-            if (!physicsPixel.active) {
-                continue;
-            }
-            physicsPixel.update();
-            physicsPixel.checkBounds();
-            physicsPixel.checkCollision(updatedPhysicsSandPixels);
-            //physicsPixel.checkBounds();
-            physicsPixel.checkInactive();
+            // if (!physicsPixel.active) {
+            //     continue;
+            // }
+            physicsPixel.update(elapsedMs, updatedPhysicsSandPixels);
             if (!Vector.equals(physicsPixel.renderPosition, physicsPixel.prevRenderPosition)) {
                 updatedPhysicsSandPixels.delete(physicsPixel.prevRenderPosition.toString());
                 updatedPhysicsSandPixels.set(physicsPixel.renderPosition.toString(), physicsPixel);
@@ -304,15 +284,19 @@ export default class Hourglass {
     }
 
     dropSand() {
-        if (this.dropped == 2) {
-            return;
-        }
+        // if (this.dropped == 10) {
+        //     return;
+        // }
         this.dropped++;
         console.log("dropSand");
         // Remove a piece of sand from the top layer
         // let smallestKey = this.staticSandPixels.keys().sort()[0];
         // let layer = this.staticSandPixels.get(smallestKey);
         let smallestKey = this.staticSandPixels.keys().reduce((a, b) => Math.min(a, b), Infinity);
+        if (smallestKey == Infinity) {
+            // Time is up!
+            return;
+        }
         let layer = this.staticSandPixels.get(smallestKey);
         // Randomly remove one of the pixels, but favor the middle.
         let centeringBiasStrength = 5; // 1 = no bias, 0 = ... broken.

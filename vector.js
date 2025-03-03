@@ -6,8 +6,13 @@
  * @param {number} y
  */
 export default function Vector(x, y) {
-    this.x = x || 0;
-    this.y = y || 0;
+    if (typeof x === "number" || x == null) {
+        this.x = x || 0;
+        this.y = y || 0;
+    } else {
+        this.x = x.x || 0;
+        this.y = x.y || 0;
+    }
 }
 
 Vector.prototype = {

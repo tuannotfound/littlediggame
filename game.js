@@ -28,7 +28,7 @@ export default class Game {
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
     ZOOM_DURATION_MS = 1000 * 2;
-    FINAL_LEVEL_DURATION_MINUTES = 5;
+    FINAL_LEVEL_DURATION_MINUTES = 0.2;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -75,6 +75,7 @@ export default class Game {
                 this.handleInactive(littleGuy);
             },
         };
+        this.spawningAllowed = true;
 
         this.particles = new Particles(
             this.layer.width / this.zoomLevel,
@@ -122,6 +123,7 @@ export default class Game {
             // Do we actually need this?
             activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
+            spawningAllowed: this.spawningAllowed,
             aspis: this.aspis,
             knowsDeath: this.knowsDeath,
             knowsDirt: this.knowsDirt,
@@ -143,21 +145,25 @@ export default class Game {
         }
         let game = new Game(window.innerWidth, window.innerHeight, pixelBodies, upgrades);
 
-        //game.activePixelBodyPosition = Vector.fromJSON(json.activePixelBodyPosition);
-        for (let littleGuyJson of json.littleGuys) {
-            let pixelBeingDug = null;
-            if (littleGuyJson.pixelBeingDug) {
-                let pixelBeingDugPosition = Vector.fromJSON(littleGuyJson.pixelBeingDug.position);
-                pixelBeingDug = game.activePixelBody.getPixel(pixelBeingDugPosition);
+        if (game.activePixelBody) {
+            for (let littleGuyJson of json.littleGuys) {
+                let pixelBeingDug = null;
+                if (littleGuyJson.pixelBeingDug) {
+                    let pixelBeingDugPosition = Vector.fromJSON(
+                        littleGuyJson.pixelBeingDug.position
+                    );
+                    pixelBeingDug = game.activePixelBody.getPixel(pixelBeingDugPosition);
+                }
+                let littleGuy = LittleGuy.fromJSON(
+                    littleGuyJson,
+                    game.activePixelBody,
+                    upgrades,
+                    pixelBeingDug
+                );
+                game.littleGuys.push(littleGuy);
             }
-            let littleGuy = LittleGuy.fromJSON(
-                littleGuyJson,
-                game.activePixelBody,
-                upgrades,
-                pixelBeingDug
-            );
-            game.littleGuys.push(littleGuy);
         }
+        game.spawningAllowed = json.spawningAllowed;
         game.aspis = json.aspis;
         game.knowsDeath = json.knowsDeath;
         game.knowsDirt = json.knowsDirt;
@@ -181,7 +187,9 @@ export default class Game {
         );
         this.updateActivePixelBodyPosition();
         this.updateParticlesZoom();
-        this.activePixelBody.init(this.upgrades);
+        if (this.activePixelBody) {
+            this.activePixelBody.init(this.upgrades);
+        }
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
         );
@@ -389,7 +397,7 @@ export default class Game {
     updateActivePixelBodyPosition() {
         let activePixelBody = this.activePixelBody;
         if (!activePixelBody) {
-            return null;
+            return;
         }
         this.activePixelBodyPosition.setXY(
             this.width - activePixelBody.layer.width * this.zoomLevel,
@@ -465,6 +473,9 @@ export default class Game {
     }
 
     pixelBodyToParticleSpace(planetCoords) {
+        if (!this.activePixelBody) {
+            return new Vector();
+        }
         let activePixelBody = this.activePixelBody;
         let particleCoords = new Vector(
             this.particles.layer.width / 2 - activePixelBody.layer.width / 2,
@@ -546,19 +557,18 @@ export default class Game {
     goToNextPixelBody() {
         this.pixelBodies.shift();
         if (this.pixelBodies.length == 0 || this.activePixelBody == null) {
-            this.endGame();
             return false;
         }
         this.activePixelBody.init(this.upgrades);
         this.zoomElapsedMs = 0;
         this.updateActivePixelBodyPosition();
         this.updateParticlesZoom();
-        if (this.activePixelBody.className == "Serpent") {
+        if (this.activePixelBody.className == Serpent.CLASS_NAME) {
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
             document.getElementById("serpent_icon").classList.remove("hidden");
             // Initialize the hourglass
-            this.hourglass.init();
+            this.hourglass.init(this.finalLevelLost.bind(this));
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.
@@ -567,10 +577,34 @@ export default class Game {
         }
         this.zoomLevelSrc = this.zoomLevel;
         this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
+
+        this.updateActivePixelBodyPosition();
         return true;
     }
 
-    endGame() {
+    finalLevelLost() {
+        if (!this.activePixelBody || this.activePixelBody.className != Serpent.CLASS_NAME) {
+            console.error("Not sure how we got here...");
+            this.endGame(false);
+            return;
+        }
+        this.activePixelBody.letLoose(this.onSerpentLoose.bind(this));
+        this.spawningAllowed = false;
+        // Kill all little guys
+        this.blood = true;
+        for (const littleGuy of this.littleGuys) {
+            setTimeout(() => littleGuy.die(), MathExtras.randomBetween(0, 1000));
+        }
+    }
+
+    // Serpent will be destroyed when this exits.
+    onSerpentLoose() {
+        // There is no next pixel body, so it will be null after this.
+        this.goToNextPixelBody();
+        //this.endGame(false);
+    }
+
+    endGame(win) {
         this.setPaused(true);
         console.log("GAME OVER");
     }
@@ -637,6 +671,9 @@ export default class Game {
                     activeBodyCoords.toString()
             );
         }
+        if (!this.activePixelBody) {
+            return;
+        }
         let closestSurfacePixel = this.activePixelBody.getClosestSurfacePixel(activeBodyCoords);
         if (!closestSurfacePixel) {
             return;
@@ -685,6 +722,9 @@ export default class Game {
     }
 
     spawn(position, immaculate) {
+        if (!this.spawningAllowed) {
+            return;
+        }
         if (!immaculate) {
             if (this.spawnCost > this.aspis && !window.DEBUG) {
                 this.startNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
@@ -693,6 +733,9 @@ export default class Game {
             this.stopNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
         }
 
+        if (!this.activePixelBody) {
+            return;
+        }
         let littleGuy = new LittleGuy(this.activePixelBody, position, this.upgrades, immaculate);
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
@@ -727,6 +770,9 @@ export default class Game {
         }
         let radius = Math.floor(2 * (Math.random() + 1));
         this.particles.bloodEffect(this.pixelBodyToParticleSpace(center));
+        if (!this.activePixelBody) {
+            return;
+        }
         for (let x = center.x - radius; x < center.x + radius; x++) {
             for (let y = center.y - radius; y < center.y + radius; y++) {
                 let dist = new Vector(center.x - x, center.y - y).mag();
@@ -831,7 +877,8 @@ export default class Game {
         }
         if (
             this.upgrades.conceptionIntervalMs > 0 &&
-            this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
+            this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs &&
+            this.activePixelBody
         ) {
             console.log("Immaculate conception occurred");
             let activePixelBody = this.activePixelBody;

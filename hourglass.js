@@ -137,10 +137,12 @@ export default class Hourglass {
 
         this.secondsPerSand = 0;
 
+        this.timesUpCallback = null;
+
         this.initialized = false;
     }
 
-    init() {
+    init(timesUpCallback) {
         this.layer.initOffscreen();
         this.generateDecoration();
         this.generateGlass();
@@ -151,6 +153,7 @@ export default class Hourglass {
         this.secondsPerSand = this.durationSeconds / sandPixelCount;
         console.log(sandPixelCount + " sand pixels, so secondsPerSand = " + this.secondsPerSand);
 
+        this.timesUpCallback = timesUpCallback;
         this.initialized = true;
     }
 
@@ -277,11 +280,14 @@ export default class Hourglass {
 
     dropSand() {
         // Remove a piece of sand from the top layer
-        // let smallestKey = this.staticSandPixels.keys().sort()[0];
-        // let layer = this.staticSandPixels.get(smallestKey);
         let smallestKey = this.staticSandPixels.keys().reduce((a, b) => Math.min(a, b), Infinity);
         if (smallestKey == Infinity) {
             // Time is up!
+            if (this.timesUpCallback) {
+                this.timesUpCallback();
+                this.timesUpCallback = null;
+            }
+            this.queuedSandPixels = [];
             return;
         }
         let layer = this.staticSandPixels.get(smallestKey);

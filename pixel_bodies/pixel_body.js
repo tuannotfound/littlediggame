@@ -57,6 +57,16 @@ export default class PixelBody {
         this.updateSurface();
     }
 
+    destroy() {
+        this.layer.destroy();
+        this.layer = null;
+        this.pixels = [];
+        this.pixelPositions.clear();
+        this.surfacePixels = [];
+        this.upgrades = null;
+        this.needsUpdate = false;
+    }
+
     update() {
         for (const pixel of this.pixels) {
             if (pixel.needsUpdate) {

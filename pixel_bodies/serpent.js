@@ -6,6 +6,7 @@ import Pixel from "../diggables/pixel.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
+    static CLASS_NAME = "Serpent";
     static MAX_SIZE = 10;
     static MIN_SIZE = 1;
     static BORDER_BUFFER_PIXELS = 2;
@@ -18,12 +19,15 @@ export default class Serpent extends PixelBody {
         // janky movement.
         speed = 1 / 2
     ) {
-        super("Serpent", width, height, true);
+        super(Serpent.CLASS_NAME, width, height, true);
         this.segmentCount = 0;
         this.position = new Vector(width / 2, height / 2);
         this.position.round();
         this.direction = initialDirection;
         this.speed = speed;
+        // Whether the serpent is allowed to exit the boundaries of the screen.
+        this.loose = false;
+        this.serpentLooseCallback = null;
         this.segments = [];
     }
 
@@ -49,6 +53,7 @@ export default class Serpent extends PixelBody {
         return serpent;
     }
 
+    // Override
     toJSON() {
         let json = super.toJSON();
         json.segments = [];
@@ -61,6 +66,7 @@ export default class Serpent extends PixelBody {
         return json;
     }
 
+    // Override
     init(upgrades, segmentCount) {
         // Only need to set segment count if we haven't been loaded from save data.
         if (this.segments.length <= 0) {
@@ -71,6 +77,7 @@ export default class Serpent extends PixelBody {
         super.init(upgrades);
     }
 
+    // Override
     createInitialPixels() {
         if (this.segments.length > 0) {
             console.error(
@@ -116,7 +123,6 @@ export default class Serpent extends PixelBody {
 
     onResize(newSize) {
         this.layer.onResize(newSize);
-        // This is insufficient and the position needs to be accounted for somehow.
         for (const segment of this.segments) {
             segment.bounds = new Vector(this.layer.width, this.layer.height);
 
@@ -126,11 +132,37 @@ export default class Serpent extends PixelBody {
         }
     }
 
+    // Override
     update() {
+        let allSegmentsOutsideBounds = true;
         for (const segment of this.segments) {
             this.needsUpdate = segment.update() || this.needsUpdate;
+            if (!segment.isEntirelyOutsideBounds()) {
+                allSegmentsOutsideBounds = false;
+            }
+        }
+        if (this.loose && allSegmentsOutsideBounds) {
+            this.serpentLooseCallback();
         }
         super.update();
+    }
+
+    destroy() {
+        for (const segment of this.segments) {
+            segment.destroy();
+        }
+        this.segments = [];
+        this.segmentCount = 0;
+        super.destroy();
+    }
+
+    // When the callback is executed, the serpent will be automatically destroyed.
+    letLoose(serpentLooseCallback) {
+        this.serpentLooseCallback = serpentLooseCallback;
+        this.loose = true;
+        for (const segment of this.segments) {
+            segment.loose = true;
+        }
     }
 
     // Override
@@ -188,7 +220,7 @@ export default class Serpent extends PixelBody {
 
     // Override
     get renderBufferPct() {
-        return 0.05;
+        return 0;
     }
 }
 
@@ -218,6 +250,8 @@ class Segment {
         this.upgrades = upgrades;
         this.foreSegment = null;
         this.aftSegment = null;
+
+        this.loose = false;
 
         this.pixels = [];
         this.surfacePixels = [];
@@ -261,6 +295,17 @@ class Segment {
 
     init() {
         this.generatePixels();
+    }
+
+    destroy() {
+        this.pixels = [];
+        this.surfacePixels = [];
+        this.serpent = null;
+        this.foreSegment = null;
+        this.aftSegment = null;
+        this.upgrades = null;
+        this.history = [];
+        this.historySize = 0;
     }
 
     generatePixels() {
@@ -312,63 +357,25 @@ class Segment {
         return true;
     }
 
+    isEntirelyOutsideBounds() {
+        const halfSize = Math.floor(this.size / 2);
+        const extraMargin = this.loose ? new Vector() : Vector.mult(this.bounds, 0.25);
+        return (
+            this.position.x + halfSize < -extraMargin.x ||
+            this.position.x - halfSize >= this.bounds.x + extraMargin.x ||
+            this.position.y + halfSize < -extraMargin.y ||
+            this.position.y - halfSize >= this.bounds.y + extraMargin.y
+        );
+    }
+
     isWithinBounds(position) {
         const halfSize = Math.floor(this.size / 2);
-        if (
-            position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
-            position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS ||
-            position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS ||
-            position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
-        ) {
-            if (window.DEBUG) {
-                if (position.x - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
-                    console.log(
-                        "Not within bounds because " +
-                            position.x +
-                            " - " +
-                            halfSize +
-                            " < " +
-                            Serpent.BORDER_BUFFER_PIXELS
-                    );
-                }
-                if (position.x + halfSize >= this.bounds.x - Serpent.BORDER_BUFFER_PIXELS) {
-                    console.log(
-                        "Not within bounds because " +
-                            position.x +
-                            " + " +
-                            halfSize +
-                            " >= " +
-                            this.bounds.x +
-                            " - " +
-                            Serpent.BORDER_BUFFER_PIXELS
-                    );
-                }
-                if (position.y - halfSize < Serpent.BORDER_BUFFER_PIXELS) {
-                    console.log(
-                        "Not within bounds because " +
-                            position.y +
-                            " - " +
-                            halfSize +
-                            " < " +
-                            Serpent.BORDER_BUFFER_PIXELS
-                    );
-                }
-                if (position.y + halfSize >= this.bounds.y - Serpent.BORDER_BUFFER_PIXELS) {
-                    console.log(
-                        "Not within bounds because " +
-                            position.y +
-                            " + " +
-                            halfSize +
-                            " >= " +
-                            this.bounds.y +
-                            " - " +
-                            Serpent.BORDER_BUFFER_PIXELS
-                    );
-                }
-            }
-            return false;
-        }
-        return true;
+        return (
+            position.x - halfSize >= Serpent.BORDER_BUFFER_PIXELS &&
+            position.x + halfSize < this.bounds.x - Serpent.BORDER_BUFFER_PIXELS &&
+            position.y - halfSize >= Serpent.BORDER_BUFFER_PIXELS &&
+            position.y + halfSize < this.bounds.y - Serpent.BORDER_BUFFER_PIXELS
+        );
     }
 
     moveWithinBounds() {
@@ -388,6 +395,9 @@ class Segment {
     }
 
     canMoveForward() {
+        if (this.loose) {
+            return true;
+        }
         let nextRenderPosition = Vector.add(this.position, Vector.mult(this.direction, this.speed));
         nextRenderPosition.round();
         return this.isWithinBounds(nextRenderPosition);
@@ -402,14 +412,16 @@ class Segment {
         if (!this.foreSegment) {
             // We're a head segment, decide if we're going to turn.
             let forcedToTurn = !this.canMoveForward();
-            let turnThreshold = MathExtras.scaleBetween(
-                this.renderPositionChangesSinceLastTurn,
-                0,
-                Math.min(this.bounds.x, this.bounds.y),
-                0,
-                this.MAX_TURN_CHANCE_PCT
-            );
-            if (forcedToTurn || 100 * Math.random() < turnThreshold) {
+            let turnChance = this.loose
+                ? 0 // A loose serpent never turns.
+                : MathExtras.scaleBetween(
+                      this.renderPositionChangesSinceLastTurn,
+                      0,
+                      Math.min(this.bounds.x, this.bounds.y),
+                      0,
+                      this.MAX_TURN_CHANCE_PCT
+                  );
+            if (forcedToTurn || 100 * Math.random() < turnChance) {
                 this.direction = new Vector(this.direction.y, this.direction.x);
                 if (!this.canMoveForward() || Math.random() > 0.5) {
                     // If we can't proceed in this new direction (e.g. right) then go in the

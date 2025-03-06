@@ -13,7 +13,7 @@ class SandPixel {
 }
 
 class PhysicsSandPixel extends SandPixel {
-    static UNMOVED_FRAMES_BEFORE_INACTIVE = 5;
+    static UNMOVED_FRAMES_BEFORE_INACTIVE = 10;
     constructor(x, y, xMin, xMax, yMax) {
         super(x, y);
         this.xMin = xMin;
@@ -28,23 +28,23 @@ class PhysicsSandPixel extends SandPixel {
         this.slipped = false;
 
         this.gravity = new Vector(0, 0.1);
+
+        this.unmovedFrameCount = 0;
+        this.active = true;
     }
 
     update(deltaTimeMs, othersMap) {
+        if (!this.active) {
+            return;
+        }
         //let deltaTime = deltaTimeMs / 1000;
         let velocity = Vector.sub(this.position, this.prevPosition);
         if (this.slipped) {
             // Slip friction;
             this.slipped = false;
-            //velocity.x *= 0.1;
             velocity.x = 0;
             velocity.y *= 0.25;
         }
-        // Friction
-        // velocity.mult(0.75);
-        // if (velocity.mag() < 0.01) {
-        //     velocity.set(0, 0);
-        // }
         this.prevPosition.set(this.position);
         this.prevRenderPosition.set(this.renderPosition);
 
@@ -85,6 +85,14 @@ class PhysicsSandPixel extends SandPixel {
                     break;
                 }
             }
+        }
+        if (this.renderPosition.equals(newRenderPosition)) {
+            this.unmovedFrameCount++;
+            if (this.unmovedFrameCount >= PhysicsSandPixel.UNMOVED_FRAMES_BEFORE_INACTIVE) {
+                this.active = false;
+            }
+        } else {
+            this.unmovedFrameCount = 0;
         }
         this.renderPosition.set(newRenderPosition);
         this.position.set(newPosition);
@@ -259,22 +267,25 @@ export default class Hourglass {
                 this.physicsSandPixels.set(this.centerKey, this.queuedSandPixels.shift());
             }
         }
-        let updatedPhysicsSandPixels = new Map(this.physicsSandPixels);
-        let updateCount = 0;
-        for (let physicsPixel of this.physicsSandPixels.values()) {
-            // if (!physicsPixel.active) {
-            //     continue;
-            // }
-            physicsPixel.update(elapsedMs, updatedPhysicsSandPixels);
-            if (!Vector.equals(physicsPixel.renderPosition, physicsPixel.prevRenderPosition)) {
-                updatedPhysicsSandPixels.delete(physicsPixel.prevRenderPosition.toString());
-                updatedPhysicsSandPixels.set(physicsPixel.renderPosition.toString(), physicsPixel);
-                updateCount++;
+        // Skip this entire block if there are no active physics sand pixels.
+        if (this.physicsSandPixels.values().some((pixel) => pixel.active)) {
+            let updatedPhysicsSandPixels = new Map(this.physicsSandPixels);
+            let updateCount = 0;
+            for (let physicsPixel of this.physicsSandPixels.values()) {
+                physicsPixel.update(elapsedMs, updatedPhysicsSandPixels);
+                if (!Vector.equals(physicsPixel.renderPosition, physicsPixel.prevRenderPosition)) {
+                    updatedPhysicsSandPixels.delete(physicsPixel.prevRenderPosition.toString());
+                    updatedPhysicsSandPixels.set(
+                        physicsPixel.renderPosition.toString(),
+                        physicsPixel
+                    );
+                    updateCount++;
+                }
             }
-        }
-        if (updateCount > 0) {
-            this.physicsSandPixels = updatedPhysicsSandPixels;
-            this.updateRenderData();
+            if (updateCount > 0) {
+                this.physicsSandPixels = updatedPhysicsSandPixels;
+                this.updateRenderData();
+            }
         }
     }
 

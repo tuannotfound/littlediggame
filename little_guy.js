@@ -358,6 +358,11 @@ export default class LittleGuy {
         }
     }
 
+    setInactive() {
+        this.active = false;
+        this.notifyInactive();
+    }
+
     update() {
         if (!this.active) {
             return;
@@ -369,8 +374,7 @@ export default class LittleGuy {
             } else if (!this.deathByEgg) {
                 this.bury();
             } else if (this.framesSinceDeath >= LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE) {
-                this.active = false;
-                this.notifyInactive();
+                this.setInactive();
             }
             this.updateRenderData();
             return;
@@ -439,8 +443,7 @@ export default class LittleGuy {
             this.pixelBody.updateSurface();
         }
 
-        this.active = false;
-        this.notifyInactive();
+        this.setInactive();
     }
 
     ascend() {
@@ -461,8 +464,7 @@ export default class LittleGuy {
         this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
         this.ascentionProgressPct += 1;
         if (this.ascentionProgressPct >= 100 || this.distToCenter < 0.2) {
-            this.active = false;
-            this.notifyInactive();
+            this.setInactive();
         }
     }
 

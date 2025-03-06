@@ -15,6 +15,7 @@ import Particles from "./particles.js";
 import Color from "./color.js";
 import Serpent from "./pixel_bodies/serpent.js";
 import Hourglass from "./hourglass.js";
+import GameState from "./game_state.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -42,8 +43,8 @@ export default class Game {
         this.upgrades = upgrades ? upgrades : new Upgrades();
         if (pixelBodies == null) {
             this.pixelBodies = [];
-            this.pixelBodies.push(new CircularPlanet(8));
-            this.pixelBodies.push(new SwissPlanet(15));
+            this.pixelBodies.push(new CircularPlanet(7));
+            this.pixelBodies.push(new SwissPlanet(13));
             this.pixelBodies.push(new SpikyPlanet(22));
             this.pixelBodies.push(new EggPlanet(35));
             this.pixelBodies.push(new Serpent(140, 84));
@@ -107,11 +108,9 @@ export default class Game {
         console.log("Appending stats panel");
         document.body.appendChild(this.stats.dom);
 
-        this.paused = true;
+        this.gameState = GameState.UNINITIALIZED;
         this.lastSaved = -this.MIN_SAVE_INTERVAL_MS;
         this.autoSaveTimeout = null;
-
-        this.initialized = false;
     }
 
     toJSON() {
@@ -204,7 +203,7 @@ export default class Game {
         this.initUi();
         this.initHandlers();
 
-        this.initialized = true;
+        this.gameState = GameState.PAUSED;
         this.setPaused(false);
     }
 
@@ -300,14 +299,14 @@ export default class Game {
             return 1;
         }
 
-        // Add some buffer around the pixel body w/ 0.8
+        // Add some buffer around the pixel body to ensure we don't cut off the edges.
         let widthMaxZoom = Math.round(
             ((1 - pixelBody.renderBufferPct) * width) / pixelBody.layer.width
         );
         let heightMaxZoom = Math.round(
             ((1 - pixelBody.renderBufferPct) * height) / pixelBody.layer.height
         );
-        // Limit ourselves by the smallest max zoom
+        // Limit ourselves by the smallest max zoom.
         return Math.round(Math.min(widthMaxZoom, heightMaxZoom));
     }
 
@@ -374,7 +373,11 @@ export default class Game {
     }
 
     maybeSave() {
-        if (!this.initialized) {
+        if (this.gameState == GameState.UNINITIALIZED) {
+            return;
+        }
+        if (this.pixelBodies.length <= 1) {
+            // Don't save if we're on the final level or the game is over
             return;
         }
         let now = performance.now();
@@ -389,7 +392,7 @@ export default class Game {
             this.autoSaveTimeout = setTimeout(() => this.maybeSave(), remainingTime);
             return;
         }
-        if (!this.autoSaveTimeout && !this.paused) {
+        if (!this.autoSaveTimeout && this.gameState === GameState.RUNNING) {
             this.autoSaveTimeout = setTimeout(() => this.maybeSave(), this.AUTO_SAVE_INTERVAL_MS);
         }
     }
@@ -555,7 +558,20 @@ export default class Game {
     }
 
     goToNextPixelBody() {
-        this.pixelBodies.shift();
+        let previousPixelBody = this.pixelBodies.shift();
+        if (previousPixelBody) {
+            previousPixelBody.destroy();
+        }
+        for (const littleGuy of [...this.littleGuys]) {
+            littleGuy.setInactive();
+        }
+        if (this.littleGuys.length > 0) {
+            console.error(
+                "Somehow there are still little guys after the pixel body has been destroyed."
+            );
+            // Hopefully this won't cause problems...
+            this.littleGuys = [];
+        }
         if (this.pixelBodies.length == 0 || this.activePixelBody == null) {
             return false;
         }
@@ -569,6 +585,10 @@ export default class Game {
             document.getElementById("serpent_icon").classList.remove("hidden");
             // Initialize the hourglass
             this.hourglass.init(this.finalLevelLost.bind(this));
+            // Save once and then prevent further saving.
+            this.maybeSave();
+            let saveGameBtn = document.getElementById("save_game");
+            saveGameBtn.setAttribute("disabled", "");
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.
@@ -597,7 +617,6 @@ export default class Game {
         }
     }
 
-    // Serpent will be destroyed when this exits.
     onSerpentLoose() {
         // There is no next pixel body, so it will be null after this.
         this.goToNextPixelBody();
@@ -605,7 +624,7 @@ export default class Game {
     }
 
     endGame(win) {
-        this.setPaused(true);
+        this.gameState = win ? GameState.WON : GameState.LOST;
         console.log("GAME OVER");
     }
 
@@ -818,11 +837,14 @@ export default class Game {
     }
 
     setPaused(paused) {
-        if (this.paused == paused) {
+        if (this.gameState == GameState.UNINITIALIZED || GameState.isOver(this.gameState)) {
             return;
         }
-        this.paused = paused;
-        if (!this.paused) {
+        if (GameState.isPaused(this.gameState) == paused) {
+            return;
+        }
+        this.gameState = paused ? GameState.PAUSED : GameState.RUNNING;
+        if (!paused) {
             this.then = window.performance.now();
             this.tick(this.then);
         }
@@ -837,7 +859,7 @@ export default class Game {
     }
 
     tick(newtime) {
-        if (this.paused || !this.layer.canvas) {
+        if (GameState.isPaused(this.gameState) || !this.layer.canvas) {
             return;
         }
 
@@ -917,17 +939,20 @@ export default class Game {
         let pixelBody = this.activePixelBody;
         if (pixelBody) {
             pixelBody.update(elapsedMs);
-            this.layer.getContext().drawImage(
-                pixelBody.layer.canvas,
-                0, // source x
-                0, // source y
-                pixelBody.layer.width, // source width
-                pixelBody.layer.height, // source height
-                this.activePixelBodyPosition.x, // destination x
-                this.activePixelBodyPosition.y, // destination y
-                pixelBody.layer.width * this.zoomLevel, // destination width
-                pixelBody.layer.height * this.zoomLevel // destination height
-            );
+            // Update may result in the destruction of the pixel body, so check here as well.
+            if (pixelBody.layer) {
+                this.layer.getContext().drawImage(
+                    pixelBody.layer.canvas,
+                    0, // source x
+                    0, // source y
+                    pixelBody.layer.width, // source width
+                    pixelBody.layer.height, // source height
+                    this.activePixelBodyPosition.x, // destination x
+                    this.activePixelBodyPosition.y, // destination y
+                    pixelBody.layer.width * this.zoomLevel, // destination width
+                    pixelBody.layer.height * this.zoomLevel // destination height
+                );
+            }
         }
 
         // Little guys

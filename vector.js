@@ -146,6 +146,12 @@ Vector.prototype = {
     toString: function () {
         return "[" + this.x + ", " + this.y + "]";
     },
+    equals: function (v) {
+        if (v == null) {
+            return false;
+        }
+        return this.x === v.x && this.y === v.y;
+    },
     project: function (v) {
         var coeff = (this.x * v.x + this.y * v.y) / (v.x * v.x + v.y * v.y);
         this.x = coeff * v.x;

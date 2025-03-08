@@ -1,8 +1,13 @@
 import CircularPlanet from "./circular_planet.js";
 import MathExtras from "../math_extras.js";
 import Vector from "../vector.js";
+import Pixel from "../diggables/pixel.js";
 
 export default class SwissPlanet extends CircularPlanet {
+    getDirtVariant() {
+        return Pixel.GOOP_DIRT;
+    }
+
     createInitialPixels() {
         super.createInitialPixels();
         this.swissify();

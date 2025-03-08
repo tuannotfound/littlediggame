@@ -2,6 +2,7 @@ import Vector from "../vector.js";
 import Layer from "../layer.js";
 import PixelType from "../diggables/pixel_type.js";
 import PixelFactory from "../diggables/pixel_factory.js";
+import Pixel from "../diggables/pixel.js";
 
 // Base class for things that are composed of diggable pixels.
 export default class PixelBody {
@@ -43,6 +44,7 @@ export default class PixelBody {
         this.upgrades = upgrades;
         this.layer.initOffscreen();
 
+        Pixel.setDirtType(this.getDirtVariant());
         if (this.pixels.length == 0) {
             this.createInitialPixels();
         }
@@ -65,6 +67,10 @@ export default class PixelBody {
         this.surfacePixels = [];
         this.upgrades = null;
         this.needsUpdate = false;
+    }
+
+    getDirtVariant() {
+        return Pixel.DIRT;
     }
 
     update() {

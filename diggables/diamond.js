@@ -1,9 +1,9 @@
 import Color from "../color.js";
 import Pixel from "./pixel.js";
 import PixelType from "./pixel_type.js";
+import Constants from "./constants.js";
 
 export default class Diamond extends Pixel {
-    static COLOR = new Color(130, 192, 207).immutableCopy();
     static SURFACE_COLOR = new Color(155, 232, 250).immutableCopy();
     static SHIMMER_COLOR = new Color(200, 250, 254).immutableCopy();
     static DARKNESS_HIDE_THRESHOLD = 0.15;
@@ -16,7 +16,7 @@ export default class Diamond extends Pixel {
     constructor(position, upgrades) {
         super(position, upgrades, PixelType.DIAMOND, Diamond.HEALTH);
 
-        this.color = Diamond.COLOR.copy();
+        this.color = Constants.DIAMOND_COLOR.copy();
         this.surfaceColor = Diamond.SURFACE_COLOR.copy();
 
         this.shimmeringFrames = 0;

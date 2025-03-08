@@ -11,6 +11,28 @@ export default class Pixel {
     // of 1 means any amount of damage gets shown immediately.
     static HEALTH_VISUAL_PCT_INTERVAL = 1;
 
+    static DIRT = {
+        name: "dirt",
+        color: Constants.DIRT_COLOR,
+        surfaceColor: Constants.DIRT_SURFACE_COLOR,
+    };
+    static ICE_DIRT = {
+        name: "ice",
+        color: Constants.ICE_DIRT_COLOR,
+        surfaceColor: Constants.ICE_DIRT_SURFACE_COLOR,
+    };
+    static GOOP_DIRT = {
+        name: "goop",
+        color: Constants.GOOP_DIRT_COLOR,
+        surfaceColor: Constants.GOOP_DIRT_SURFACE_COLOR,
+    };
+    // Default to regular dirt.
+    static ACTIVE_DIRT_TYPE = Pixel.DIRT;
+
+    static setDirtType(dirtType) {
+        Pixel.ACTIVE_DIRT_TYPE = dirtType;
+    }
+
     constructor(position, upgrades, type, initialHealth, initialAlpha = 255) {
         this.position = position.copy();
         this.position.round();
@@ -55,6 +77,14 @@ export default class Pixel {
         return pixel;
     }
 
+    getDirtColor() {
+        return Pixel.ACTIVE_DIRT_TYPE.color;
+    }
+
+    getDirtSurfaceColor() {
+        return Pixel.ACTIVE_DIRT_TYPE.surfaceColor;
+    }
+
     actLikeDirt() {
         throw Exception("Must be implemented by child class");
     }
@@ -64,7 +94,7 @@ export default class Pixel {
             return this.bloodiedColor;
         }
         if (this.actLikeDirt()) {
-            return this.isSurface ? Constants.DIRT_SURFACE_COLOR : Constants.DIRT_COLOR;
+            return this.isSurface ? this.getDirtSurfaceColor() : this.getDirtColor();
         }
         return this.isSurface ? this.surfaceColor : this.color;
     }

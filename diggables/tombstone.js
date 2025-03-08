@@ -1,9 +1,9 @@
 import Color from "../color.js";
 import Pixel from "./pixel.js";
 import PixelType from "./pixel_type.js";
+import Constants from "./constants.js";
 
 export default class Tombstone extends Pixel {
-    static COLOR = new Color(170, 170, 170).immutableCopy();
     static COLOR_VARIABILITY = 5;
     static DARKNESS_HIDE_THRESHOLD = 0.15;
 
@@ -12,7 +12,7 @@ export default class Tombstone extends Pixel {
     constructor(position, upgrades) {
         super(position, upgrades, PixelType.TOMBSTONE, Tombstone.HEALTH);
 
-        this.color = Color.wiggle(Tombstone.COLOR, Tombstone.COLOR_VARIABILITY);
+        this.color = Color.wiggle(Constants.TOMBSTONE_COLOR, Tombstone.COLOR_VARIABILITY);
         this.surfaceColor = this.color.copy();
     }
 

@@ -1,4 +1,5 @@
 import CircularPlanet from "./circular_planet.js";
+import Pixel from "../diggables/pixel.js";
 
 // Doesn't really work well with a radius < 20 or so.
 export default class SpikyPlanet extends CircularPlanet {
@@ -9,5 +10,9 @@ export default class SpikyPlanet extends CircularPlanet {
             CircularPlanet.MAX_RADIUS_DELTA_PER_STEP_FACTOR * 20
         );
         this.circumferenceBeforeMatchup = 2 * Math.PI;
+    }
+
+    getDirtVariant() {
+        return Pixel.ICE_DIRT;
     }
 }

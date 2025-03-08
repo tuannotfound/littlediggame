@@ -9,8 +9,8 @@ export default class Dirt extends Pixel {
     constructor(position, upgrades) {
         super(position, upgrades, PixelType.DIRT, Constants.DIRT_INITIAL_HEALTH);
 
-        this.color = Color.wiggle(Constants.DIRT_COLOR, Dirt.COLOR_VARIABILITY);
-        this.surfaceColor = Color.wiggle(Constants.DIRT_SURFACE_COLOR, Dirt.COLOR_VARIABILITY);
+        this.color = Color.wiggle(this.getDirtColor(), Dirt.COLOR_VARIABILITY);
+        this.surfaceColor = Color.wiggle(this.getDirtSurfaceColor(), Dirt.COLOR_VARIABILITY);
     }
 
     actLikeDirt() {

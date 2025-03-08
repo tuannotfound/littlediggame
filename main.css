@@ -243,34 +243,6 @@ li:before {
     margin-left: -0.4rem;
 }
 
-span.dirt {
-    color: rgb(133, 84, 5);
-}
-
-span.grass {
-    color: rgb(60, 180, 90);
-}
-
-span.tombstone {
-    color: rgb(170, 170, 170);
-}
-
-span.gold {
-    color: rgb(240, 190, 26);
-}
-
-span.diamond {
-    color: rgb(155, 232, 250);
-}
-
-span.egg {
-    color: rgb(247, 246, 230);
-}
-
-span.serpent {
-    color: rgb(160, 90, 184);
-}
-
 .pulsing {
     animation: 0.5s ease-in-out 4 alternate pulse;
 }

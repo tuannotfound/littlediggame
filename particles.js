@@ -4,7 +4,7 @@ import Vector from "./vector.js";
 import Color from "./color.js";
 import Gradient from "./gradient.js";
 import MathExtras from "./math_extras.js";
-import Gold from "./diggables/gold.js";
+import { default as PixelConstants } from "./diggables/constants.js";
 
 export default class Particles {
     constructor(width, height) {
@@ -54,7 +54,7 @@ export default class Particles {
     }
 
     bloodEffect(position) {
-        let count = 25 * (Math.random() + 1);
+        let count = MathExtras.randomBetween(12, 18);
         let minInitialVelocity = new Vector(-0.4, -0.6);
         let maxInitialVelocity = new Vector(0.4, -0.2);
         for (let i = 0; i < count; i++) {
@@ -68,7 +68,7 @@ export default class Particles {
     }
 
     fireEffect(position) {
-        let count = MathExtras.scaleBetween(Math.random(), 0, 1, 15, 20);
+        let count = MathExtras.randomBetween(15, 20);
         let smokeCount = Math.round(count * 0.4);
         let smokeGradient = new Gradient(new Color(190, 190, 190, 150), new Color(40, 40, 40, 200));
         let fireCount = count - smokeCount;
@@ -85,7 +85,7 @@ export default class Particles {
             }
             setTimeout(() => {
                 // Causes the fire to shift left/right over time
-                let xShift = Math.floor(MathExtras.scaleBetween(Math.random(), 0, 1, 0, 3)) - 1;
+                let xShift = Math.floor(MathExtras.randomBetween(0, 3)) - 1;
                 for (let j = 0; j < 2; j++) {
                     let particlePosition = position.copy();
                     particlePosition.x += j - 1 + xShift;
@@ -114,7 +114,11 @@ export default class Particles {
         let count = MathExtras.clamp(value / 50, 1, 10);
         for (let i = 0; i < count; i++) {
             setTimeout(() => {
-                let particle = new Particle(position, Gold.COLOR, new Vector(0, -0.8));
+                let particle = new Particle(
+                    position,
+                    PixelConstants.GOLD_COLOR,
+                    new Vector(0, -0.8)
+                );
                 particle.fadeSpeed = 10;
                 this.particles.push(particle);
             }, i * 100);

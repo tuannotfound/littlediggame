@@ -10,12 +10,14 @@ import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
 import UpgradesUi from "./upgrades_ui2.js";
+import Pixel from "./diggables/pixel.js";
 import PixelType from "./diggables/pixel_type.js";
 import Particles from "./particles.js";
 import Color from "./color.js";
 import Serpent from "./pixel_bodies/serpent.js";
 import Hourglass from "./hourglass.js";
 import GameState from "./game_state.js";
+import { default as PixelConstants } from "./diggables/constants.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -29,7 +31,7 @@ export default class Game {
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
     ZOOM_DURATION_MS = 1000 * 2;
-    FINAL_LEVEL_DURATION_MINUTES = 0.2;
+    FINAL_LEVEL_DURATION_MINUTES = 3;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -127,11 +129,18 @@ export default class Game {
             knowsDeath: this.knowsDeath,
             knowsDirt: this.knowsDirt,
             knowsEggDeath: this.knowsEggDeath,
+            activeDirtType: Pixel.ACTIVE_DIRT_TYPE.name,
         };
     }
 
     static fromJSON(json) {
         let upgrades = Upgrades.fromJSON(json.upgrades);
+        Pixel.ACTIVE_DIRT_TYPE = PixelType.DIRT;
+        if (json.activeDirtType == PixelType.ICE_DIRT.name) {
+            Pixel.ACTIVE_DIRT_TYPE = PixelType.ICE_DIRT;
+        } else if (json.activeDirtType == PixelType.GOOP_DIRT.name) {
+            Pixel.ACTIVE_DIRT_TYPE = PixelType.GOOP_DIRT;
+        }
         let pixelBodies = [];
         for (let pixelBodyJson of json.pixelBodies) {
             if (pixelBodyJson.className == "CircularPlanet") {
@@ -271,6 +280,18 @@ export default class Game {
         this.digsPerDeathElement = document.getElementById("digs_per_death");
         this.updateDigsPerDeath();
 
+        document.querySelector("span.dirt").style.color =
+            Pixel.ACTIVE_DIRT_TYPE.color.asCssString();
+        document.querySelector("span.dirt_surface").style.color =
+            Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
+        document.querySelector("span.tombstone").style.color =
+            PixelConstants.TOMBSTONE_COLOR.asCssString();
+        document.querySelector("span.gold").style.color = PixelConstants.GOLD_COLOR.asCssString();
+        document.querySelector("span.diamond").style.color =
+            PixelConstants.DIAMOND_COLOR.asCssString();
+        document.querySelector("span.egg").style.color = PixelConstants.EGG_COLOR.asCssString();
+        document.querySelector("span.serpent").style.color =
+            PixelConstants.SERPENT_COLOR.asCssString();
         this.updateLegend();
 
         for (let i = 0; i < 4; i++) {
@@ -594,6 +615,10 @@ export default class Game {
             // so just have the planet come into view as if we're zooming towards it instead.
             // Just don't do this for the serpent since it's supposed to emerge from an egg.
             this.zoomLevel = 1;
+            document.querySelector("span.dirt").style.color =
+                Pixel.ACTIVE_DIRT_TYPE.color.asCssString();
+            document.querySelector("span.dirt_surface").style.color =
+                Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
         }
         this.zoomLevelSrc = this.zoomLevel;
         this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
@@ -613,7 +638,7 @@ export default class Game {
         // Kill all little guys
         this.blood = true;
         for (const littleGuy of this.littleGuys) {
-            setTimeout(() => littleGuy.die(), MathExtras.randomBetween(0, 1000));
+            setTimeout(() => littleGuy.die(), MathExtras.randomBetween(0, 2000));
         }
     }
 
@@ -787,7 +812,7 @@ export default class Game {
         if (!this.blood) {
             return;
         }
-        let radius = Math.floor(2 * (Math.random() + 1));
+        let radius = MathExtras.randomBetween(2, 4);
         this.particles.bloodEffect(this.pixelBodyToParticleSpace(center));
         if (!this.activePixelBody) {
             return;

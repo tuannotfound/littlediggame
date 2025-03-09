@@ -63,7 +63,7 @@ export default class Color {
     }
 
     static clampValue(value) {
-        return MathExtras.clamp(value, 0, 255);
+        return MathExtras.clamp(Math.round(value), 0, 255);
     }
 
     static clamp(color) {
@@ -84,5 +84,15 @@ export default class Color {
 
     static diff(c1, c2) {
         return new Color(c2.r - c1.r, c2.g - c1.g, c2.b - c1.b, c2.a - c1.a);
+    }
+
+    static lerp(color1, color2, factor) {
+        let result = new Color();
+        result.r = color1.r + factor * (color2.r - color1.r);
+        result.g = color1.g + factor * (color2.g - color1.g);
+        result.b = color1.b + factor * (color2.b - color1.b);
+        result.a = color1.a + factor * (color2.a - color1.a);
+        result.clamp();
+        return result;
     }
 }

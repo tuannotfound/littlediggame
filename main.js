@@ -88,6 +88,8 @@ document.onreadystatechange = function () {
         function updateUiVisibility() {
             if (game) {
                 overlay.classList.remove("hidden");
+                document.getElementById("legend").classList.remove("hidden");
+                document.getElementById("info_container").classList.remove("dark");
                 // Upgrades container is hidden by default
             } else {
                 overlay.classList.add("hidden");

@@ -17,6 +17,7 @@ import Color from "./color.js";
 import Serpent from "./pixel_bodies/serpent.js";
 import Hourglass from "./hourglass.js";
 import GameState from "./game_state.js";
+import Sky from "./sky.js";
 import { default as PixelConstants } from "./diggables/constants.js";
 
 export default class Game {
@@ -42,6 +43,7 @@ export default class Game {
         this.zoomElapsedMs = 0;
         this.bounds = new Vector();
         this.layer = null;
+        this.sky = new Sky();
         this.upgrades = upgrades ? upgrades : new Upgrades();
         if (pixelBodies == null) {
             this.pixelBodies = [];
@@ -124,6 +126,7 @@ export default class Game {
             // Do we actually need this?
             activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
+            sky: this.sky,
             spawningAllowed: this.spawningAllowed,
             aspis: this.aspis,
             knowsDeath: this.knowsDeath,
@@ -170,6 +173,7 @@ export default class Game {
                 game.littleGuys.push(littleGuy);
             }
         }
+        game.sky = Sky.fromJSON(json.sky);
         game.spawningAllowed = json.spawningAllowed;
         game.aspis = json.aspis;
         game.knowsDeath = json.knowsDeath;
@@ -197,6 +201,7 @@ export default class Game {
         if (this.activePixelBody) {
             this.activePixelBody.init(this.upgrades);
         }
+        this.sky.init();
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
         );
@@ -385,11 +390,11 @@ export default class Game {
     }
 
     updateParticlesZoom() {
+        let newSize = new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round();
         if (this.particles) {
-            this.particles.onResize(
-                new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round()
-            );
+            this.particles.onResize(newSize);
         }
+        this.sky.onResize(newSize);
     }
 
     maybeSave() {
@@ -609,6 +614,9 @@ export default class Game {
             this.maybeSave();
             let saveGameBtn = document.getElementById("save_game");
             saveGameBtn.setAttribute("disabled", "");
+            // Hide the legend
+            document.getElementById("legend").classList.add("hidden");
+            document.getElementById("info_container").classList.add("dark");
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.
@@ -619,6 +627,7 @@ export default class Game {
             document.querySelector("span.dirt_surface").style.color =
                 Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
         }
+        this.sky.advance();
         this.zoomLevelSrc = this.zoomLevel;
         this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
 
@@ -942,6 +951,21 @@ export default class Game {
 
         this.layer.getContext().fillStyle = "white";
         this.layer.getContext().fillRect(0, 0, this.width, this.height);
+
+        this.sky.update();
+        this.layer.getContext().drawImage(
+            this.sky.layer.canvas,
+            0, // source x
+            0, // source y
+            this.sky.layer.width, // source width
+            this.sky.layer.height, // source height
+            // The sky layer shares the same size as the main canvas, so no need to
+            // translate.
+            (-this.sky.layer.width * this.zoomLevel) / 4, // destination x
+            0, // destination y
+            this.sky.layer.width * this.zoomLevel, // destination width
+            this.sky.layer.height * this.zoomLevel // destination height
+        );
 
         // Hourglass
         if (this.hourglass.initialized) {

@@ -99,6 +99,23 @@ input[type="checkbox"] {
     align-self: start;
     grid-row: 1;
     margin: 5px;
+    color: black;
+}
+
+#info_container.dark {
+    animation: 30s alternate infinite info_container_text_animation;
+}
+
+@keyframes info_container_text_animation {
+    0% {
+        color: #a77ba5;
+    }
+    50% {
+        color: rgb(158, 252, 82);
+    }
+    100% {
+        color: #a77ba5;
+    }
 }
 
 #show_upgrades {

@@ -10,6 +10,12 @@ export default class SpikyPlanet extends CircularPlanet {
             CircularPlanet.MAX_RADIUS_DELTA_PER_STEP_FACTOR * 20
         );
         this.circumferenceBeforeMatchup = 2 * Math.PI;
+        this.className = "SpikyPlanet";
+    }
+
+    static fromJSON(json, upgrades) {
+        let planet = new SpikyPlanet(json.baseRadius);
+        return CircularPlanet.fromJSON(json, upgrades, planet);
     }
 
     getDirtVariant() {

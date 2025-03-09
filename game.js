@@ -129,22 +129,21 @@ export default class Game {
             knowsDeath: this.knowsDeath,
             knowsDirt: this.knowsDirt,
             knowsEggDeath: this.knowsEggDeath,
-            activeDirtType: Pixel.ACTIVE_DIRT_TYPE.name,
         };
     }
 
     static fromJSON(json) {
         let upgrades = Upgrades.fromJSON(json.upgrades);
-        Pixel.ACTIVE_DIRT_TYPE = PixelType.DIRT;
-        if (json.activeDirtType == PixelType.ICE_DIRT.name) {
-            Pixel.ACTIVE_DIRT_TYPE = PixelType.ICE_DIRT;
-        } else if (json.activeDirtType == PixelType.GOOP_DIRT.name) {
-            Pixel.ACTIVE_DIRT_TYPE = PixelType.GOOP_DIRT;
-        }
         let pixelBodies = [];
         for (let pixelBodyJson of json.pixelBodies) {
             if (pixelBodyJson.className == "CircularPlanet") {
+                // Covers both plain circular planets and egg planets (who both have the same dirt
+                // variant).
                 pixelBodies.push(CircularPlanet.fromJSON(pixelBodyJson, upgrades));
+            } else if (pixelBodyJson.className == "SwissPlanet") {
+                pixelBodies.push(SwissPlanet.fromJSON(pixelBodyJson, upgrades));
+            } else if (pixelBodyJson.className == "SpikyPlanet") {
+                pixelBodies.push(SpikyPlanet.fromJSON(pixelBodyJson, upgrades));
             } else if (pixelBodyJson.className == "Serpent") {
                 pixelBodies.push(Serpent.fromJSON(pixelBodyJson, upgrades));
             } else {

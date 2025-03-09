@@ -4,6 +4,16 @@ import Vector from "../vector.js";
 import Pixel from "../diggables/pixel.js";
 
 export default class SwissPlanet extends CircularPlanet {
+    constructor(radius) {
+        super(radius);
+        this.className = "SwissPlanet";
+    }
+
+    static fromJSON(json, upgrades) {
+        let planet = new SwissPlanet(json.baseRadius);
+        return CircularPlanet.fromJSON(json, upgrades, planet);
+    }
+
     getDirtVariant() {
         return Pixel.GOOP_DIRT;
     }

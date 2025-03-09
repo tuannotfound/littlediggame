@@ -126,7 +126,6 @@ export default class Game {
             // Do we actually need this?
             activePixelBodyPosition: this.activePixelBodyPosition,
             littleGuys: this.littleGuys,
-            sky: this.sky,
             spawningAllowed: this.spawningAllowed,
             aspis: this.aspis,
             knowsDeath: this.knowsDeath,
@@ -147,6 +146,8 @@ export default class Game {
                 pixelBodies.push(SwissPlanet.fromJSON(pixelBodyJson, upgrades));
             } else if (pixelBodyJson.className == "SpikyPlanet") {
                 pixelBodies.push(SpikyPlanet.fromJSON(pixelBodyJson, upgrades));
+            } else if (pixelBodyJson.className == "EggPlanet") {
+                pixelBodies.push(EggPlanet.fromJSON(pixelBodyJson, upgrades));
             } else if (pixelBodyJson.className == "Serpent") {
                 pixelBodies.push(Serpent.fromJSON(pixelBodyJson, upgrades));
             } else {
@@ -173,7 +174,6 @@ export default class Game {
                 game.littleGuys.push(littleGuy);
             }
         }
-        game.sky = Sky.fromJSON(json.sky);
         game.spawningAllowed = json.spawningAllowed;
         game.aspis = json.aspis;
         game.knowsDeath = json.knowsDeath;
@@ -200,6 +200,7 @@ export default class Game {
         this.updateParticlesZoom();
         if (this.activePixelBody) {
             this.activePixelBody.init(this.upgrades);
+            this.sky.setColors(this.activePixelBody.skyColors);
         }
         this.sky.init();
         console.log(
@@ -627,7 +628,7 @@ export default class Game {
             document.querySelector("span.dirt_surface").style.color =
                 Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
         }
-        this.sky.advance();
+        this.sky.setColors(this.activePixelBody.skyColors);
         this.zoomLevelSrc = this.zoomLevel;
         this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
 

@@ -1,6 +1,10 @@
 import PixelBody from "./pixel_body.js";
+import Color from "../color.js";
 
 export default class Planet extends PixelBody {
+    static SKY_TOP = new Color(237, 253, 255).immutableCopy();
+    static SKY_BOTTOM = new Color(212, 251, 255).immutableCopy();
+
     constructor(className, width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
@@ -16,6 +20,13 @@ export default class Planet extends PixelBody {
         let json = super.toJSON();
         json.radius = this.radius;
         return json;
+    }
+
+    get skyColors() {
+        return {
+            top: Planet.SKY_TOP,
+            bottom: Planet.SKY_BOTTOM,
+        };
     }
 
     updateSurface() {

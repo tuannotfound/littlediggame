@@ -2,14 +2,6 @@ import Color from "./color.js";
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 
-const BLUE_SKY_TOP = new Color(237, 253, 255).immutableCopy();
-const BLUE_SKY_BOTTOM = new Color(212, 251, 255).immutableCopy();
-const GREY_SKY_TOP = new Color(250, 250, 250).immutableCopy();
-const GREY_SKY_BOTTOM = new Color(212, 212, 212).immutableCopy();
-const GOOP_SKY_TOP = new Color(238, 219, 255).immutableCopy();
-const GOOP_SKY_BOTTOM = new Color(206, 255, 204).immutableCopy();
-const BLACK_SKY = new Color(0, 0, 0).immutableCopy();
-
 export default class Sky {
     static TRANSITION_DURATION_FRAMES = 120;
     static DEFAULT_BAND_HEIGHT_PX = 10;
@@ -17,29 +9,8 @@ export default class Sky {
     constructor() {
         this.size = new Vector();
         this.layer = new Layer(this.constructor.name, this.width, this.height);
-        this.colorIndex = 0;
-        this.colors = [
-            {
-                from: BLUE_SKY_TOP,
-                to: BLUE_SKY_BOTTOM,
-            },
-            {
-                from: GOOP_SKY_TOP,
-                to: GOOP_SKY_BOTTOM,
-            },
-            {
-                from: GREY_SKY_TOP,
-                to: GREY_SKY_BOTTOM,
-            },
-            {
-                from: BLUE_SKY_TOP,
-                to: BLUE_SKY_BOTTOM,
-            },
-            {
-                from: BLACK_SKY,
-                to: BLACK_SKY,
-            },
-        ];
+        this.colors = null;
+        this.prevColors = null;
         this.bandCount = 0;
         this.bandHeight = 0;
         this.transitionFrameCount = -1;
@@ -75,9 +46,13 @@ export default class Sky {
         this.updateRenderData();
     }
 
-    advance() {
+    setColors(colors) {
         this.transitionFrameCount = 0;
-        this.colorIndex = (this.colorIndex + 1) % this.colors.length;
+        this.prevColors = this.colors;
+        this.colors = colors;
+        if (this.prevColors == null) {
+            this.prevColors = colors;
+        }
         this.updateRenderData();
     }
 
@@ -97,15 +72,20 @@ export default class Sky {
         if (!this.layer.initialized) {
             return;
         }
+        if (this.colors == null) {
+            return;
+        }
         let ctx = this.layer.getContext();
-        let prevColors = this.colors[(this.colorIndex - 1) % this.colors.length];
         let transitionProgress = this.transitionFrameCount / Sky.TRANSITION_DURATION_FRAMES;
-        let colors = this.colors[this.colorIndex];
         for (let i = 0; i < this.bandCount; i++) {
             let factor = i / (this.bandCount - 1);
-            let color = Color.lerp(colors.from, colors.to, factor);
+            let color = Color.lerp(this.colors.top, this.colors.bottom, factor);
             if (transitionProgress >= 0) {
-                let prevColorAtBand = Color.lerp(prevColors.from, prevColors.to, factor);
+                let prevColorAtBand = Color.lerp(
+                    this.prevColors.top,
+                    this.prevColors.bottom,
+                    factor
+                );
                 color = Color.lerp(prevColorAtBand, color, transitionProgress);
             }
             ctx.fillStyle = color.asCssString();

@@ -69,6 +69,15 @@ export default class PixelBody {
         this.needsUpdate = false;
     }
 
+    get skyColors() {
+        // Should return an object like:
+        // {
+        //     top: Color,
+        //     bottom: Color,
+        // }
+        throw new Error("Getter for 'sky' must be implemented in derived classes.");
+    }
+
     getDirtVariant() {
         return Pixel.DIRT;
     }

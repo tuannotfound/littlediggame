@@ -69,6 +69,10 @@ export default class PixelBody {
         this.needsUpdate = false;
     }
 
+    onResize(newSize) {
+        // Optional for children to implement this to update their layer if needed.
+    }
+
     get skyColors() {
         // Should return an object like:
         // {

@@ -196,8 +196,8 @@ export default class Game {
             },
             () => this.aspis
         );
+        this.notifyResize();
         this.updateActivePixelBodyPosition();
-        this.updateParticlesZoom();
         if (this.activePixelBody) {
             this.activePixelBody.init(this.upgrades);
             this.sky.setColors(this.activePixelBody.skyColors);
@@ -333,7 +333,10 @@ export default class Game {
             ((1 - pixelBody.renderBufferPct) * height) / pixelBody.layer.height
         );
         // Limit ourselves by the smallest max zoom.
-        return Math.round(Math.min(widthMaxZoom, heightMaxZoom));
+        let newZoomLevel = Math.round(Math.min(widthMaxZoom, heightMaxZoom));
+        newZoomLevel = Math.max(newZoomLevel, 5);
+        console.log("zoom: " + this.zoomLevel + " -> " + newZoomLevel);
+        return newZoomLevel;
     }
 
     onResize(windowWidth, windowHeight) {
@@ -364,11 +367,7 @@ export default class Game {
                 " -> " +
                 newWidth +
                 " x " +
-                newHeight +
-                " and zoom: " +
-                this.zoomLevel +
-                " -> " +
-                newZoomLevel
+                newHeight
         );
         this.width = newWidth;
         this.height = newHeight;
@@ -386,16 +385,19 @@ export default class Game {
             }
             oldLayer.destroy();
         }
+        this.notifyResize();
         this.updateActivePixelBodyPosition();
-        this.updateParticlesZoom();
     }
 
-    updateParticlesZoom() {
+    notifyResize() {
         let newSize = new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round();
         if (this.particles) {
             this.particles.onResize(newSize);
         }
         this.sky.onResize(newSize);
+        for (const pixelBody of this.pixelBodies) {
+            pixelBody.onResize(newSize);
+        }
     }
 
     maybeSave() {
@@ -603,8 +605,8 @@ export default class Game {
         }
         this.activePixelBody.init(this.upgrades);
         this.zoomElapsedMs = 0;
+        this.notifyResize();
         this.updateActivePixelBodyPosition();
-        this.updateParticlesZoom();
         if (this.activePixelBody.className == Serpent.CLASS_NAME) {
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
@@ -928,8 +930,8 @@ export default class Game {
                 this.zoomLevelDst,
                 zoomProgress
             );
+            this.notifyResize();
             this.updateActivePixelBodyPosition();
-            this.updateParticlesZoom();
         }
         if (
             this.upgrades.conceptionIntervalMs > 0 &&

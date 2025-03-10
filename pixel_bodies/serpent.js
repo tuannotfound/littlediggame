@@ -132,6 +132,9 @@ export default class Serpent extends PixelBody {
     }
 
     onResize(newSize) {
+        console.log(Serpent.TAG + " - Serpent.onResize(" + newSize.toString() + ")");
+        this.width = newSize.x;
+        this.height = newSize.y;
         this.layer.onResize(newSize);
         for (const segment of this.segments) {
             segment.bounds = new Vector(this.layer.width, this.layer.height);

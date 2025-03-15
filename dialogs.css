@@ -1,0 +1,60 @@
+.dialog-root {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.dialog {
+    background-color: #333;
+    color: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.dialog-avatar {
+    width: 50px;
+    height: 65px;
+    border-radius: 2px;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.dialog-content {
+    flex-grow: 1;
+}
+
+.dialog-title {
+    margin: 0 0 5px 0;
+    font-size: 1.2em;
+}
+
+.dialog-message {
+    margin: 0;
+    font-size: 1em;
+}
+
+.dialog-timer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: #007bff;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    transition: width 0.1s linear;
+}

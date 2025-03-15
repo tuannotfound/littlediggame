@@ -19,6 +19,7 @@ import Hourglass from "./hourglass.js";
 import GameState from "./game_state.js";
 import Sky from "./sky.js";
 import { default as PixelConstants } from "./diggables/constants.js";
+import Story from "./story.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -219,6 +220,8 @@ export default class Game {
 
         this.gameState = GameState.PAUSED;
         this.setPaused(false);
+
+        setTimeout(Story.instance.showIntro, 1000);
     }
 
     initUi() {
@@ -452,21 +455,21 @@ export default class Game {
         if (this.zoomLevel == this.zoomLevelDst) {
             // Only round once we've reached the target zoom level, otherwise the zoom is very
             // jittery as the center position gets shifted around a handful of pixels.
-            this.activePixelBodyPosition.x = MathExtras.roundToNearest(
+            this.activePixelBodyPosition.x = MathExtras.floorToNearest(
                 this.zoomLevel,
                 this.activePixelBodyPosition.x
             );
-            this.activePixelBodyPosition.y = MathExtras.roundToNearest(
+            this.activePixelBodyPosition.y = MathExtras.floorToNearest(
                 this.zoomLevel,
                 this.activePixelBodyPosition.y
             );
 
             if (this.hourglass && this.hourglass.initialized) {
-                this.hourglassPosition.x = MathExtras.roundToNearest(
+                this.hourglassPosition.x = MathExtras.floorToNearest(
                     this.zoomLevel,
                     this.hourglassPosition.x
                 );
-                this.hourglassPosition.y = MathExtras.roundToNearest(
+                this.hourglassPosition.y = MathExtras.floorToNearest(
                     this.zoomLevel,
                     this.hourglassPosition.y
                 );
@@ -571,6 +574,7 @@ export default class Game {
         if (availableUpgradeCount > 0) {
             this.availableUpgradeCount.classList.remove("hidden");
             this.availableUpgradeCount.innerHTML = availableUpgradeCount;
+            Story.instance.maybeIntroduceResearch();
         } else {
             this.availableUpgradeCount.classList.add("hidden");
         }
@@ -848,6 +852,7 @@ export default class Game {
             this.knowsDeath = true;
             this.updateLegend();
         }
+        Story.instance.maybeForemansSonDead();
         if (this.upgrades.afterlife) {
             if (littleGuy.saintly) {
                 this.angelCount++;

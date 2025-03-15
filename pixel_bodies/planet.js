@@ -3,7 +3,7 @@ import Color from "../color.js";
 
 export default class Planet extends PixelBody {
     static SKY_TOP = new Color(237, 253, 255).immutableCopy();
-    static SKY_BOTTOM = new Color(212, 251, 255).immutableCopy();
+    static SKY_BOTTOM = new Color(185, 230, 250).immutableCopy();
 
     constructor(className, width, height) {
         if (new.target === Planet) {

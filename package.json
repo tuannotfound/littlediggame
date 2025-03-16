@@ -26,6 +26,7 @@
     "dependencies": {
         "@dagrejs/dagre": "^1.1.4",
         "@fortawesome/fontawesome-free": "^6.7.2",
+        "copy-webpack-plugin": "^13.0.0",
         "linkerline": "^1.6.0"
     }
 }

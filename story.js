@@ -4,9 +4,9 @@ export default class Story {
     static _instance;
 
     static FOREMAN_NAME = "Foreman";
-    static FOREMAN_AVATAR_PATH = "foreman_avatar.png";
+    static FOREMAN_AVATAR_PATH = "assets/foreman_avatar.png";
     static RESEARCHER_NAME = "Researcher";
-    static RESEARCHER_AVATAR_PATH = "researcher_avatar.png";
+    static RESEARCHER_AVATAR_PATH = "assets/researcher_avatar.png";
 
     constructor() {
         if (Story._instance) {

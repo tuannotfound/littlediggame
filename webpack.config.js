@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 //const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
@@ -7,16 +8,21 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, "dist"), // Output directory for bundled files
         filename: "bundle.js", // Name of the bundled JavaScript file
+        assetModuleFilename: "assets/[name][ext]",
     },
     mode: "development", // Set mode to 'development' or 'production'
-    devServer: {
-        static: "./static",
-    },
+    // devServer: {
+    //     static: "./assets/static",
+    // },
     module: {
         rules: [
             {
                 test: /\.css$/i,
                 use: ["style-loader", "css-loader"],
+            },
+            {
+                test: /\.(png|svg|jpg|jpeg|gif)$/i, // Add a rule for image files
+                type: "asset/resource", // Use asset/resource to emit separate files
             },
         ],
     },
@@ -25,5 +31,8 @@ module.exports = {
             template: "./index.html",
         }),
         //new BundleAnalyzerPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [{ from: "static", to: "assets" }],
+        }),
     ],
 };

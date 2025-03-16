@@ -7,7 +7,6 @@ import Color from "../color.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    static CLASS_NAME = "Serpent";
     static MAX_SIZE = 10;
     static MIN_SIZE = 1;
     static BORDER_BUFFER_PIXELS = 2;
@@ -21,7 +20,7 @@ export default class Serpent extends PixelBody {
         // janky movement.
         speed = 1 / 2
     ) {
-        super(Serpent.CLASS_NAME, width, height, true);
+        super(width, height, true);
         this.segmentCount = 0;
         this.position = new Vector(width / 2, height / 2);
         this.position.round();

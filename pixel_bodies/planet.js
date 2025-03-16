@@ -5,11 +5,11 @@ export default class Planet extends PixelBody {
     static SKY_TOP = new Color(237, 253, 255).immutableCopy();
     static SKY_BOTTOM = new Color(185, 230, 250).immutableCopy();
 
-    constructor(className, width, height) {
+    constructor(width, height) {
         if (new.target === Planet) {
             throw new Error("Cannot instantiate abstract class Planet directly.");
         }
-        super(className, width, height);
+        super(width, height);
         this.radius = Math.max(width, height) / 2;
         // For optimizations
         this.oneOverRadius = 1 / this.radius;

@@ -8,6 +8,12 @@ export default class Story {
     static FOREMAN_DIAMONDS_AVATAR_PATH = "assets/foreman_diamonds_avatar.png";
     static RESEARCHER_NAME = "Researcher";
     static RESEARCHER_AVATAR_PATH = "assets/researcher_avatar.png";
+    static SERPENT_DISGUISE_NAME = "Shep Trente";
+    static SERPENT_DISGUISE_AVATAR_PATH = "assets/serpent_disguise_avatar.png";
+    static SERPENT_PARTIAL_DISGUISE_NAME = this.SERPENT_DISGUISE_NAME + "?";
+    static SERPENT_PARTIAL_DISGUISE_AVATAR_PATH = "assets/serpent_partial_disguise_avatar.png";
+    static SERPENT_NAME = "The Serpent";
+    static SERPENT_AVATAR_PATH = "assets/serpent_avatar.png";
 
     static IMAGE_PATHS = [Story.FOREMAN_AVATAR_PATH, Story.RESEARCHER_AVATAR_PATH];
 
@@ -24,6 +30,12 @@ export default class Story {
         this.researchIntroduced = false;
         this.halfwayReached = false;
         this.firstDiamond = false;
+        this.foremanDead = false;
+        this.eggPlanetQ1 = false;
+        this.eggPlanetQ2 = false;
+        this.eggPlanetQ3 = false;
+        this.eggReveal1 = false;
+        this.eggReveal2 = false;
     }
 
     static get instance() {
@@ -136,6 +148,122 @@ export default class Story {
             better luck, just keep that respirator on.`,
             Story.FOREMAN_AVATAR_PATH,
             15
+        );
+    }
+
+    onSpikyPlanet() {
+        Dialogs.show(
+            Story.FOREMAN_NAME,
+            `This should be a nice change of pace. The air is cold but clean. I think the crew will
+            really enjoy living out the remainder of their days here.`,
+            Story.FOREMAN_AVATAR_PATH,
+            15
+        );
+    }
+
+    maybeDeathOfForeman() {
+        if (this.foremanDead) {
+            return;
+        }
+        this.foremanDead = true;
+        Dialogs.show(
+            Story.FOREMAN_NAME,
+            `Just between me, you, and The Company: I think we've made a great team. Big things to
+            come, for us. Biiiiiig things. And the best part? Nothing can stop us.`,
+            Story.FOREMAN_AVATAR_PATH,
+            15,
+            () => {
+                setTimeout(() => {
+                    Dialogs.show(
+                        Story.SERPENT_DISGUISE_NAME,
+                        `I regret to inform you that your previouss foreman fell down a hole and
+                        perished.
+                        <br><br>
+                        It'ss a dangerouss line of work. I'll be your new foreman. Pleased to meet
+                        you.`,
+                        Story.SERPENT_DISGUISE_AVATAR_PATH,
+                        15
+                    );
+                }, 1000);
+            }
+        );
+    }
+
+    onEggPlanet() {
+        Dialogs.show(
+            Story.SERPENT_DISGUISE_NAME,
+            `I personally located this next planet for uss. What luck. A perfectly hosspitable place
+            for uss humanss to work and bassk.`,
+            Story.SERPENT_DISGUISE_AVATAR_PATH,
+            15
+        );
+    }
+
+    maybeEggPlanetQ1() {
+        if (this.eggPlanetQ1) {
+            return;
+        }
+        this.eggPlanetQ1 = true;
+        Dialogs.show(
+            Story.SERPENT_DISGUISE_NAME,
+            `The Company knowss not the myssteriess of the universe. Do not let them or their
+            "sscientistss" fool you.`,
+            Story.SERPENT_DISGUISE_AVATAR_PATH,
+            15
+        );
+    }
+
+    maybeEggPlanetQ2() {
+        if (this.eggPlanetQ2) {
+            return;
+        }
+        this.eggPlanetQ2 = true;
+        Dialogs.show(
+            Story.SERPENT_DISGUISE_NAME,
+            `Pay no attention to the incredible power emanating from within thiss planet. Let it not
+            disstract you from the important work at hand, extracting human currency for your...
+            our... beloved Company.`,
+            Story.SERPENT_DISGUISE_AVATAR_PATH,
+            15
+        );
+    }
+
+    maybeEggPlanetQ3() {
+        if (this.eggPlanetQ3) {
+            return;
+        }
+        this.eggPlanetQ3 = true;
+        Dialogs.show(
+            Story.SERPENT_PARTIAL_DISGUISE_NAME,
+            `Quiet! Itss sssong sssibilatessss. The great conssstriction is nigh.`,
+            Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
+            10
+        );
+    }
+
+    maybeEggReveal1() {
+        if (this.eggReveal1) {
+            return;
+        }
+        this.eggReveal1 = true;
+        Dialogs.show(
+            Story.SERPENT_PARTIAL_DISGUISE_NAME,
+            `YES. The crew is vibrating with thirssst for the earth. Dig! Dig faster! More!`,
+            Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
+            6
+        );
+    }
+
+    maybeEggReveal2() {
+        if (this.eggReveal2) {
+            return;
+        }
+        this.eggReveal2 = true;
+        Dialogs.show(
+            Story.SERPENT_PARTIAL_DISGUISE_NAME,
+            `You ssssee it now, do you? Your purpose. Proceed with abandon.`,
+            Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
+            10
         );
     }
 }

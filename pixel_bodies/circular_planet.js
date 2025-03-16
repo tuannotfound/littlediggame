@@ -26,15 +26,7 @@ export default class CircularPlanet extends Planet {
     ) {
         let maxRadiusDiffPx = Math.round(radius * maxRadiusDiffFactor);
         let size = Math.round(2 * (radius + maxRadiusDiffPx + 1));
-        console.log(
-            "circular planet size = Math.round(2 * (" +
-                radius +
-                " + " +
-                maxRadiusDiffPx +
-                " + 1)) = " +
-                size
-        );
-        super("CircularPlanet", size, size);
+        super(size, size);
         this.baseRadius = radius;
         this.maxRadiusDiffPx = maxRadiusDiffPx;
         this.maxRadius = radius + maxRadiusDiffPx;

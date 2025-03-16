@@ -8,11 +8,6 @@ export default class SwissPlanet extends CircularPlanet {
     static GOOP_SKY_TOP = new Color(238, 219, 255).immutableCopy();
     static GOOP_SKY_BOTTOM = new Color(206, 255, 204).immutableCopy();
 
-    constructor(radius) {
-        super(radius);
-        this.className = this.constructor.name;
-    }
-
     static fromJSON(json, upgrades) {
         let planet = new SwissPlanet(json.baseRadius);
         return CircularPlanet.fromJSON(json, upgrades, planet);

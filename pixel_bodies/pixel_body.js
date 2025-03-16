@@ -6,15 +6,15 @@ import Pixel from "../diggables/pixel.js";
 
 // Base class for things that are composed of diggable pixels.
 export default class PixelBody {
-    constructor(className, width, height, allowOverlap = false) {
+    constructor(width, height, allowOverlap = false) {
         if (new.target === PixelBody) {
             throw new Error("Cannot instantiate abstract class PixelBody directly.");
         }
-        this.className = className;
+        this.className = new.target.name;
         this.width = width;
         this.height = height;
         this.allowOverlap = allowOverlap;
-        this.layer = new Layer(className, width, height);
+        this.layer = new Layer(this.className, width, height);
         console.log("PixelBody layer size: " + this.layer.width + "x" + this.layer.height + "px");
         this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
         this.pixels = [];

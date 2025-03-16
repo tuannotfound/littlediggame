@@ -142,17 +142,17 @@ export default class Game {
         let upgrades = Upgrades.fromJSON(json.upgrades);
         let pixelBodies = [];
         for (let pixelBodyJson of json.pixelBodies) {
-            if (pixelBodyJson.className == "CircularPlanet") {
+            if (pixelBodyJson.className == CircularPlanet.name) {
                 // Covers both plain circular planets and egg planets (who both have the same dirt
                 // variant).
                 pixelBodies.push(CircularPlanet.fromJSON(pixelBodyJson, upgrades));
-            } else if (pixelBodyJson.className == "SwissPlanet") {
+            } else if (pixelBodyJson.className == SwissPlanet.name) {
                 pixelBodies.push(SwissPlanet.fromJSON(pixelBodyJson, upgrades));
-            } else if (pixelBodyJson.className == "SpikyPlanet") {
+            } else if (pixelBodyJson.className == SpikyPlanet.name) {
                 pixelBodies.push(SpikyPlanet.fromJSON(pixelBodyJson, upgrades));
-            } else if (pixelBodyJson.className == "EggPlanet") {
+            } else if (pixelBodyJson.className == EggPlanet.name) {
                 pixelBodies.push(EggPlanet.fromJSON(pixelBodyJson, upgrades));
-            } else if (pixelBodyJson.className == "Serpent") {
+            } else if (pixelBodyJson.className == Serpent.name) {
                 pixelBodies.push(Serpent.fromJSON(pixelBodyJson, upgrades));
             } else {
                 console.error("Unknown pixel body type: " + pixelBodyJson.className);
@@ -604,15 +604,22 @@ export default class Game {
     }
 
     updateHealth() {
-        if (this.activePixelBody?.health <= 0) {
+        let body = this.activePixelBody;
+        if (!body) {
+            return;
+        }
+        if (body.health <= 0) {
             if (!this.goToNextPixelBody()) {
                 return;
             }
+            body = this.activePixelBody;
         }
-        this.healthElement.innerHTML = (100 * this.activePixelBody.health).toFixed(1);
+        this.healthElement.innerHTML = (100 * body.health).toFixed(1);
 
-        if (this.activePixelBody.health < 0.5) {
+        if (body.className == CircularPlanet.name && body.health < 0.5) {
             Story.instance.maybeHalfway();
+        } else if (body.className == SpikyPlanet.name && body.health < 0.75) {
+            Story.instance.maybeDeathOfForeman();
         }
     }
 
@@ -638,7 +645,7 @@ export default class Game {
         this.zoomElapsedMs = 0;
         this.notifyResize();
         this.updateActivePixelBodyPosition();
-        if (this.activePixelBody.className == Serpent.CLASS_NAME) {
+        if (this.activePixelBody.className == Serpent.name) {
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
             document.getElementById("serpent_icon").classList.remove("hidden");
@@ -670,11 +677,14 @@ export default class Game {
         if (this.activePixelBody.className == SwissPlanet.name) {
             setTimeout(Story.instance.onSwissPlanet, 1000);
         }
+        if (this.activePixelBody.className == SpikyPlanet.name) {
+            setTimeout(Story.instance.onSpikyPlanet, 1000);
+        }
         return true;
     }
 
     finalLevelLost() {
-        if (!this.activePixelBody || this.activePixelBody.className != Serpent.CLASS_NAME) {
+        if (!this.activePixelBody || this.activePixelBody.className != Serpent.name) {
             console.error("Not sure how we got here...");
             this.endGame(false);
             return;

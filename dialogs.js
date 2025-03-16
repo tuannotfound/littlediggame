@@ -84,7 +84,6 @@ class Dialog {
         this.dismissed = false;
 
         this.dialog.addEventListener("click", this.dismiss.bind(this));
-        this.dialog.addEventListener("touchstart", this.dismiss.bind(this));
     }
 
     static get Builder() {

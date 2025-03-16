@@ -9,7 +9,7 @@ export default class EggPlanet extends CircularPlanet {
 
     constructor(radius) {
         super(radius);
-        this.className = "EggPlanet";
+        this.className = this.constructor.name;
         // TBD: Use this to trigger a new background color once it crossed a certain threshold.
         this.eggReveal = 0;
     }

@@ -112,7 +112,7 @@ export default class Upgrades {
             "unlock_gold",
             "gold_tbd",
             StringUtils.dedent(`TBD`),
-            ["Your populous will now recognize and dig up gold"],
+            ["TBD: Your populous will now recognize and dig up gold"],
             10,
             Currency.ASPIS,
             () => {
@@ -218,10 +218,7 @@ export default class Upgrades {
         let graveDigger1 = new Upgrade(
             "grave_digger_1",
             "Dens cadaver",
-            StringUtils.dedent(
-                `Tombstones don't have any gold in them, but gold fillings are popular amongst your
-                people, and there's no use letting those go to waste when we can sell them.`
-            ),
+            StringUtils.dedent(`TBD.`),
             ["Get 2 Aspis from digging up tombstones"],
             5,
             Currency.ASPIS,
@@ -252,9 +249,9 @@ export default class Upgrades {
             "unlock_diamonds",
             "Scintillare lapis",
             StringUtils.dedent(
-                `Someone with an eye for the finer things notices a bucket of brilliant crystals
-                with exceptional clarity and sparkle being tossed in the garbage at the end of a
-                shift and realizes they could probably be used for something.`
+                `A researcher with an eye for the finer things notices a bucket of brilliant
+                crystals with exceptional clarity and sparkle being tossed in the garbage at the end
+                of a shift and realizes they could probably be used for something.`
             ),
             ["Your populous will now recognize and dig up diamonds"],
             250,

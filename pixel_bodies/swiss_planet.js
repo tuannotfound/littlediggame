@@ -10,7 +10,7 @@ export default class SwissPlanet extends CircularPlanet {
 
     constructor(radius) {
         super(radius);
-        this.className = "SwissPlanet";
+        this.className = this.constructor.name;
     }
 
     static fromJSON(json, upgrades) {

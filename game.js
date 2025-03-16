@@ -221,6 +221,7 @@ export default class Game {
         this.gameState = GameState.PAUSED;
         this.setPaused(false);
 
+        Story.instance.preload();
         setTimeout(Story.instance.showIntro, 1000);
     }
 
@@ -503,6 +504,10 @@ export default class Game {
 
         this.updateHealth();
 
+        if (this.upgrades.unlockDiamonds && pixel.type == PixelType.DIAMOND) {
+            Story.instance.maybeFirstDiamond();
+        }
+
         this.maybeSave();
     }
 
@@ -587,6 +592,10 @@ export default class Game {
             }
         }
         this.healthElement.innerHTML = (100 * this.activePixelBody.health).toFixed(1);
+
+        if (this.activePixelBody.health < 0.5) {
+            Story.instance.maybeHalfway();
+        }
     }
 
     goToNextPixelBody() {
@@ -639,6 +648,10 @@ export default class Game {
         this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
 
         this.updateActivePixelBodyPosition();
+
+        if (this.activePixelBody.className == SwissPlanet.name) {
+            setTimeout(Story.instance.onSwissPlanet, 1000);
+        }
         return true;
     }
 

@@ -9,7 +9,7 @@ import LittleGuy from "./little_guy.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
-import UpgradesUi from "./upgrades_ui2.js";
+import UpgradesUi from "./upgrades_ui.js";
 import Pixel from "./diggables/pixel.js";
 import PixelType from "./diggables/pixel_type.js";
 import Particles from "./particles.js";
@@ -20,6 +20,7 @@ import GameState from "./game_state.js";
 import Sky from "./sky.js";
 import { default as PixelConstants } from "./diggables/constants.js";
 import Story from "./story.js";
+import Dialogs from "./dialogs.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -57,6 +58,8 @@ export default class Game {
             this.pixelBodies = pixelBodies;
         }
         this.activePixelBodyPosition = new Vector();
+        // Maps elements => listener functions.
+        this.clickListenerMap = new Map();
         // Sets 'this' width, height, zoom, and bounds.
         this.onResize(windowWidth, windowHeight);
 
@@ -225,9 +228,19 @@ export default class Game {
         setTimeout(Story.instance.showIntro, 1000);
     }
 
+    addClickEventListener(element, func) {
+        if (this.clickListenerMap.has(element)) {
+            if (this.clickListenerMap.get(element) == func) {
+                return;
+            }
+        }
+        element.addEventListener("click", func);
+        this.clickListenerMap.set(element, func);
+    }
+
     initUi() {
         let saveGameBtn = document.getElementById("save_game");
-        saveGameBtn.addEventListener("click", () => {
+        this.addClickEventListener(saveGameBtn, () => {
             console.log("Saving...");
             SaveLoad.save(this);
             console.log("Saved");
@@ -236,7 +249,7 @@ export default class Game {
 
         // ----- START Debug buttons -----
         let nextPixelBodyBtn = document.getElementById("next_pixel_body");
-        nextPixelBodyBtn.addEventListener("click", () => {
+        this.addClickEventListener(nextPixelBodyBtn, () => {
             this.goToNextPixelBody();
         });
         let seekGoldBtn = document.getElementById("seek_gold");
@@ -259,17 +272,28 @@ export default class Game {
             this.blood = bloodBtn.checked;
             console.log("Blood: " + bloodBtn.checked);
         });
+
+        for (let i = 0; i < 4; i++) {
+            let pow = i + 1;
+            let val = 10 ** pow;
+            let plusBtn = document.getElementById("plus_" + val);
+            this.addClickEventListener(plusBtn, () => {
+                this.aspis += val;
+                this.updateAspis();
+            });
+        }
         // ----- END Debug buttons -----
 
         let upgradesContainer = document.getElementById("upgrades_container");
         let showUpgradesBtn = document.getElementById("show_upgrades");
-        showUpgradesBtn.addEventListener("click", () => {
+        this.addClickEventListener(showUpgradesBtn, () => {
+            console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
             showUpgradesBtn.classList.add("hidden");
             this.upgradesUi.onShown();
         });
         let hideUpgradesBtn = document.getElementById("hide_upgrades");
-        hideUpgradesBtn.addEventListener("click", () => {
+        this.addClickEventListener(hideUpgradesBtn, () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
         });
@@ -302,23 +326,10 @@ export default class Game {
         document.querySelector("span.serpent").style.color =
             PixelConstants.SERPENT_COLOR.asCssString();
         this.updateLegend();
-
-        for (let i = 0; i < 4; i++) {
-            let pow = i + 1;
-            let val = 10 ** pow;
-            let plusBtn = document.getElementById("plus_" + val);
-            plusBtn.addEventListener("click", () => {
-                this.aspis += val;
-                this.updateAspis();
-            });
-        }
     }
 
     initHandlers() {
-        this.containerElement.addEventListener("click", this.handleMouseEvent.bind(this), {
-            passive: true,
-        });
-        window.addEventListener("keydown", this.handleKeyEvent.bind(this), {
+        this.addClickEventListener(this.containerElement, this.handleMouseEvent.bind(this), {
             passive: true,
         });
     }
@@ -716,18 +727,6 @@ export default class Game {
         ).round();
     }
 
-    handleKeyEvent(event) {
-        let direction = 0;
-        if (event.key == "ArrowLeft" || event.key == "a") {
-            direction = -1;
-        } else if (event.key == "ArrowRight" || event.key == "d") {
-            direction = 1;
-        }
-        if (direction == 0) {
-            return;
-        }
-    }
-
     handleMouseEvent(event) {
         if (event.button != 0) {
             return;
@@ -906,9 +905,19 @@ export default class Game {
     }
 
     destroy() {
+        // No real need for any of this ever since removing the new/load game buttons when the game
+        // is started.
         this.setPaused(true);
+        Dialogs.clearAll();
+        let hideUpgradesBtn = document.getElementById("hide_upgrades");
+        if (!hideUpgradesBtn.classList.contains("hidden")) {
+            hideUpgradesBtn.click();
+        }
         this.layer.destroy();
         this.upgradesUi.destroy();
+        for (const [element, listener] of this.clickListenerMap) {
+            element.removeEventListener("click", listener);
+        }
         document.body.removeChild(this.stats.dom);
     }
 

@@ -166,7 +166,7 @@ input[type="checkbox"] {
 }
 
 #upgrades_container {
-    touch-action: manipulation;
+    touch-action: none;
     display: grid;
     position: absolute;
     z-index: 2;

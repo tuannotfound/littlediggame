@@ -16,14 +16,6 @@ document.onreadystatechange = function () {
     if (document.readyState == "complete") {
         let newGameBtn = document.getElementById("new_game");
         newGameBtn.addEventListener("click", () => {
-            if (game) {
-                console.log("Destroying existing game");
-                game.destroy();
-            }
-            if (bot) {
-                bot.stop();
-                updateBotText();
-            }
             console.log("Starting new game");
             game = new Game(window.innerWidth, window.innerHeight);
             game.init(document.getElementById("game"));
@@ -32,20 +24,13 @@ document.onreadystatechange = function () {
         });
         let loadGameBtn = document.getElementById("load_game");
         loadGameBtn.addEventListener("click", () => {
-            if (game) {
-                console.log("Destroying existing game");
-                game.destroy();
-            }
-            if (bot) {
-                bot.stop();
-                updateBotText();
-            }
             console.log("Loading game");
             game = SaveLoad.load();
             game.init(document.getElementById("game"));
             updateUiVisibility();
             updateUiSizes();
         });
+        let saveGameBtn = document.getElementById("save_game");
         if (SaveLoad.saveDataExists()) {
             loadGameBtn.removeAttribute("disabled");
         }
@@ -56,12 +41,6 @@ document.onreadystatechange = function () {
                 loadGameBtn.setAttribute("disabled", "");
             }
         });
-        // if (SaveLoad.saveDataExists()) {
-        //     loadGameBtn.removeAttribute("disabled");
-        //     loadGameBtn.click();
-        // } else {
-        //     newGameBtn.click();
-        // }
 
         let debugCheckbox = document.getElementById("debug_checkbox");
         window.DEBUG = debugCheckbox.checked;
@@ -88,11 +67,17 @@ document.onreadystatechange = function () {
 
         function updateUiVisibility() {
             if (game) {
+                newGameBtn.classList.add("hidden");
+                loadGameBtn.classList.add("hidden");
+                saveGameBtn.classList.remove("hidden");
                 overlay.classList.remove("hidden");
                 document.getElementById("legend").classList.remove("hidden");
                 document.getElementById("info_container").classList.remove("dark");
                 // Upgrades container is hidden by default
             } else {
+                newGameBtn.classList.remove("hidden");
+                loadGameBtn.classList.remove("hidden");
+                saveGameBtn.classList.add("hidden");
                 overlay.classList.add("hidden");
                 upgradesContainer.classList.add("hidden");
             }

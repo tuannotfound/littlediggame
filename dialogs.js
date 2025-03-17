@@ -40,6 +40,12 @@ export default class Dialogs {
     static get hasVisibleDialog() {
         return Dialogs.sDialogQueue.length > 0;
     }
+
+    static clearAll() {
+        Dialogs.sDialogQueue.forEach((dialog) => {
+            dialog.dismiss();
+        });
+    }
 }
 
 class Dialog {

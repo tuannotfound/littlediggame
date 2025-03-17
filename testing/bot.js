@@ -6,6 +6,7 @@ export default class Bot {
     GAME_SPEED = 5;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
     TAG = "[BOT] ";
+    SPAWN_MAX = 250;
 
     constructor(game) {
         this.game = game;
@@ -116,6 +117,9 @@ export default class Bot {
     }
 
     maybeSpawnLittleGuy() {
+        if (!this.game.activePixelBody) {
+            return;
+        }
         let expectedValue = this.calculateExpectedValueOfLittleGuy();
         while (this.shouldSpawn(expectedValue)) {
             let coords = new Vector(
@@ -140,6 +144,9 @@ export default class Bot {
     }
 
     shouldSpawn(expectedValue) {
+        if (this.game.littleGuys.length >= this.SPAWN_MAX) {
+            return false;
+        }
         if (this.game.spawnCost == 0) {
             return true;
         }
@@ -185,7 +192,7 @@ export default class Bot {
             manualLittleGuyCount,
             autoLittleGuyCount,
             this.calculateExpectedValueOfLittleGuy(),
-            this.game.activePixelBody.health,
+            this.game.activePixelBody ? this.game.activePixelBody.health : 0,
             this.game.upgrades,
             this.findCheapestUpgrade(),
             this.mostRecentUpgrade,
@@ -210,6 +217,9 @@ export default class Bot {
     }
 
     calculateExpectedValueOfLittleGuy() {
+        if (!this.game.activePixelBody) {
+            return 0;
+        }
         // Looking at the surface of the planet, we can average out the value of each pixel and
         // multiply that by the number of digs each little guy will perform to get the EV of
         // spawning a new little guy.

@@ -1,11 +1,15 @@
 import CircularPlanet from "./circular_planet.js";
 import Vector from "../vector.js";
 import PixelType from "../diggables/pixel_type.js";
+import Color from "../color.js";
+import Planet from "./planet.js";
 
 export default class EggPlanet extends CircularPlanet {
     static EGG_WIDTH = 7;
     static EGG_HEIGHT = 7;
     static EGG_POINTINESS = 1.2;
+    // 30% of the egg must be revealed to trigger the background color change.
+    static EGG_REVEAL_THRESHOLD = 0.3;
 
     constructor(radius) {
         super(radius);
@@ -23,7 +27,6 @@ export default class EggPlanet extends CircularPlanet {
     createInitialPixels() {
         super.createInitialPixels();
         this.emplaceEgg();
-        this.updateEggReveal();
     }
 
     emplaceEgg() {
@@ -49,6 +52,12 @@ export default class EggPlanet extends CircularPlanet {
         }
     }
 
+    // Override
+    updateSurface() {
+        super.updateSurface();
+        this.updateEggReveal();
+    }
+
     updateEggReveal() {
         let eggPixelCount = 0;
         let eggPixelRevealedCount = 0;
@@ -64,5 +73,12 @@ export default class EggPlanet extends CircularPlanet {
             this.eggReveal = 0;
         }
         this.eggReveal = eggPixelRevealedCount / eggPixelCount;
+    }
+
+    get altSkyColors() {
+        return {
+            top: new Color(230, 39, 61).immutableCopy(),
+            bottom: new Color(96, 18, 117).immutableCopy(),
+        };
     }
 }

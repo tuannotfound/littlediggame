@@ -519,6 +519,13 @@ export default class Game {
             Story.instance.maybeFirstDiamond();
         }
 
+        if (this.activePixelBody.className == EggPlanet.name) {
+            let eggPlanet = this.activePixelBody;
+            if (eggPlanet.eggReveal >= EggPlanet.EGG_REVEAL_THRESHOLD) {
+                this.sky.setColors(eggPlanet.altSkyColors);
+            }
+        }
+
         this.maybeSave();
     }
 

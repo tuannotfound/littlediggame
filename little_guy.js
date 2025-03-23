@@ -187,17 +187,17 @@ export default class LittleGuy {
 
     getHeadColor() {
         if (!this.alive) {
-            if (this.upgrades.afterlife) {
-                let alpha = this.getAscensionAlpha();
-                let color = this.headColor.copy();
-                color.a = alpha;
-                return color;
-            } else if (this.deathByEgg) {
+            if (this.deathByEgg) {
                 if (this.framesSinceDeath < LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE / 2) {
                     return LittleGuy.DEATH_BY_EGG_COLOR;
                 } else {
                     return LittleGuy.TRANSPARENT_COLOR;
                 }
+            } else if (this.upgrades.afterlife) {
+                let alpha = this.getAscensionAlpha();
+                let color = this.headColor.copy();
+                color.a = alpha;
+                return color;
             }
         }
         if (this.shouldRenderDigPose()) {
@@ -208,15 +208,15 @@ export default class LittleGuy {
 
     getBodyColor() {
         if (!this.alive) {
-            if (this.upgrades.afterlife) {
+            if (this.deathByEgg) {
+                return LittleGuy.DEATH_BY_EGG_COLOR;
+            } else if (this.upgrades.afterlife) {
                 let alpha = this.getAscensionAlpha();
                 let color = this.saintly
                     ? LittleGuy.ASCENDING_BODY_COLOR.copy()
                     : LittleGuy.DESCENDING_BODY_COLOR.copy();
                 color.a = alpha;
                 return color;
-            } else if (this.deathByEgg) {
-                return LittleGuy.DEATH_BY_EGG_COLOR;
             }
         }
         if (this.shouldRenderDigPose()) {
@@ -369,12 +369,14 @@ export default class LittleGuy {
         }
         if (!this.alive) {
             this.framesSinceDeath++;
-            if (this.upgrades.afterlife) {
+            if (this.deathByEgg) {
+                if (this.framesSinceDeath >= LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE) {
+                    this.setInactive();
+                }
+            } else if (this.upgrades.afterlife) {
                 this.ascend();
-            } else if (!this.deathByEgg) {
+            } else {
                 this.bury();
-            } else if (this.framesSinceDeath >= LittleGuy.DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE) {
-                this.setInactive();
             }
             this.updateRenderData();
             return;

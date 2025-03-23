@@ -8,8 +8,6 @@ export default class EggPlanet extends CircularPlanet {
     static EGG_WIDTH = 7;
     static EGG_HEIGHT = 7;
     static EGG_POINTINESS = 1.2;
-    // 30% of the egg must be revealed to trigger the background color change.
-    static EGG_REVEAL_THRESHOLD = 0.3;
 
     constructor(radius) {
         super(radius);

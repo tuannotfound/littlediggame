@@ -225,7 +225,9 @@ export default class Game {
         this.setPaused(false);
 
         Story.instance.preload();
-        setTimeout(Story.instance.showIntro, 1000);
+        setTimeout(() => {
+            Story.instance.showIntro();
+        }, 1000);
     }
 
     addClickEventListener(element, func) {
@@ -252,25 +254,16 @@ export default class Game {
         this.addClickEventListener(nextPixelBodyBtn, () => {
             this.goToNextPixelBody();
         });
-        let seekGoldBtn = document.getElementById("seek_gold");
-        seekGoldBtn.addEventListener("change", () => {
-            this.upgrades.goldSeeker = seekGoldBtn.checked;
-            console.log("Seek gold: " + seekGoldBtn.checked);
-        });
-        let afterlifeBtn = document.getElementById("afterlife");
-        afterlifeBtn.addEventListener("change", () => {
-            this.upgrades.afterlife = afterlifeBtn.checked;
-            console.log("Afterlife: " + afterlifeBtn.checked);
-        });
-        let pauseBtn = document.getElementById("paused");
-        pauseBtn.addEventListener("change", () => {
-            this.setPaused(pauseBtn.checked);
-            console.log("Paused: " + pauseBtn.checked);
-        });
         let bloodBtn = document.getElementById("blood");
         bloodBtn.addEventListener("change", () => {
             this.blood = bloodBtn.checked;
             console.log("Blood: " + bloodBtn.checked);
+        });
+        let pauseBtn = document.getElementById("pause_resume");
+        this.addClickEventListener(pauseBtn, () => {
+            document.getElementById("pause_icon").classList.toggle("hidden");
+            document.getElementById("play_icon").classList.toggle("hidden");
+            this.setPaused(!GameState.isPaused(this.gameState));
         });
 
         for (let i = 0; i < 4; i++) {
@@ -519,10 +512,29 @@ export default class Game {
             Story.instance.maybeFirstDiamond();
         }
 
-        if (this.activePixelBody && this.activePixelBody.className == EggPlanet.name) {
-            let eggPlanet = this.activePixelBody;
-            if (eggPlanet.eggReveal >= EggPlanet.EGG_REVEAL_THRESHOLD) {
-                this.sky.setColors(eggPlanet.altSkyColors);
+        let body = this.activePixelBody;
+        if (body) {
+            if (body.className == CircularPlanet.name) {
+                Story.instance.maybeHalfway(body.health);
+            } else if (body.className == SpikyPlanet.name) {
+                Story.instance.maybeDeathOfForeman(body.health);
+            } else if (body.className == EggPlanet.name) {
+                Story.instance.maybeEggPlanet1(body.health);
+                Story.instance.maybeEggPlanet2(body.health);
+                Story.instance.maybeEggPlanet3(body.health);
+                Story.instance.maybeEggPlanet4(body.health);
+                Story.instance.maybeEggPlanet5(body.health);
+                if (Story.instance.maybeEggReveal1(body.eggReveal)) {
+                    this.sky.setColors(body.altSkyColors);
+                }
+                Story.instance.maybeEggReveal2(body.eggReveal);
+            } else if (body.className == Serpent.name) {
+                Story.instance.maybeSerpent1(body.health);
+                Story.instance.maybeSerpent2(body.health);
+                Story.instance.maybeSerpent3(body.health);
+                Story.instance.maybeSerpent4(body.health);
+                Story.instance.maybeSerpent5(body.health);
+                Story.instance.maybeSerpent6(body.health);
             }
         }
 
@@ -615,12 +627,6 @@ export default class Game {
             body = this.activePixelBody;
         }
         this.healthElement.innerHTML = (100 * body.health).toFixed(1);
-
-        if (body.className == CircularPlanet.name && body.health < 0.5) {
-            Story.instance.maybeHalfway();
-        } else if (body.className == SpikyPlanet.name && body.health < 0.75) {
-            Story.instance.maybeDeathOfForeman();
-        }
     }
 
     goToNextPixelBody() {
@@ -675,10 +681,21 @@ export default class Game {
         this.updateActivePixelBodyPosition();
 
         if (this.activePixelBody.className == SwissPlanet.name) {
-            setTimeout(Story.instance.onSwissPlanet, 1000);
-        }
-        if (this.activePixelBody.className == SpikyPlanet.name) {
-            setTimeout(Story.instance.onSpikyPlanet, 1000);
+            setTimeout(() => {
+                Story.instance.onSwissPlanet();
+            }, 500);
+        } else if (this.activePixelBody.className == SpikyPlanet.name) {
+            setTimeout(() => {
+                Story.instance.onSpikyPlanet();
+            }, 500);
+        } else if (this.activePixelBody.className == EggPlanet.name) {
+            setTimeout(() => {
+                Story.instance.onEggPlanet();
+            }, 500);
+        } else if (this.activePixelBody.className == Serpent.name) {
+            setTimeout(() => {
+                Story.instance.onSerpent();
+            }, 250);
         }
         return true;
     }
@@ -745,7 +762,7 @@ export default class Game {
     }
 
     handleMouseEvent(event) {
-        if (event.button != 0) {
+        if (event.button != 0 || GameState.isPaused(this.gameState)) {
             return;
         }
 

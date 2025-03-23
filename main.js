@@ -9,6 +9,9 @@ import Bot from "./testing/bot.js";
 
 const RESIZE_DELAY_MS = 100;
 window.DEBUG = false;
+window.SETTINGS = {
+    censored: false,
+};
 
 var game = null;
 var bot = null;
@@ -70,6 +73,7 @@ document.onreadystatechange = function () {
                 newGameBtn.classList.add("hidden");
                 loadGameBtn.classList.add("hidden");
                 saveGameBtn.classList.remove("hidden");
+                document.getElementById("pause_resume").classList.remove("hidden");
                 overlay.classList.remove("hidden");
                 document.getElementById("legend").classList.remove("hidden");
                 document.getElementById("info_container").classList.remove("dark");
@@ -78,6 +82,7 @@ document.onreadystatechange = function () {
                 newGameBtn.classList.remove("hidden");
                 loadGameBtn.classList.remove("hidden");
                 saveGameBtn.classList.add("hidden");
+                document.getElementById("pause_resume").classList.add("hidden");
                 overlay.classList.add("hidden");
                 upgradesContainer.classList.add("hidden");
             }
@@ -132,6 +137,29 @@ document.onreadystatechange = function () {
                 bot.start();
             }
             updateBotText();
+        });
+
+        const settingsButton = document.getElementById("settings_button");
+        const settingsDropdown = document.getElementById("settings_dropdown");
+
+        settingsButton.addEventListener("click", function (event) {
+            event.stopPropagation(); // Prevent the click from immediately closing the dropdown
+            settingsDropdown.classList.toggle("hidden");
+        });
+
+        // Close the dropdown if the user clicks outside of it
+        window.addEventListener("click", function (event) {
+            if (
+                !settingsButton.contains(event.target) &&
+                !settingsDropdown.contains(event.target)
+            ) {
+                settingsDropdown.classList.add("hidden");
+            }
+        });
+
+        let censorBtn = document.getElementById("censor");
+        censorBtn.addEventListener("change", () => {
+            window.SETTINGS.censor = censorBtn.checked;
         });
     }
 };

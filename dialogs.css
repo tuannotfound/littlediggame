@@ -26,8 +26,8 @@
 }
 
 .dialog-avatar {
-    width: 50px;
-    height: 65px;
+    /* width: 50px;
+    height: 65px; */
     border-radius: 2px;
     margin-right: 10px;
     object-fit: cover;

@@ -12,12 +12,18 @@
                 <!-- TBD: Move this button back to the debug section -->
                 <button id="next_pixel_body">Next Pixel Body (dbg)</button>
 
-                <form>
-                    <input type="checkbox" id="blood" />
-                    <label for="blood">Veia</label>
-                    <input type="checkbox" id="debug_checkbox" />
-                    <label for="debug_checkbox">Debug</label>
-                </form>
+                <div id="settings_container">
+                    <button id="settings_button"><i class="fa-solid fa-gear"></i></button>
+                    <div id="settings_dropdown" class="hidden">
+                        <label> <input type="checkbox" id="blood" /> Veia mode</label>
+                        <label> <input type="checkbox" id="censor" /> Censor nipples</label>
+                        <label> <input type="checkbox" id="debug_checkbox" /> Debug</label>
+                    </div>
+                </div>
+                <button id="pause_resume">
+                    <i id="pause_icon" class="fa-solid fa-pause"></i>
+                    <i id="play_icon" class="fa-solid fa-play hidden"></i>
+                </button>
             </div>
             <div id="debug" class="hidden">
                 <br />
@@ -29,15 +35,6 @@
                 </button>
                 <br />
                 <button id="bot"></button>
-
-                <form>
-                    <input type="checkbox" id="seek_gold" />
-                    <label for="seek_gold">Seek Gold</label>
-                    <input type="checkbox" id="afterlife" />
-                    <label for="afterlife">Afterlife</label>
-                    <input type="checkbox" id="paused" />
-                    <label for="paused">Pause</label>
-                </form>
             </div>
         </div>
         <div id="game"></div>

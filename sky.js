@@ -47,6 +47,9 @@ export default class Sky {
     }
 
     setColors(colors) {
+        if (this.colors && this.colors.top == colors.top && this.colors.bottom == colors.bottom) {
+            return;
+        }
         this.transitionFrameCount = 0;
         this.prevColors = this.colors;
         this.colors = colors;

@@ -40,7 +40,7 @@ export default class Particles {
 
     digEffect(position, color, digSpeed) {
         // Dig speed currently ranges from 0.5 to 3.75
-        let count = MathExtras.clamp(digSpeed * 2, 1, 10);
+        let count = MathExtras.clamp(digSpeed * 2, 1, 6);
         let minInitialVelocity = new Vector(-0.25, -0.5);
         let maxInitialVelocity = new Vector(0.25, -0.1);
         for (let i = 0; i < count; i++) {

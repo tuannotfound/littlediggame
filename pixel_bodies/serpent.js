@@ -7,7 +7,7 @@ import Color from "../color.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    static MAX_SIZE = 3;
+    static MAX_SIZE = 10;
     static MIN_SIZE = 1;
     static BORDER_BUFFER_PIXELS = 2;
     static BLACK_SKY = new Color().immutableCopy();
@@ -72,7 +72,7 @@ export default class Serpent extends PixelBody {
         // Only need to set segment count if we haven't been loaded from save data.
         if (this.segments.length <= 0) {
             // Todo: get rid of this default 20
-            this.segmentCount = segmentCount ? segmentCount : 2;
+            this.segmentCount = segmentCount ? segmentCount : 20;
         }
         console.log("Initializing Serpent w/ segment count of " + this.segmentCount);
         super.init(upgrades);

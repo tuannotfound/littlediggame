@@ -21,6 +21,7 @@ import Sky from "./sky.js";
 import { default as PixelConstants } from "./diggables/constants.js";
 import Story from "./story.js";
 import Dialogs from "./dialogs.js";
+import GameOverArt from "./game_over_art.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -34,6 +35,7 @@ export default class Game {
     PULSE_ANIMATION_NAME = "pulsing";
     PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
     ZOOM_DURATION_MS = 1000 * 2;
+    GAME_OVER_ZOOM_DURATION_MS = 1000 * 20;
     FINAL_LEVEL_DURATION_MINUTES = 3;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
@@ -92,6 +94,8 @@ export default class Game {
         );
         this.hourglass = new Hourglass(27, 70, this.FINAL_LEVEL_DURATION_MINUTES * 60);
         this.hourglassPosition = new Vector();
+
+        this.gameOverArt = new GameOverArt();
 
         this.knowsDeath = false;
         this.knowsEggDeath = false;
@@ -329,20 +333,31 @@ export default class Game {
 
     calculateZoomLevel(width, height) {
         let pixelBody = this.activePixelBody;
-        if (!pixelBody) {
+        let objectWidth = 0;
+        let objectHeight = 0;
+        let objectBufferPct = 0;
+        let minZoomLevel = 5;
+        let roundingFunc = Math.round;
+        if (pixelBody) {
+            objectWidth = pixelBody.layer.width;
+            objectHeight = pixelBody.layer.height;
+            objectBufferPct = pixelBody.renderBufferPct;
+        } else if (this.gameOverArt.initialized) {
+            objectWidth = GameOverArt.SIZE_PX;
+            objectHeight = GameOverArt.SIZE_PX;
+            objectBufferPct = 0;
+            minZoomLevel = 0;
+            roundingFunc = (v) => v;
+        } else {
             return 1;
         }
 
-        // Add some buffer around the pixel body to ensure we don't cut off the edges.
-        let widthMaxZoom = Math.round(
-            ((1 - pixelBody.renderBufferPct) * width) / pixelBody.layer.width
-        );
-        let heightMaxZoom = Math.round(
-            ((1 - pixelBody.renderBufferPct) * height) / pixelBody.layer.height
-        );
+        // Add some buffer around the object to ensure we don't cut off the edges.
+        let widthMaxZoom = ((1 - objectBufferPct) * width) / objectWidth;
+        let heightMaxZoom = ((1 - objectBufferPct) * height) / objectHeight;
         // Limit ourselves by the smallest max zoom.
-        let newZoomLevel = Math.round(Math.min(widthMaxZoom, heightMaxZoom));
-        newZoomLevel = Math.max(newZoomLevel, 5);
+        let newZoomLevel = roundingFunc(Math.min(widthMaxZoom, heightMaxZoom));
+        newZoomLevel = Math.max(newZoomLevel, minZoomLevel);
         console.log("zoom: " + this.zoomLevel + " -> " + newZoomLevel);
         return newZoomLevel;
     }
@@ -622,6 +637,7 @@ export default class Game {
         }
         if (body.health <= 0) {
             if (!this.goToNextPixelBody()) {
+                this.endGame(true);
                 return;
             }
             body = this.activePixelBody;
@@ -718,12 +734,23 @@ export default class Game {
     onSerpentLoose() {
         // There is no next pixel body, so it will be null after this.
         this.goToNextPixelBody();
-        //this.endGame(false);
+        this.endGame(false);
     }
 
-    endGame(win) {
-        this.gameState = win ? GameState.WON : GameState.LOST;
-        console.log("GAME OVER");
+    endGame(won) {
+        Story.instance.onGameOver(won, () => {
+            this.showGameOverScreen(won);
+        });
+    }
+
+    showGameOverScreen(won) {
+        // Stop rendering the hourglass.
+        this.hourglass.initialized = false;
+        this.gameOverArt.initialize(won, () => {
+            this.zoomLevel = 200;
+            this.zoomLevelSrc = this.zoomLevel;
+            this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
+        });
     }
 
     updateLegend() {
@@ -873,18 +900,18 @@ export default class Game {
         if (!this.blood) {
             return;
         }
-        let radius = MathExtras.randomBetween(2, 4);
         this.particles.bloodEffect(this.pixelBodyToParticleSpace(center));
         if (!this.activePixelBody) {
             return;
         }
+        const radius = Math.round(MathExtras.randomBetween(2, 4));
         for (let x = center.x - radius; x < center.x + radius; x++) {
             for (let y = center.y - radius; y < center.y + radius; y++) {
-                let dist = new Vector(center.x - x, center.y - y).mag();
+                const dist = new Vector(center.x - x, center.y - y).mag();
                 if (dist > radius) {
                     continue;
                 }
-                let pixel = this.activePixelBody.getPixel(new Vector(x, y));
+                const pixel = this.activePixelBody.getPixel(new Vector(x, y));
                 if (!pixel || !pixel.isSurface || pixel.isBloodied) {
                     continue;
                 }
@@ -985,12 +1012,16 @@ export default class Game {
             this.zoomLevel = this.zoomLevelDst;
         } else {
             this.zoomElapsedMs += elapsedMs;
-            let zoomProgress = this.zoomElapsedMs / this.ZOOM_DURATION_MS;
+            const durationMs = this.gameOverArt.initialized
+                ? this.GAME_OVER_ZOOM_DURATION_MS
+                : this.ZOOM_DURATION_MS;
+            let zoomProgress = this.zoomElapsedMs / durationMs;
             this.zoomLevel = MathExtras.easeOutCubic(
                 this.zoomLevelSrc,
                 this.zoomLevelDst,
                 zoomProgress
             );
+            console.log("Zoom: " + this.zoomLevel + " -> " + this.zoomLevelDst);
             this.notifyResize();
             this.updateActivePixelBodyPosition();
         }
@@ -1087,6 +1118,22 @@ export default class Game {
                         this.zoomLevel, // destination y
                 littleGuy.layer.width * this.zoomLevel, // destination width
                 littleGuy.layer.height * this.zoomLevel // destination height
+            );
+        }
+
+        // Game over art.
+        if (this.gameOverArt.initialized) {
+            this.gameOverArt.update();
+            this.layer.getContext().drawImage(
+                this.gameOverArt.layer.canvas,
+                0, // source x
+                0, // source y
+                this.gameOverArt.layer.width, // source width
+                this.gameOverArt.layer.height, // source height
+                0, // destination x
+                0, // destination y
+                this.gameOverArt.layer.width * this.zoomLevel, // destination width
+                this.gameOverArt.layer.height * this.zoomLevel // destination height
             );
         }
 

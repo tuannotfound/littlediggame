@@ -162,6 +162,7 @@ export default class Pixel {
             return;
         }
         this.bloodiedColor = Color.wiggle(Color.BLOOD, 10);
+        this.needsUpdate = true;
     }
 
     get darkness() {

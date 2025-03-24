@@ -87,10 +87,13 @@ export default class PixelBody {
     }
 
     update() {
-        for (const pixel of this.pixels) {
-            if (pixel.needsUpdate) {
-                this.needsUpdate = true;
-                break;
+        if (!this.needsUpdate) {
+            // Check if any of the pixels need to be updated.
+            for (const pixel of this.pixels) {
+                if (pixel.needsUpdate) {
+                    this.needsUpdate = true;
+                    break;
+                }
             }
         }
         if (!this.needsUpdate) {

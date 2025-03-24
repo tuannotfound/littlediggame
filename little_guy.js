@@ -585,9 +585,6 @@ export default class LittleGuy {
         }
 
         if (this.pixelBeingDug.getHealth() <= 0) {
-            // TODO: Only finish on pose state changes.
-            // Moving this into the above conditional block breaks Serpent digging.
-            console.log("Finishing dig");
             this.finishDigging();
         }
     }

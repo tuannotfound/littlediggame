@@ -14,11 +14,15 @@ export default class Story {
     static SERPENT_PARTIAL_DISGUISE_AVATAR_PATH = "assets/serpent_partial_disguise_avatar.png";
     static SERPENT_NAME = "The Serpent";
     static SERPENT_AVATAR_PATH = "assets/serpent_avatar.png";
+    static SERPENT_DEATH_AVATAR_PATH = "assets/serpent_death_avatar.png";
     static COMPANY_COMMUNICATION_NAME = "The Company (remote)";
     static COMPANY_COMMUNICATION_AVATAR_PATH = "assets/company_communication_avatar.png";
     static COMPANY_LEADER_NAME = "The Almighty Leader";
     static COMPANY_LEADER_AVATAR_PATH = "assets/company_leader_avatar.png";
     static COMPANY_LEADER_CENSORED_AVATAR_PATH = "assets/company_leader_censored_avatar.png";
+    static COMPANY_LEADER_DEATH_AVATAR_PATH = "assets/company_leader_death_avatar.png";
+    static COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH =
+        "assets/company_leader_censored_death_avatar.png";
 
     static IMAGE_PATHS = [
         Story.FOREMAN_AVATAR_PATH,
@@ -26,9 +30,12 @@ export default class Story {
         Story.SERPENT_DISGUISE_AVATAR_PATH,
         Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
         Story.SERPENT_AVATAR_PATH,
+        Story.SERPENT_DEATH_AVATAR_PATH,
         Story.COMPANY_COMMUNICATION_AVATAR_PATH,
         Story.COMPANY_LEADER_AVATAR_PATH,
         Story.COMPANY_LEADER_CENSORED_AVATAR_PATH,
+        Story.COMPANY_LEADER_DEATH_AVATAR_PATH,
+        Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH,
     ];
 
     constructor() {
@@ -108,8 +115,8 @@ export default class Story {
             `You know the drill: extract the resources, leave nothing behind, and then on to the
             next one.<br>
             Let's get started, boss-man.`,
-            this.foremanAvatarPath,
-            30
+            this.foremanAvatarPath
+            //20
         );
     }
 
@@ -152,8 +159,7 @@ export default class Story {
             Story.RESEARCHER_NAME,
             `The mobile research lab has been quite productive. Please visit at your earliest
             convenience so we can share with you what we've been working on.`,
-            Story.RESEARCHER_AVATAR_PATH,
-            15
+            Story.RESEARCHER_AVATAR_PATH
         );
     }
 
@@ -172,8 +178,7 @@ export default class Story {
             Story.FOREMAN_NAME,
             `The bad news is we've had a 100% workplace mortality rate, but the good news is we're
             halfway done with this project and morale is sky high.`,
-            this.foremanAvatarPath,
-            15
+            this.foremanAvatarPath
         );
     }
 
@@ -190,8 +195,7 @@ export default class Story {
             Story.FOREMAN_NAME,
             `The eggheads in the lab were really onto something with these diamonds. Have you held
             one? Makes me feel mighty powerful.`,
-            this.foremanAvatarPath,
-            10
+            this.foremanAvatarPath
         );
     }
 
@@ -203,8 +207,7 @@ export default class Story {
             Story.FOREMAN_NAME,
             `Looks like we're not the first crew to be assigned this planet. I'm sure we'll have
             better luck, just keep that respirator on.`,
-            this.foremanAvatarPath,
-            15
+            this.foremanAvatarPath
         );
     }
 
@@ -222,8 +225,7 @@ export default class Story {
             assignments.
             <br><br>
             Consider yourself commended.`,
-            Story.COMPANY_COMMUNICATION_AVATAR_PATH,
-            15
+            Story.COMPANY_COMMUNICATION_AVATAR_PATH
         );
     }
 
@@ -235,8 +237,7 @@ export default class Story {
             Story.FOREMAN_NAME,
             `This should be a nice change of pace. The air is cold but clean. I think the crew will
             really enjoy living out the remainder of their days here.`,
-            this.foremanAvatarPath,
-            15
+            this.foremanAvatarPath
         );
     }
 
@@ -253,7 +254,7 @@ export default class Story {
             `Just between me, you, and The Company: I think we've made a great team. Big things to
             come, for us. Biiiiiig things. And the best part? Nothing can stop us.`,
             this.foremanAvatarPath,
-            15,
+            -1,
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -270,8 +271,7 @@ export default class Story {
                                     <br><br>
                                     It's a dangerous line of work. I'll be your new foreman. Pleased
                                     to meet you.`,
-                                    this.serpentAvatarPath,
-                                    15
+                                    this.serpentAvatarPath
                                 );
                             }, 500);
                         }
@@ -286,8 +286,7 @@ export default class Story {
             this.serpentName,
             `I personally located this next planet for us. What luck. A perfectly hospitable place
             for us humans to work and bask.`,
-            this.serpentAvatarPath,
-            15
+            this.serpentAvatarPath
         );
     }
 
@@ -314,8 +313,7 @@ export default class Story {
                         this.serpentName,
                         `The Company must be mistaken. Worry not - I've requested a reevaluation on
                         your behalf, and I'm sure they'll approve it shortly.`,
-                        this.serpentAvatarPath,
-                        10
+                        this.serpentAvatarPath
                     );
                 }, 500);
             }
@@ -335,8 +333,7 @@ export default class Story {
             `Pay no attention to the incredible power emanating from within this planet. Let it not
             distract you from the important work at hand, extracting human currency for your...
             our... beloved Company.`,
-            this.serpentAvatarPath,
-            15
+            this.serpentAvatarPath
         );
     }
 
@@ -353,8 +350,7 @@ export default class Story {
         Dialogs.show(
             this.serpentName,
             `Do you hear that? Itss sssong sssibilatessss. The great conssstriction is nigh.`,
-            this.serpentAvatarPath,
-            10
+            this.serpentAvatarPath
         );
     }
 
@@ -370,8 +366,7 @@ export default class Story {
         Dialogs.show(
             Story.COMPANY_COMMUNICATION_NAME,
             `Your refusal to follow orders has been escalated. Dig operations must halt.`,
-            Story.COMPANY_COMMUNICATION_AVATAR_PATH,
-            12
+            Story.COMPANY_COMMUNICATION_AVATAR_PATH
         );
     }
 
@@ -436,14 +431,14 @@ export default class Story {
         );
     }
 
-    onSerpent(health) {
+    onSerpent() {
         Dialogs.show(
             Story.SERPENT_NAME,
             `My body! My body is mine once again! You've assured my repossession.
             <br><br>
             I must consume.`,
             Story.SERPENT_AVATAR_PATH,
-            10,
+            -1,
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -452,8 +447,7 @@ export default class Story {
                         stop it.
                         <br><br>
                         Bring the full brunt of your crew to bear upon its scales!`,
-                        this.leaderAvatarPath,
-                        10
+                        this.leaderAvatarPath
                     );
                 }, 500);
             }
@@ -473,8 +467,7 @@ export default class Story {
             Story.SERPENT_NAME,
             `What? What is this? What are you doing? You can't be trying to stop me. You can't be so
             naive.`,
-            Story.SERPENT_AVATAR_PATH,
-            8
+            Story.SERPENT_AVATAR_PATH
         );
     }
 
@@ -490,8 +483,7 @@ export default class Story {
         Dialogs.show(
             Story.SERPENT_NAME,
             `My tongue will dissolve the flesh from your bones! You will lament your actions.`,
-            Story.SERPENT_AVATAR_PATH,
-            8
+            Story.SERPENT_AVATAR_PATH
         );
     }
 
@@ -508,8 +500,7 @@ export default class Story {
             Story.SERPENT_NAME,
             `If you stop now, I'll devour you and your crew last. Your Leader will sake my appetite
             for days, weeks even. That time could be yours.`,
-            Story.SERPENT_AVATAR_PATH,
-            10
+            Story.SERPENT_AVATAR_PATH
         );
     }
 
@@ -545,8 +536,7 @@ export default class Story {
             try my best.
             <br><br>
             Sure woulda been fun to devour the universe though. Dang.`,
-            Story.SERPENT_AVATAR_PATH,
-            12
+            Story.SERPENT_AVATAR_PATH
         );
     }
 
@@ -554,16 +544,63 @@ export default class Story {
         if (this.serpent6) {
             return;
         }
-        if (health > 0.1) {
+        if (health > 0.05) {
             return;
         }
         this.serpent6 = true;
-        // DABD[A]
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,
             `You've nearly done it. Strike the final blows! Do not let up now!`,
             this.leaderAvatarPath,
             8
+        );
+    }
+
+    onGameOver(won, dismissCallback) {
+        if (won) {
+            this.onGameWon(dismissCallback);
+        } else {
+            this.onGameLost(dismissCallback);
+        }
+    }
+
+    onGameLost(dismissCallback) {
+        Dialogs.show(
+            Story.SERPENT_NAME,
+            `The ritual is complete! Full power has been returned to my body.
+            <br><br>
+            This is the beginning of the end for you and your Company, Leader.`,
+            Story.SERPENT_AVATAR_PATH,
+            -1,
+            () => {
+                let path = window.SETTINGS.censor
+                    ? Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH
+                    : Story.COMPANY_LEADER_DEATH_AVATAR_PATH;
+                Dialogs.show(Story.COMPANY_LEADER_NAME, `Aaaaauuuugh!`, path, 8, dismissCallback);
+            }
+        );
+    }
+
+    onGameWon(dismissCallback) {
+        Dialogs.show(
+            Story.SERPENT_NAME,
+            `Ssssssssss... it'ssss... all... sss... over...
+            <br><br>
+            ...sss.`,
+            Story.SERPENT_DEATH_AVATAR_PATH,
+            12,
+            () => {
+                Dialogs.show(
+                    Story.COMPANY_LEADER_NAME,
+                    `We are victorious! I have defeated The Serpent!
+                    <br><br>
+                    The shareholders will be ecstatic. Double the rations for the crew for the NEXT!
+                    FOUR! DAYS!`,
+                    this.leaderAvatarPath,
+                    -1,
+                    dismissCallback
+                );
+            }
         );
     }
 }

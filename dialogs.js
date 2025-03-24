@@ -1,20 +1,41 @@
 import StringUtils from "./string_utils.js";
 
 export default class Dialogs {
-    static DEFAULT_DURATION_S = 8;
+    static MIN_CALCULATED_DURATION_S = 5;
+    static DEFAULT_DURATION_S = 10;
+    static WORDS_PER_SECOND = 1.7;
+    static SECONDS_PER_BREAK = 1;
     static sDialogQueue = [];
 
-    static show(
-        title,
-        msg,
-        avatarPath,
-        durationS = DEFAULT_DURATION_S,
-        dismissCallback = () => {}
-    ) {
+    static calculateDurationSeconds(msg) {
+        if (msg.length == 0) {
+            return Dialogs.DEFAULT_DURATION_S;
+        }
+        const lineBreakTag = "<br>";
+        let breakCount = 0;
+        let index = msg.indexOf(lineBreakTag);
+
+        while (index !== -1) {
+            breakCount++;
+            index = msg.indexOf(lineBreakTag, index + lineBreakTag.length);
+        }
+
+        const wordCount = msg.split(/\s+/).filter((word) => word.length > 0).length;
+        const calculatedDurationS = Math.ceil(
+            wordCount / Dialogs.WORDS_PER_SECOND + breakCount * Dialogs.SECONDS_PER_BREAK
+        );
+        return Math.max(Dialogs.MIN_CALCULATED_DURATION_S, calculatedDurationS);
+    }
+
+    static show(title, msg, avatarPath, durationS = -1, dismissCallback = () => {}) {
+        const dedentedMsg = StringUtils.dedent(msg);
+        if (durationS <= 0) {
+            durationS = Dialogs.calculateDurationSeconds(dedentedMsg);
+        }
         let dialog = new Dialog.Builder(document.getElementById("overlay"))
             .withAvatar(avatarPath) // Optional
             .withTitle(title)
-            .withMessage(StringUtils.dedent(msg))
+            .withMessage(dedentedMsg)
             .withDuration(durationS)
             .withDismissCallback(() => {
                 Dialogs.onDialogDismissed();

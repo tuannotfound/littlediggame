@@ -2,8 +2,8 @@ import Layer from "./layer.js";
 
 export default class GameOverArt {
     static SIZE_PX = 256;
-    static WON_PATH = "assets/game_won_art.png";
-    static LOST_PATH = "assets/game_lost_art.png";
+    static WON_PATH = "assets/victory_256.png";
+    static LOST_PATH = "assets/defeat_256.png";
     // Roughly 5 seconds.
     static FADE_IN_DURATION_FRAMES = 5 * 60;
 

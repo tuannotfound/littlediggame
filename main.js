@@ -73,7 +73,9 @@ document.onreadystatechange = function () {
                 newGameBtn.classList.add("hidden");
                 loadGameBtn.classList.add("hidden");
                 saveGameBtn.classList.remove("hidden");
-                document.getElementById("pause_resume").classList.remove("hidden");
+                let pauseBtn = document.getElementById("pause_resume");
+                pauseBtn.classList.remove("hidden");
+                pauseBtn.removeAttribute("disabled");
                 overlay.classList.remove("hidden");
                 document.getElementById("legend").classList.remove("hidden");
                 document.getElementById("info_container").classList.remove("dark");

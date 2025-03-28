@@ -23,6 +23,8 @@ export default class Story {
     static COMPANY_LEADER_DEATH_AVATAR_PATH = "assets/company_leader_death_avatar.png";
     static COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH =
         "assets/company_leader_censored_death_avatar.png";
+    static GAME_DEV_NAME = "Game Dev (Alec)";
+    static GAME_DEV_AVATAR_PATH = "assets/dev_avatar.png";
 
     static IMAGE_PATHS = [
         Story.FOREMAN_AVATAR_PATH,
@@ -36,6 +38,7 @@ export default class Story {
         Story.COMPANY_LEADER_CENSORED_AVATAR_PATH,
         Story.COMPANY_LEADER_DEATH_AVATAR_PATH,
         Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH,
+        Story.GAME_DEV_AVATAR_PATH,
     ];
 
     constructor() {
@@ -70,6 +73,13 @@ export default class Story {
         this.serpent4 = false;
         this.serpent5 = false;
         this.serpent6 = false;
+    }
+
+    static fromJSON(json) {
+        const story = new Story();
+        Object.assign(story, json);
+        story.preloaded = false;
+        return story;
     }
 
     static get instance() {
@@ -602,5 +612,9 @@ export default class Story {
                 );
             }
         );
+    }
+
+    thanks() {
+        Dialogs.show(Story.GAME_DEV_NAME, `Thanks for playing!`, Story.GAME_DEV_AVATAR_PATH, 20);
     }
 }

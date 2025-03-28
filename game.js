@@ -139,6 +139,7 @@ export default class Game {
             knowsDeath: this.knowsDeath,
             knowsDirt: this.knowsDirt,
             knowsEggDeath: this.knowsEggDeath,
+            story: Story.instance,
         };
     }
 
@@ -187,6 +188,8 @@ export default class Game {
         game.knowsDeath = json.knowsDeath;
         game.knowsDirt = json.knowsDirt;
         game.knowsEggDeath = json.knowsEggDeath;
+
+        Story.fromJSON(json.story);
 
         return game;
     }
@@ -410,6 +413,9 @@ export default class Game {
         }
         this.notifyResize();
         this.updateActivePixelBodyPosition();
+        if (GameState.isPaused(this.gameState) || GameState.isOver(this.gameState)) {
+            this.render();
+        }
     }
 
     notifyResize() {
@@ -424,7 +430,7 @@ export default class Game {
     }
 
     maybeSave() {
-        if (this.gameState == GameState.UNINITIALIZED) {
+        if (this.gameState == GameState.UNINITIALIZED || GameState.isOver(this.gameState)) {
             return;
         }
         if (this.pixelBodies.length <= 1) {
@@ -739,6 +745,12 @@ export default class Game {
 
     endGame(won) {
         Story.instance.onGameOver(won, () => {
+            let showUpgradesBtn = document.getElementById("show_upgrades");
+            showUpgradesBtn.classList.add("hidden");
+            let infoContainer = document.getElementById("info_container");
+            infoContainer.classList.add("hidden");
+            let pauseBtn = document.getElementById("pause_resume");
+            pauseBtn.setAttribute("disabled", "");
             this.showGameOverScreen(won);
         });
     }
@@ -751,6 +763,11 @@ export default class Game {
             this.zoomLevelSrc = this.zoomLevel;
             this.zoomLevelDst = this.calculateZoomLevel(this.width, this.height);
         });
+    }
+
+    endGameForRealForReal(won) {
+        this.gameState = won ? GameState.WON : GameState.LOST;
+        Story.instance.thanks();
     }
 
     updateLegend() {
@@ -950,6 +967,29 @@ export default class Game {
         this.updateSpawnCost();
     }
 
+    maybeAutoSpawn() {
+        let activePixelBody = this.activePixelBody;
+        if (!activePixelBody) {
+            return;
+        }
+        if (
+            this.upgrades.conceptionIntervalMs > 0 &&
+            this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
+        ) {
+            console.log("Immaculate conception occurred");
+            let pixelBodyCoords = new Vector(
+                Math.random() * activePixelBody.layer.width,
+                Math.random() * activePixelBody.layer.height
+            );
+            let closestSurfacePixel = activePixelBody.getClosestSurfacePixel(pixelBodyCoords);
+            if (closestSurfacePixel) {
+                this.spawn(closestSurfacePixel.position, true);
+            }
+
+            this.lastConceptionTime = this.now;
+        }
+    }
+
     setPaused(paused) {
         if (this.gameState == GameState.UNINITIALIZED || GameState.isOver(this.gameState)) {
             return;
@@ -983,7 +1023,11 @@ export default class Game {
     }
 
     tick(newtime) {
-        if (GameState.isPaused(this.gameState) || !this.layer.canvas) {
+        if (
+            GameState.isPaused(this.gameState) ||
+            GameState.isOver(this.gameState) ||
+            !this.layer.canvas
+        ) {
             return;
         }
 
@@ -1000,6 +1044,7 @@ export default class Game {
         for (let i = 0; i < this.gameSpeed; i++) {
             this.runUpdate(elapsedMs);
         }
+        this.render();
         this.stats.end();
     }
 
@@ -1009,6 +1054,7 @@ export default class Game {
             Math.abs(this.zoomLevel - this.zoomLevelDst) < 0.01 ||
             this.zoomLevelDst == this.zoomLevelSrc
         ) {
+            // Zoom complete
             this.zoomLevel = this.zoomLevelDst;
         } else {
             this.zoomElapsedMs += elapsedMs;
@@ -1025,46 +1071,55 @@ export default class Game {
             this.notifyResize();
             this.updateActivePixelBodyPosition();
         }
-        if (
-            this.upgrades.conceptionIntervalMs > 0 &&
-            this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs &&
-            this.activePixelBody
-        ) {
-            console.log("Immaculate conception occurred");
-            let activePixelBody = this.activePixelBody;
-            let pixelBodyCoords = new Vector(
-                Math.random() * activePixelBody.layer.width,
-                Math.random() * activePixelBody.layer.height
-            );
-            let closestSurfacePixel = activePixelBody.getClosestSurfacePixel(pixelBodyCoords);
-            if (closestSurfacePixel) {
-                this.spawn(closestSurfacePixel.position, true);
-            }
+        this.maybeAutoSpawn();
 
-            this.lastConceptionTime = this.now;
+        this.sky.update();
+
+        if (this.hourglass.initialized) {
+            this.hourglass.update(elapsedMs);
         }
 
+        if (this.activePixelBody) {
+            this.activePixelBody.update(elapsedMs);
+        }
+
+        for (const littleGuy of this.littleGuys) {
+            littleGuy.update(elapsedMs);
+        }
+
+        if (this.gameOverArt.initialized) {
+            this.gameOverArt.update();
+            if (this.zoomLevel == this.zoomLevelDst) {
+                this.endGameForRealForReal(this.gameOverArt.won);
+            }
+        }
+
+        // Don't do particles on higher game speeds (used for testing only)
+        if (this.gameSpeed == 1) {
+            this.particles.update(elapsedMs);
+        }
+    }
+
+    render() {
         this.layer.getContext().fillStyle = "white";
         this.layer.getContext().fillRect(0, 0, this.width, this.height);
 
-        this.sky.update();
-        this.layer.getContext().drawImage(
-            this.sky.layer.canvas,
-            0, // source x
-            0, // source y
-            this.sky.layer.width, // source width
-            this.sky.layer.height, // source height
-            // The sky layer shares the same size as the main canvas, so no need to
-            // translate.
-            (-this.sky.layer.width * this.zoomLevel) / 4, // destination x
-            0, // destination y
-            this.sky.layer.width * this.zoomLevel, // destination width
-            this.sky.layer.height * this.zoomLevel // destination height
-        );
-
-        // Hourglass
-        if (this.hourglass.initialized) {
-            this.hourglass.update(elapsedMs);
+        if (this.sky.layer?.initialized) {
+            this.layer.getContext().drawImage(
+                this.sky.layer.canvas,
+                0, // source x
+                0, // source y
+                this.sky.layer.width, // source width
+                this.sky.layer.height, // source height
+                // The sky layer shares the same size as the main canvas, so no need to
+                // translate.
+                (-this.sky.layer.width * this.zoomLevel) / 4, // destination x
+                0, // destination y
+                this.sky.layer.width * this.zoomLevel, // destination width
+                this.sky.layer.height * this.zoomLevel // destination height
+            );
+        }
+        if (this.hourglass.layer?.initialized && !this.gameOverArt.layer?.initialized) {
             this.layer.getContext().drawImage(
                 this.hourglass.layer.canvas,
                 0, // source x
@@ -1077,31 +1132,22 @@ export default class Game {
                 this.hourglass.layer.height * this.zoomLevel // destination height
             );
         }
-
-        // Active pixel body.
         let pixelBody = this.activePixelBody;
-        if (pixelBody) {
-            pixelBody.update(elapsedMs);
-            // Update may result in the destruction of the pixel body, so check here as well.
-            if (pixelBody.layer) {
-                this.layer.getContext().drawImage(
-                    pixelBody.layer.canvas,
-                    0, // source x
-                    0, // source y
-                    pixelBody.layer.width, // source width
-                    pixelBody.layer.height, // source height
-                    this.activePixelBodyPosition.x, // destination x
-                    this.activePixelBodyPosition.y, // destination y
-                    pixelBody.layer.width * this.zoomLevel, // destination width
-                    pixelBody.layer.height * this.zoomLevel // destination height
-                );
-            }
+        if (pixelBody && pixelBody.layer?.initialized) {
+            this.layer.getContext().drawImage(
+                pixelBody.layer.canvas,
+                0, // source x
+                0, // source y
+                pixelBody.layer.width, // source width
+                pixelBody.layer.height, // source height
+                this.activePixelBodyPosition.x, // destination x
+                this.activePixelBodyPosition.y, // destination y
+                pixelBody.layer.width * this.zoomLevel, // destination width
+                pixelBody.layer.height * this.zoomLevel // destination height
+            );
         }
-
-        // Little guys
         for (const littleGuy of this.littleGuys) {
-            littleGuy.update(elapsedMs);
-            if (!littleGuy.active) {
+            if (!littleGuy.active || !littleGuy.layer?.initialized) {
                 continue;
             }
             this.layer.getContext().drawImage(
@@ -1120,28 +1166,22 @@ export default class Game {
                 littleGuy.layer.height * this.zoomLevel // destination height
             );
         }
-
-        // Game over art.
-        if (this.gameOverArt.initialized) {
-            this.gameOverArt.update();
+        if (this.gameOverArt.layer?.initialized) {
             this.layer.getContext().drawImage(
                 this.gameOverArt.layer.canvas,
                 0, // source x
                 0, // source y
                 this.gameOverArt.layer.width, // source width
                 this.gameOverArt.layer.height, // source height
-                0, // destination x
-                0, // destination y
+                (this.layer.width - this.gameOverArt.layer.width * this.zoomLevel) / 2, // destination x
+                (this.layer.height - this.gameOverArt.layer.height * this.zoomLevel) / 2, // destination y
                 this.gameOverArt.layer.width * this.zoomLevel, // destination width
                 this.gameOverArt.layer.height * this.zoomLevel // destination height
             );
         }
-
-        // Particles
-        // Render them last as they go on top of everything else.
-        // Don't do particles on higher game speeds (used for testing only)
-        if (this.gameSpeed == 1) {
-            this.particles.update(elapsedMs);
+        // Render particles last as they go on top of everything else.
+        // Don't do particles on higher game speeds (used for testing only).
+        if (this.gameSpeed == 1 && this.particles.layer?.initialized) {
             this.layer.getContext().drawImage(
                 this.particles.layer.canvas,
                 0, // source x

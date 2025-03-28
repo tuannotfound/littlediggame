@@ -1,6 +1,6 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
-import Stats from "stats.js";
+import PerfStats from "stats.js";
 import CircularPlanet from "./pixel_bodies/circular_planet.js";
 import SwissPlanet from "./pixel_bodies/swiss_planet.js";
 import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
@@ -18,10 +18,11 @@ import Serpent from "./pixel_bodies/serpent.js";
 import Hourglass from "./hourglass.js";
 import GameState from "./game_state.js";
 import Sky from "./sky.js";
-import { default as PixelConstants } from "./diggables/constants.js";
+import PixelConstants from "./diggables/constants.js";
 import Story from "./story.js";
 import Dialogs from "./dialogs.js";
 import GameOverArt from "./game_over_art.js";
+import Stats from "./stats.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -71,6 +72,8 @@ export default class Game {
         this.upgradesUi = new UpgradesUi();
         this.gameSpeed = 1;
 
+        this.stats = new Stats();
+
         // Created during init()
         this.containerElement = null;
 
@@ -114,11 +117,11 @@ export default class Game {
 
         this.lastConceptionTime = 0;
 
-        this.stats = new Stats();
-        this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.stats.dom.style.left = "90%";
+        this.perfStats = new PerfStats();
+        this.perfStats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+        this.perfStats.dom.style.left = "90%";
         console.log("Appending stats panel");
-        document.body.appendChild(this.stats.dom);
+        document.body.appendChild(this.perfStats.dom);
 
         this.gameState = GameState.UNINITIALIZED;
         this.lastSaved = -this.MIN_SAVE_INTERVAL_MS;
@@ -140,6 +143,7 @@ export default class Game {
             knowsDirt: this.knowsDirt,
             knowsEggDeath: this.knowsEggDeath,
             story: Story.instance,
+            stats: this.stats,
         };
     }
 
@@ -190,6 +194,8 @@ export default class Game {
         game.knowsEggDeath = json.knowsEggDeath;
 
         Story.fromJSON(json.story);
+
+        game.stats = Stats.fromJSON(json.stats);
 
         return game;
     }
@@ -251,6 +257,9 @@ export default class Game {
         let saveGameBtn = document.getElementById("save_game");
         this.addClickEventListener(saveGameBtn, () => {
             console.log("Saving...");
+            if (this.gameState === GameState.RUNNING) {
+                this.stats.updateRuntime();
+            }
             SaveLoad.save(this);
             console.log("Saved");
         });
@@ -439,6 +448,9 @@ export default class Game {
         }
         let now = performance.now();
         if (now - this.lastSaved > this.MIN_SAVE_INTERVAL_MS) {
+            if (this.gameState === GameState.RUNNING) {
+                this.stats.updateRuntime();
+            }
             SaveLoad.save(this);
             this.lastSaved = now;
             clearTimeout(this.autoSaveTimeout);
@@ -504,6 +516,7 @@ export default class Game {
     }
 
     onDigComplete(pixel) {
+        this.stats.recordDig();
         if (!this.knowsDirt) {
             this.knowsDirt = true;
             this.updateLegend();
@@ -663,6 +676,7 @@ export default class Game {
             console.error(
                 "Somehow there are still little guys after the pixel body has been destroyed."
             );
+            this.stats.recordDeaths(this.littleGuys.length);
             // Hopefully this won't cause problems...
             this.littleGuys = [];
         }
@@ -744,6 +758,7 @@ export default class Game {
     }
 
     endGame(won) {
+        this.stats.updateRuntime();
         Story.instance.onGameOver(won, () => {
             let showUpgradesBtn = document.getElementById("show_upgrades");
             showUpgradesBtn.classList.add("hidden");
@@ -767,7 +782,7 @@ export default class Game {
 
     endGameForRealForReal(won) {
         this.gameState = won ? GameState.WON : GameState.LOST;
-        Story.instance.thanks();
+        Story.instance.thanks(this.stats);
     }
 
     updateLegend() {
@@ -823,6 +838,7 @@ export default class Game {
         if (!this.activePixelBody) {
             return;
         }
+        this.stats.recordClick();
         let closestSurfacePixel = this.activePixelBody.getClosestSurfacePixel(activeBodyCoords);
         if (!closestSurfacePixel) {
             return;
@@ -963,6 +979,7 @@ export default class Game {
     }
 
     handleInactive(littleGuy) {
+        this.stats.recordDeath();
         this.littleGuys.splice(this.littleGuys.indexOf(littleGuy), 1);
         this.updateSpawnCost();
     }
@@ -1001,6 +1018,9 @@ export default class Game {
         if (!paused) {
             this.then = window.performance.now();
             this.tick(this.then);
+            this.stats.resetLastUpdateTime();
+        } else {
+            this.stats.updateRuntime();
         }
         this.maybeSave();
     }
@@ -1019,7 +1039,7 @@ export default class Game {
         for (const [element, listener] of this.clickListenerMap) {
             element.removeEventListener("click", listener);
         }
-        document.body.removeChild(this.stats.dom);
+        document.body.removeChild(this.perfStats.dom);
     }
 
     tick(newtime) {
@@ -1040,12 +1060,12 @@ export default class Game {
         }
         this.then = this.now - (elapsedMs % this.FRAME_INTERVAL_MS);
 
-        this.stats.begin();
+        this.perfStats.begin();
         for (let i = 0; i < this.gameSpeed; i++) {
             this.runUpdate(elapsedMs);
         }
         this.render();
-        this.stats.end();
+        this.perfStats.end();
     }
 
     runUpdate(elapsedMs) {

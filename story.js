@@ -23,7 +23,7 @@ export default class Story {
     static COMPANY_LEADER_DEATH_AVATAR_PATH = "assets/company_leader_death_avatar.png";
     static COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH =
         "assets/company_leader_censored_death_avatar.png";
-    static GAME_DEV_NAME = "Game Dev (Alec)";
+    static GAME_DEV_NAME = "Alec (Game Dev)";
     static GAME_DEV_AVATAR_PATH = "assets/dev_avatar.png";
 
     static IMAGE_PATHS = [
@@ -581,14 +581,12 @@ export default class Story {
             <br><br>
             This is the beginning of the end for you and your Company, Leader.`,
             Story.SERPENT_AVATAR_PATH,
-            -1,
-            () => {
-                let path = window.SETTINGS.censor
-                    ? Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH
-                    : Story.COMPANY_LEADER_DEATH_AVATAR_PATH;
-                Dialogs.show(Story.COMPANY_LEADER_NAME, `Aaaaauuuugh!`, path, 8, dismissCallback);
-            }
+            -1
         );
+        let path = window.SETTINGS.censor
+            ? Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH
+            : Story.COMPANY_LEADER_DEATH_AVATAR_PATH;
+        Dialogs.show(Story.COMPANY_LEADER_NAME, `Aaaaauuuugh!`, path, 8, dismissCallback);
     }
 
     onGameWon(dismissCallback) {
@@ -598,23 +596,36 @@ export default class Story {
             <br><br>
             ...sss.`,
             Story.SERPENT_DEATH_AVATAR_PATH,
-            12,
-            () => {
-                Dialogs.show(
-                    Story.COMPANY_LEADER_NAME,
-                    `We are victorious! I have defeated The Serpent!
-                    <br><br>
-                    The shareholders will be ecstatic. Double the rations for the crew for the NEXT!
-                    FOUR! DAYS!`,
-                    this.leaderAvatarPath,
-                    -1,
-                    dismissCallback
-                );
-            }
+            12
+        );
+        Dialogs.show(
+            Story.COMPANY_LEADER_NAME,
+            `We are victorious! I have defeated The Serpent!
+            <br><br>
+            The shareholders will be ecstatic. Double the rations for the crew for the NEXT!
+            FOUR! DAYS!`,
+            this.leaderAvatarPath,
+            -1,
+            dismissCallback
         );
     }
 
-    thanks() {
-        Dialogs.show(Story.GAME_DEV_NAME, `Thanks for playing!`, Story.GAME_DEV_AVATAR_PATH, 20);
+    thanks(stats) {
+        let plusSign = stats.karma > 0 ? "+" : "";
+        Dialogs.show(
+            Story.GAME_DEV_NAME,
+            `You played for ${stats.runtimeAsHMS}. In that time, you...
+            <br><br>
+            <i class="fa-solid fa-computer-mouse"></i> Clicked or tapped ${stats.clickCount} times
+            <br>
+            <i class="fa-solid fa-person-digging"></i> Oversaw the mining of ${stats.digCount} blocks
+            <br>
+            <i class="fa-solid fa-skull"></i> Expended the lives of ${stats.deathCount} loyal workers
+            <br>
+            <i class="fa-solid fa-hand-sparkles"></i> Finished with ${plusSign}${stats.karma} karma`,
+            Story.GAME_DEV_AVATAR_PATH,
+            30
+        );
+        Dialogs.show(Story.GAME_DEV_NAME, `Thanks for playing!`, Story.GAME_DEV_AVATAR_PATH, 8);
     }
 }

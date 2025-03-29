@@ -16,15 +16,15 @@ export default class Pixel {
         color: Constants.DIRT_COLOR,
         surfaceColor: Constants.DIRT_SURFACE_COLOR,
     };
-    static ICE_DIRT = {
-        name: "ice",
-        color: Constants.ICE_DIRT_COLOR,
-        surfaceColor: Constants.ICE_DIRT_SURFACE_COLOR,
-    };
     static GOOP_DIRT = {
         name: "goop",
         color: Constants.GOOP_DIRT_COLOR,
         surfaceColor: Constants.GOOP_DIRT_SURFACE_COLOR,
+    };
+    static ICE_DIRT = {
+        name: "ice",
+        color: Constants.ICE_DIRT_COLOR,
+        surfaceColor: Constants.ICE_DIRT_SURFACE_COLOR,
     };
     // Default to regular dirt.
     static ACTIVE_DIRT_TYPE = Pixel.DIRT;
@@ -33,13 +33,14 @@ export default class Pixel {
         Pixel.ACTIVE_DIRT_TYPE = dirtType;
     }
 
-    constructor(position, upgrades, type, initialHealth, initialAlpha = 255) {
+    constructor(position, upgrades, type, initialHealth, healthModifier = 1, initialAlpha = 255) {
         this.position = position.copy();
         this.position.round();
         this.upgrades = upgrades;
         this.type = type;
-        this.initialHealth = initialHealth;
-        this.health = initialHealth;
+        this.initialHealth = initialHealth * healthModifier;
+        this.health = this.initialHealth;
+        this.healthModifier = healthModifier;
         this.initialAlpha = initialAlpha;
 
         this._color = null;
@@ -60,6 +61,7 @@ export default class Pixel {
             color: this._color,
             surfaceColor: this._surfaceColor,
             health: this.health,
+            healthModifier: this.healthModifier,
             isSurface: this.isSurface,
             darkness: this.darkness,
         };
@@ -72,6 +74,7 @@ export default class Pixel {
         pixel.color = json.color;
         pixel.surfaceColor = json.surfaceColor;
         pixel.health = json.health;
+        pixel.healthModifier = json.healthModifier;
         pixel.isSurface = json.isSurface;
         pixel.darkness = json.darkness;
         return pixel;
@@ -102,7 +105,7 @@ export default class Pixel {
     getRenderAlpha() {
         let maxAlpha = this.initialAlpha;
         let actLikeDirtDiff = this.actLikeDirt()
-            ? this.initialHealth - Constants.DIRT_INITIAL_HEALTH
+            ? this.initialHealth - Constants.DIRT_INITIAL_HEALTH * this.healthModifier
             : 0;
         let healthPct =
             (100 * (this.health - actLikeDirtDiff)) / (this.initialHealth - actLikeDirtDiff);
@@ -143,7 +146,8 @@ export default class Pixel {
         if (!this.actLikeDirt()) {
             return this.health;
         }
-        let actLikeDirtDiff = this.initialHealth - Constants.DIRT_INITIAL_HEALTH;
+        let actLikeDirtDiff =
+            this.initialHealth - Constants.DIRT_INITIAL_HEALTH * this.healthModifier;
         return Math.max(0, this.health - actLikeDirtDiff);
     }
 

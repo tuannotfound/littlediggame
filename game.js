@@ -279,6 +279,7 @@ export default class Game {
         this.addClickEventListener(pauseBtn, () => {
             document.getElementById("pause_icon").classList.toggle("hidden");
             document.getElementById("play_icon").classList.toggle("hidden");
+            document.getElementById("pause_scrim").classList.toggle("hidden");
             this.setPaused(!GameState.isPaused(this.gameState));
         });
 
@@ -300,11 +301,15 @@ export default class Game {
             upgradesContainer.classList.remove("hidden");
             showUpgradesBtn.classList.add("hidden");
             this.upgradesUi.onShown();
+            Dialogs.pause();
         });
         let hideUpgradesBtn = document.getElementById("hide_upgrades");
         this.addClickEventListener(hideUpgradesBtn, () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
+            if (!GameState.isPaused(this.gameState)) {
+                Dialogs.resume();
+            }
         });
         this.availableUpgradeCount = document.getElementById("available_upgrade_count");
 
@@ -1019,8 +1024,10 @@ export default class Game {
             this.then = window.performance.now();
             this.tick(this.then);
             this.stats.resetLastUpdateTime();
+            Dialogs.resume();
         } else {
             this.stats.updateRuntime();
+            Dialogs.pause();
         }
         this.maybeSave();
     }
@@ -1104,7 +1111,7 @@ export default class Game {
         }
 
         for (const littleGuy of this.littleGuys) {
-            littleGuy.update(elapsedMs);
+            littleGuy.update();
         }
 
         if (this.gameOverArt.initialized) {
@@ -1116,7 +1123,7 @@ export default class Game {
 
         // Don't do particles on higher game speeds (used for testing only)
         if (this.gameSpeed == 1) {
-            this.particles.update(elapsedMs);
+            this.particles.update();
         }
     }
 

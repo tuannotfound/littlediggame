@@ -20,8 +20,12 @@ export default class SwissPlanet extends CircularPlanet {
         };
     }
 
-    getDirtVariant() {
+    get dirtVariant() {
         return Pixel.GOOP_DIRT;
+    }
+
+    get healthModifier() {
+        return 1.5;
     }
 
     createInitialPixels() {

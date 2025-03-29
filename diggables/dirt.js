@@ -6,8 +6,8 @@ import Constants from "./constants.js";
 export default class Dirt extends Pixel {
     static COLOR_VARIABILITY = 10;
 
-    constructor(position, upgrades) {
-        super(position, upgrades, PixelType.DIRT, Constants.DIRT_INITIAL_HEALTH);
+    constructor(position, upgrades, healthModifier = 1) {
+        super(position, upgrades, PixelType.DIRT, Constants.DIRT_INITIAL_HEALTH, healthModifier);
 
         this.color = Color.wiggle(this.getDirtColor(), Dirt.COLOR_VARIABILITY);
         this.surfaceColor = Color.wiggle(this.getDirtSurfaceColor(), Dirt.COLOR_VARIABILITY);

@@ -7,16 +7,16 @@ import Egg from "./egg.js";
 import Serpent from "./serpent.js";
 
 export default class PixelFactory {
-    static create(position, upgrades, type) {
+    static create(position, upgrades, type, healthModifier = 1) {
         switch (type) {
             case PixelType.DIRT:
-                return new Dirt(position, upgrades);
+                return new Dirt(position, upgrades, healthModifier);
             case PixelType.TOMBSTONE:
-                return new Tombstone(position, upgrades);
+                return new Tombstone(position, upgrades, healthModifier);
             case PixelType.GOLD:
-                return new Gold(position, upgrades);
+                return new Gold(position, upgrades, healthModifier);
             case PixelType.DIAMOND:
-                return new Diamond(position, upgrades);
+                return new Diamond(position, upgrades, healthModifier);
             case PixelType.EGG:
                 return new Egg(position, upgrades);
             case PixelType.SERPENT:

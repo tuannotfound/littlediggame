@@ -2,7 +2,6 @@ import CircularPlanet from "./circular_planet.js";
 import Vector from "../vector.js";
 import PixelType from "../diggables/pixel_type.js";
 import Color from "../color.js";
-import Planet from "./planet.js";
 
 export default class EggPlanet extends CircularPlanet {
     static EGG_WIDTH = 7;
@@ -52,6 +51,10 @@ export default class EggPlanet extends CircularPlanet {
     updateSurface() {
         super.updateSurface();
         this.updateEggReveal();
+    }
+
+    get healthModifier() {
+        return 2.5;
     }
 
     updateEggReveal() {

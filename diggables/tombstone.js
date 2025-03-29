@@ -9,8 +9,8 @@ export default class Tombstone extends Pixel {
 
     static HEALTH = 125;
 
-    constructor(position, upgrades) {
-        super(position, upgrades, PixelType.TOMBSTONE, Tombstone.HEALTH);
+    constructor(position, upgrades, healthModifier = 1) {
+        super(position, upgrades, PixelType.TOMBSTONE, Tombstone.HEALTH, healthModifier);
 
         this.color = Color.wiggle(Constants.TOMBSTONE_COLOR, Tombstone.COLOR_VARIABILITY);
         this.surfaceColor = this.color.copy();

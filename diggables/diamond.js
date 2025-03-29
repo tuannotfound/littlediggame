@@ -9,8 +9,8 @@ export default class Diamond extends Pixel {
 
     static HEALTH = 250;
 
-    constructor(position, upgrades) {
-        super(position, upgrades, PixelType.DIAMOND, Diamond.HEALTH);
+    constructor(position, upgrades, healthModifier = 1) {
+        super(position, upgrades, PixelType.DIAMOND, Diamond.HEALTH, healthModifier);
 
         this.color = Constants.DIAMOND_COLOR.copy();
         this.surfaceColor = Diamond.SURFACE_COLOR.copy();

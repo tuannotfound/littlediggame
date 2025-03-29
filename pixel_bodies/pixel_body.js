@@ -44,7 +44,7 @@ export default class PixelBody {
         this.upgrades = upgrades;
         this.layer.initOffscreen();
 
-        Pixel.setDirtType(this.getDirtVariant());
+        Pixel.setDirtType(this.dirtVariant);
         if (this.pixels.length == 0) {
             this.createInitialPixels();
         }
@@ -82,8 +82,12 @@ export default class PixelBody {
         throw new Error("Getter for 'sky' must be implemented in derived classes.");
     }
 
-    getDirtVariant() {
+    get dirtVariant() {
         return Pixel.DIRT;
+    }
+
+    get healthModifier() {
+        return 1;
     }
 
     update() {
@@ -124,7 +128,7 @@ export default class PixelBody {
     }
 
     createPixel(position, type = PixelType.DIRT) {
-        let pixel = PixelFactory.create(position, this.upgrades, type);
+        let pixel = PixelFactory.create(position, this.upgrades, type, this.healthModifier);
         return pixel;
     }
 

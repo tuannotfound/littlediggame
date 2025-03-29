@@ -6,6 +6,22 @@ export default class Dialogs {
     static WORDS_PER_SECOND = 1.7;
     static SECONDS_PER_BREAK = 1;
     static sDialogQueue = [];
+    static sPaused = false;
+
+    static pause() {
+        Dialogs.sPaused = true;
+        if (Dialogs.sDialogQueue.length > 0) {
+            Dialogs.sDialogQueue[0].pauseTimer();
+        }
+    }
+
+    static resume() {
+        Dialogs.sPaused = false;
+        if (Dialogs.sDialogQueue.length > 0) {
+            Dialogs.sDialogQueue[0].show();
+            Dialogs.sDialogQueue[0].resumeTimer();
+        }
+    }
 
     static calculateDurationSeconds(msg) {
         if (msg.length == 0) {
@@ -43,8 +59,8 @@ export default class Dialogs {
             })
             .build();
         Dialogs.sDialogQueue.push(dialog);
-        if (Dialogs.sDialogQueue.length > 1) {
-            // Must wait for the queue to reach this new dialog.
+        if (Dialogs.sPaused || Dialogs.sDialogQueue.length > 1) {
+            // Must wait for the queue to reach this new dialog or to resume dialogs.
             return;
         }
         // We're the only dialog queued, show now.
@@ -110,6 +126,9 @@ class Dialog {
         this.dismissCallback = builder.dismissCallback;
         this.dismissed = false;
 
+        this.shown = false;
+        this.timerPausedTime = null;
+
         this.dialog.addEventListener("click", this.dismiss.bind(this));
     }
 
@@ -165,6 +184,25 @@ class Dialog {
         }, 100);
     }
 
+    pauseTimer() {
+        if (!this.shown || this.timerPausedTime) {
+            return;
+        }
+        this.timerPausedTime = performance.now();
+        clearInterval(this.timerInterval);
+    }
+
+    resumeTimer() {
+        if (!this.shown || !this.timerPausedTime) {
+            return;
+        }
+        this.timerStartTime += performance.now() - this.timerPausedTime;
+        this.timerPausedTime = null;
+        this.timerInterval = setInterval(() => {
+            this.updateTimer();
+        }, 100);
+    }
+
     updateTimer() {
         if (this.dismissed) {
             return;
@@ -191,6 +229,10 @@ class Dialog {
     }
 
     show() {
+        if (this.shown) {
+            return;
+        }
+        this.shown = true;
         this.container.appendChild(this.dialogRoot);
         this.startTimer();
     }

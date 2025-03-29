@@ -315,7 +315,7 @@ export default class Upgrades {
             }
         );
         moreAspisDirt.addPrereq(moreAspis4);
-        moreAspisDirt.addPrereq(bloodDiamonds);
+        moreAspisDirt.addPrereq(diamondDeals);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
         let moreAspisGold = new Upgrade(
@@ -332,7 +332,7 @@ export default class Upgrades {
             }
         );
         moreAspisGold.addPrereq(moreAspis4);
-        moreAspisGold.addPrereq(bloodDiamonds);
+        moreAspisGold.addPrereq(diamondDeals);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         let graveDigger3 = new Upgrade(
@@ -352,7 +352,7 @@ export default class Upgrades {
             }
         );
         graveDigger3.addPrereq(graveDigger2);
-        graveDigger3.addPrereq(bloodDiamonds);
+        graveDigger3.addPrereq(diamondDeals);
         this.upgradeTree.set(graveDigger3.id, graveDigger3);
 
         let goldSeeker = new Upgrade(

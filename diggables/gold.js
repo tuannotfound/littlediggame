@@ -10,8 +10,8 @@ export default class Gold extends Pixel {
 
     static HEALTH = 150;
 
-    constructor(position, upgrades) {
-        super(position, upgrades, PixelType.GOLD, Gold.HEALTH);
+    constructor(position, upgrades, healthModifier = 1) {
+        super(position, upgrades, PixelType.GOLD, Gold.HEALTH, healthModifier);
 
         this.color = Color.wiggle(Constants.GOLD_COLOR, Gold.COLOR_VARIABILITY);
         this.surfaceColor = Color.wiggle(Gold.SURFACE_COLOR, Gold.COLOR_VARIABILITY);

@@ -28,7 +28,11 @@ export default class SpikyPlanet extends CircularPlanet {
         };
     }
 
-    getDirtVariant() {
+    get dirtVariant() {
         return Pixel.ICE_DIRT;
+    }
+
+    get healthModifier() {
+        return 2;
     }
 }

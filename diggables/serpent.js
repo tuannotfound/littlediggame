@@ -7,7 +7,8 @@ export default class Serpent extends Pixel {
     static SURFACE_COLOR = new Color(85, 51, 97).immutableCopy();
     static COLOR_VARIABILITY = 5;
     // Unused so far
-    static SPECKLE_COLOR = new Color(134, 250, 57).immutableCopy();
+    static SPECKLE_COLOR = new Color(9, 90, 4).immutableCopy();
+    static SPECKLE_SURFACE_COLOR = new Color(9, 159, 0).immutableCopy();
 
     static HEALTH = 100;
 

@@ -1076,7 +1076,6 @@ export default class Game {
     }
 
     runUpdate(elapsedMs) {
-        // This doesn't quite work yet.
         if (
             Math.abs(this.zoomLevel - this.zoomLevelDst) < 0.01 ||
             this.zoomLevelDst == this.zoomLevelSrc
@@ -1094,7 +1093,6 @@ export default class Game {
                 this.zoomLevelDst,
                 zoomProgress
             );
-            console.log("Zoom: " + this.zoomLevel + " -> " + this.zoomLevelDst);
             this.notifyResize();
             this.updateActivePixelBodyPosition();
         }

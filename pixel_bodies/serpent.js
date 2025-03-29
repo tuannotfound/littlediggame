@@ -3,12 +3,13 @@ import MathExtras from "../math_extras.js";
 import PixelType from "../diggables/pixel_type.js";
 import PixelBody from "./pixel_body.js";
 import Pixel from "../diggables/pixel.js";
+import SerpentDiggable from "../diggables/serpent.js";
 import Color from "../color.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
-    static MAX_SIZE = 1;
-    static MIN_SIZE = 1;
+    static MAX_SIZE = 16;
+    static MIN_SIZE = 2;
     static BORDER_BUFFER_PIXELS = 2;
     static BLACK_SKY = new Color().immutableCopy();
 
@@ -72,7 +73,7 @@ export default class Serpent extends PixelBody {
         // Only need to set segment count if we haven't been loaded from save data.
         if (this.segments.length <= 0) {
             // Todo: get rid of this default 20
-            this.segmentCount = segmentCount ? segmentCount : 1;
+            this.segmentCount = segmentCount ? segmentCount : 20;
         }
         console.log("Initializing Serpent w/ segment count of " + this.segmentCount);
         super.init(upgrades);
@@ -90,7 +91,7 @@ export default class Serpent extends PixelBody {
             let size = Math.round(
                 MathExtras.scaleBetween(
                     this.segmentCount - i,
-                    0,
+                    1,
                     this.segmentCount,
                     Serpent.MIN_SIZE,
                     Serpent.MAX_SIZE - 1
@@ -102,7 +103,7 @@ export default class Serpent extends PixelBody {
             }
             if (i == 0) {
                 // Ensure the head is always the largest, with no equal.
-                size += 2;
+                size += 6;
             }
             console.log(Serpent.TAG + "Generating segment of size " + size);
             let segment = new Segment(
@@ -114,11 +115,14 @@ export default class Serpent extends PixelBody {
                 this.speed,
                 this.upgrades
             );
-            segment.init();
             if (i > 0) {
                 segment.setForeSegment(this.segments[i - 1]);
             }
             this.segments.push(segment);
+        }
+        // Initialize in reverse order so the head is rendered on top.
+        for (let i = this.segments.length - 1; i >= 0; i--) {
+            this.segments[i].init();
         }
     }
 
@@ -318,35 +322,101 @@ class Segment {
         this.historySize = 0;
     }
 
-    generatePixels() {
-        // Temporary: just make a square with edge length = size
-        const halfSize = Math.floor(this.size / 2);
-        for (let x = 0; x < this.size; x++) {
-            for (let y = 0; y < this.size; y++) {
-                // Temporary, indicator dot
-                let indicatorDot = false;
-                if (this.direction.y == 1 && y == this.size - 1 && x == halfSize) {
-                    indicatorDot = true;
-                } else if (this.direction.y == -1 && y == 0 && x == halfSize) {
-                    indicatorDot = true;
-                } else if (this.direction.x == -1 && x == 0 && y == halfSize) {
-                    indicatorDot = true;
-                } else if (this.direction.x == 1 && x == this.size - 1 && y == halfSize) {
-                    indicatorDot = true;
+    speckle(pixel) {
+        pixel.color = Color.wiggle(
+            SerpentDiggable.SPECKLE_COLOR,
+            SerpentDiggable.COLOR_VARIABILITY
+        );
+        pixel.surfaceColor = Color.wiggle(
+            SerpentDiggable.SPECKLE_SURFACE_COLOR,
+            SerpentDiggable.COLOR_VARIABILITY
+        );
+    }
+
+    generateHeadPixels() {
+        const extent = Math.floor(this.size / 2);
+        const oneThirdExtent = Math.floor(this.size / 6);
+        const headHeight = Math.floor(this.size * 0.5);
+        const headWidth = Math.floor(this.size * 0.5);
+        const headPointiness = 1.225;
+
+        // Huh. This looks suspiciously similar to the egg function in EggPlanet.
+        // Duplicate code? In MY project?
+        function headShape(x, y) {
+            return (
+                y ** 2 / headHeight ** 2 + (x ** 2 * (1 + headPointiness ** -y)) / headWidth ** 2
+            );
+        }
+        for (let x = -extent; x <= extent; x++) {
+            for (let y = -extent; y <= extent; y++) {
+                if (headShape(x, y) < 1) {
+                    let coords = new Vector(x, y);
+                    let pixel = this.serpent.addPixel(
+                        Vector.add(this.renderPosition, coords),
+                        PixelType.SERPENT
+                    );
+                    if (pixel) {
+                        let speckleDx = y > 0 ? 1 : 0;
+                        if (Math.abs(x) == oneThirdExtent + speckleDx && Math.abs(y) % 2 == 0) {
+                            this.speckle(pixel);
+                        }
+                        this.pixels.push(pixel);
+                    }
                 }
-                let pixelPosition = new Vector(x - halfSize, y - halfSize);
-                if (pixelPosition.x == 0 && pixelPosition.y == 0) {
-                    indicatorDot = true;
+            }
+        }
+    }
+
+    generateBodyPixels() {
+        const xExtent = Math.floor(
+            this.size *
+                MathExtras.scaleBetween(this.size, Serpent.MIN_SIZE, Serpent.MAX_SIZE, 0.45, 0.35)
+        );
+        const yExtent = Math.floor(this.size * 0.5);
+        const speckleWidth = Math.floor(
+            MathExtras.scaleBetween(this.size, Serpent.MIN_SIZE + 3, Serpent.MAX_SIZE, 0, 4)
+        );
+        function exclude(x, y) {
+            return (
+                (x == -xExtent && y == -yExtent) ||
+                (x == xExtent && y == yExtent) ||
+                (x == -xExtent && y == yExtent) ||
+                (x == xExtent && y == -yExtent)
+            );
+        }
+        for (let x = -xExtent; x <= xExtent; x++) {
+            let speckleX = speckleWidth;
+            let speckleDw = 1;
+            for (let y = -yExtent; y <= yExtent; y++) {
+                if (speckleX == 0 || speckleX == speckleWidth) {
+                    speckleDw *= -1;
                 }
-                let pixelType = indicatorDot ? PixelType.DIAMOND : PixelType.SERPENT;
+                speckleX += speckleDw;
+                if (this.size > 3 && exclude(x, y)) {
+                    continue;
+                }
+                let coords = new Vector(x, y);
                 let pixel = this.serpent.addPixel(
-                    Vector.add(this.renderPosition, pixelPosition),
-                    pixelType
+                    Vector.add(this.renderPosition, coords),
+                    PixelType.SERPENT
                 );
                 if (pixel) {
+                    if (speckleWidth > 0 && Math.abs(x) == speckleX) {
+                        this.speckle(pixel);
+                    } else if (speckleWidth == 0 && x == 0 && Math.abs(y) % 2 == 0) {
+                        this.speckle(pixel);
+                    }
                     this.pixels.push(pixel);
                 }
             }
+        }
+    }
+
+    generatePixels() {
+        if (!this.foreSegment) {
+            this.generateHeadPixels();
+        } else {
+            this.generateBodyPixels();
         }
     }
 

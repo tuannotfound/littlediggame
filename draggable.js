@@ -15,12 +15,36 @@ export default class Draggable {
         this.element.parentElement.addEventListener("mousedown", this._startDrag.bind(this));
         this.element.parentElement.addEventListener("touchstart", this._startDrag.bind(this));
         this.element.parentElement.addEventListener("wheel", this._zoom.bind(this)); // Add wheel event listener
+
+        // Pinch zoom
+        this.element.parentElement.addEventListener(
+            "touchstart",
+            this._handleTouchStart.bind(this),
+            { passive: false }
+        );
+        this.element.parentElement.addEventListener("touchmove", this._handleTouchMove.bind(this), {
+            passive: false,
+        });
+        this.element.parentElement.addEventListener("touchend", this._handleTouchEnd.bind(this), {
+            passive: false,
+        });
+        this.element.parentElement.addEventListener(
+            "touchcancel",
+            this._handleTouchEnd.bind(this),
+            { passive: false }
+        );
+        this.initialDistance = 0;
+        this.initialScale = 1;
     }
 
     destroy() {
         this.element.parentElement.removeEventListener("mousedown", this._startDrag);
         this.element.parentElement.removeEventListener("touchstart", this._startDrag);
-        this.element.parentElement.removeEventListener("wheel", this._zoom); // Remove wheel event listener
+        this.element.parentElement.removeEventListener("wheel", this._zoom);
+        this.element.parentElement.removeEventListener("touchstart", this._handleTouchStart);
+        this.element.parentElement.removeEventListener("touchmove", this._handleTouchMove);
+        this.element.parentElement.removeEventListener("touchend", this._handleTouchEnd);
+        this.element.parentElement.removeEventListener("touchcancel", this._handleTouchEnd);
     }
 
     _startDrag(e) {
@@ -61,9 +85,9 @@ export default class Draggable {
         document.removeEventListener("mouseleave", this._stopDrag);
     }
 
-    // This just really doesn't work right.
+    // This just really doesn't work quite right.
     _zoom(e) {
-        e.preventDefault(); // Prevent the default scroll behavior
+        e.preventDefault();
         const newScale = MathExtras.clamp(
             e.deltaY < 0
                 ? this.scale + Draggable.ZOOM_INCREMENT
@@ -75,7 +99,6 @@ export default class Draggable {
             return;
         }
 
-        //const previousScale = this.scale;
         this.scale = newScale;
 
         const mouseX = e.clientX - this.element.getBoundingClientRect().left;
@@ -87,5 +110,48 @@ export default class Draggable {
         // whatever is under the cursor is still under the cursor after the zoom.
         this.element.style.transformOrigin = `${originX}px ${originY}px`;
         this.element.style.transform = `scale(${this.scale})`;
+    }
+
+    _handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            this.initialDistance = Math.sqrt(
+                (touch1.clientX - touch2.clientX) ** 2 + (touch1.clientY - touch2.clientY) ** 2
+            );
+            this.initialScale = this.scale;
+        }
+    }
+
+    _handleTouchMove(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.sqrt(
+                (touch1.clientX - touch2.clientX) ** 2 + (touch1.clientY - touch2.clientY) ** 2
+            );
+            const scaleFactor = currentDistance / this.initialDistance;
+            this.scale = MathExtras.clamp(
+                this.initialScale * scaleFactor,
+                Draggable.ZOOM_MIN,
+                Draggable.ZOOM_MAX
+            );
+
+            const midX =
+                (touch1.clientX + touch2.clientX) / 2 - this.element.getBoundingClientRect().left;
+            const midY =
+                (touch1.clientY + touch2.clientY) / 2 - this.element.getBoundingClientRect().top;
+
+            this.element.style.transformOrigin = `${midX}px ${midY}px`;
+            this.element.style.transform = `scale(${this.scale})`;
+        }
+    }
+
+    _handleTouchEnd(e) {
+        if (e.touches.length < 2) {
+            this.initialDistance = 0;
+        }
     }
 }

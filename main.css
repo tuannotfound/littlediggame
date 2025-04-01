@@ -216,6 +216,7 @@ div:has(> #upgrades_aspis) {
     padding: 5px;
     margin: 1px 0px;
     column-gap: 250px;
+    transition: transform 0.2s ease-in, transform-origin 0.2s ease-in;
 }
 
 button.upgrade {

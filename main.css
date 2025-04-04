@@ -212,7 +212,6 @@ div:has(> #upgrades_aspis) {
 
 #upgrades {
     display: grid;
-    position: relative;
     padding: 5px;
     margin: 1px 0px;
     column-gap: 250px;
@@ -224,6 +223,10 @@ button.upgrade {
     width: 300px;
     margin: 5px 0px;
     padding-top: 10px;
+}
+
+button.upgrade:disabled {
+    cursor: inherit;
 }
 
 .upgrade_desc_container {

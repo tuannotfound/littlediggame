@@ -1,5 +1,5 @@
 import LinkerLine from "linkerline";
-import Draggable from "./draggable.js";
+import PanZoomWrapper from "./pan_zoom_wrapper.js";
 import Color from "./color.js";
 
 export default class UpgradesUi {
@@ -11,7 +11,7 @@ export default class UpgradesUi {
     constructor() {
         this.graph = null;
         this.container = null;
-        this.draggable = null;
+        this.panZoom = null;
         this.upgrades = null;
         this.getCurrentAspisFunc = null;
         this.buttonMap = new Map();
@@ -37,7 +37,7 @@ export default class UpgradesUi {
         this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
         this.getCurrentAspisFunc = getCurrentAspisFunc;
 
-        this.draggable = new Draggable(this.container);
+        this.panZoom = new PanZoomWrapper(this.container);
 
         this.createButtons();
         this.createLines();
@@ -135,9 +135,9 @@ export default class UpgradesUi {
         while (this.container.firstChild) {
             this.container.removeChild(this.container.lastChild);
         }
-        if (this.draggable) {
-            this.draggable.destroy();
-            this.draggable = null;
+        if (this.panZoom) {
+            this.panZoom.destroy();
+            this.panZoom = null;
         }
     }
 

@@ -307,6 +307,7 @@ export default class Game {
         this.addClickEventListener(hideUpgradesBtn, () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
+            this.upgradesUi.onHidden();
             if (!GameState.isPaused(this.gameState)) {
                 Dialogs.resume();
             }

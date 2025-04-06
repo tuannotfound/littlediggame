@@ -1,5 +1,8 @@
 import Panzoom from "@panzoom/panzoom";
 
+import Vector from "./vector.js";
+import MathExtras from "./math_extras.js";
+
 export default class PanZoomWrapper {
     static ZOOM_MIN = 0.5;
     static ZOOM_MAX = 1;
@@ -11,22 +14,59 @@ export default class PanZoomWrapper {
             maxScale: PanZoomWrapper.ZOOM_MAX,
             canvas: true,
             cursor: "grab",
+            disableZoom: true,
         });
         this.element.parentElement.addEventListener("pointerdown", this._startDrag.bind(this));
-        this.element.parentElement.addEventListener("wheel", this.panzoom.zoomWithWheel);
+        // Couldn't quite get this working with the upgrades UI :(
+        //this.element.parentElement.addEventListener("wheel", this.panzoom.zoomWithWheel);
+
+        //this.element.addEventListener("panzoomchange", this._onPanZoomChange.bind(this));
+        this.element.addEventListener("panzoomend", this._onPanZoomEnd.bind(this));
     }
 
     _startDrag(e) {
         e.preventDefault();
-        console.log("grabbing");
         this.element.parentElement.style.cursor = "grabbing";
         document.addEventListener("pointerup", this._stopDrag.bind(this));
     }
 
     _stopDrag() {
-        console.log("ungrabbing");
         this.element.parentElement.style.cursor = "grab";
         document.removeEventListener("pointerup", this._stopDrag);
+    }
+
+    // _onPanZoomChange() {
+    //     // This makes for very choppy panning
+    //     LinkerLine.positionAll();
+    // }
+
+    _onPanZoomEnd() {
+        // Prevent the user from panning too far away from the content.
+        const rect = this.element.getBoundingClientRect();
+        const parentRect = this.element.parentElement.getBoundingClientRect();
+
+        const parentCenter = new Vector(parentRect.width * 0.8, parentRect.height * 0.8);
+
+        let clampedLeft = MathExtras.clamp(
+            rect.left,
+            -this.element.scrollWidth + parentCenter.x,
+            parentCenter.x
+        );
+        let clampedTop = MathExtras.clamp(
+            rect.top,
+            -this.element.scrollHeight + parentCenter.y,
+            parentCenter.y
+        );
+
+        const delta = new Vector(clampedLeft - rect.left, clampedTop - rect.top);
+        delta.div(this.panzoom.getScale());
+        if (delta.x != 0 || delta.y != 0) {
+            const currentPan = this.panzoom.getPan();
+            const newPan = new Vector(currentPan.x + delta.x, currentPan.y + delta.y);
+            this.panzoom.pan(newPan.x, newPan.y, {
+                animate: true,
+            });
+        }
     }
 
     destroy() {

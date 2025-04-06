@@ -20,6 +20,7 @@ export default class UpgradesUi {
         this.rootUpgradesAdded = [];
         this.linesMap = new Map();
         this.lastLineUpdate = 0;
+        this.layoutComplete = false;
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
             onPurchased: (upgrade) => {
@@ -114,6 +115,9 @@ export default class UpgradesUi {
                 let prereqButton = this.buttonMap.get(prereqId);
                 let line = new LinkerLine({
                     parent: this.container,
+                    // This allows Panzoom + LinkerLine to co-exist in a weird way, but the
+                    // framerate really suffers.
+                    // parent: document.getElementById("lines_container"),
                     start: prereqButton,
                     end: button,
                 });
@@ -142,16 +146,21 @@ export default class UpgradesUi {
     }
 
     onShown() {
-        for (const upgrade of this.upgrades.upgradeTree.values()) {
-            if (upgrade.unlocked) {
-                this.handleUnlock(upgrade);
+        if (!this.layoutComplete) {
+            for (const upgrade of this.upgrades.upgradeTree.values()) {
+                if (upgrade.unlocked) {
+                    this.handleUnlock(upgrade);
+                }
+                if (upgrade.purchased) {
+                    this.handlePurchase(upgrade);
+                }
             }
-            if (upgrade.purchased) {
-                this.handlePurchase(upgrade);
-            }
+            LinkerLine.positionAll();
+            this.layoutComplete = true;
         }
-        LinkerLine.positionAll();
     }
+
+    onHidden() {}
 
     handleUnlock(upgrade) {
         let button = this.buttonMap.get(upgrade.id);
@@ -159,6 +168,7 @@ export default class UpgradesUi {
         let upgradeDetailsEl = document.querySelector(
             "button#" + upgrade.id + " > div.upgrade_details"
         );
+        // This does not play nicely with Panzoom. Needs to take into account the current scale?
         upgradeDetailsEl.style.height = this.getTotalHeightOfChildren(upgradeDetailsEl) + "px";
         console.log(upgrade.id + " details height: " + upgradeDetailsEl.style.height);
         let obscuredDetailsEl = document.querySelector(

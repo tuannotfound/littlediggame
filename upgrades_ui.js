@@ -14,6 +14,7 @@ export default class UpgradesUi {
         this.panZoom = null;
         this.upgrades = null;
         this.getCurrentAspisFunc = null;
+        // Upgrade ID -> button element
         this.buttonMap = new Map();
         this.gridMap = new Map();
         this.rowTrackMap = new Map();
@@ -54,6 +55,7 @@ export default class UpgradesUi {
             upgrade.unlock();
             this.createButtonsFromRoot(upgrade, this.rootUpgradesAdded.length + 1);
         }
+        this.reflow();
     }
 
     createButtonsFromRoot(rootUpgrade, row) {
@@ -75,7 +77,6 @@ export default class UpgradesUi {
                     let rows = this.rowTrackMap.get(downstreamUpgrade.id);
                     rows.push(row);
                     let newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
-                    let column = downstreamUpgrade.getMaxDepth() + 1;
                     let button = this.buttonMap.get(downstreamUpgrade.id);
                     let prevRow = button.parentElement.style.gridRow;
                     console.log(
@@ -88,21 +89,108 @@ export default class UpgradesUi {
                             rows.toString() +
                             ")"
                     );
-                    if (newRow != prevRow) {
-                        button.parentElement.removeChild(button);
-                        this.getGridDiv(newRow, column).appendChild(button);
-                    }
+                    const column = button.parentElement.style.gridColumn;
+                    button.parentElement.removeChild(button);
+                    this.getGridDiv(newRow, column).appendChild(button);
+                    //this.updateButtonRow(downstreamUpgrade, prevRow - newRow);
                     continue;
                 }
                 if (visited.has(downstreamUpgrade.id)) {
                     continue;
                 }
+                //let initialRow = row;
+                // for (const prereqId of downstreamUpgrade.prereqs.keys()) {
+                //     if (this.buttonMap.has(prereqId)) {
+                //         let prereqButton = this.buttonMap.get(prereqId);
+                //         initialRow = prereqButton.parentElement.style.gridRow;
+                //     }
+                // }
                 this.createUpgradeButton(downstreamUpgrade, row);
                 queue.push(downstreamUpgrade);
                 visited.add(downstreamUpgrade.id);
             }
         }
     }
+
+    reflow() {
+        // Try to ensure that each button is placed in a row that is an avg. of its pre-reqs.
+        // We'll move from column to column, left to right, skipping over the first column
+        // (no-prereqs).
+        // First, map out the columns:
+        let columnMap = new Map();
+        let maxColumn = 0;
+        for (const [upgradeId, button] of this.buttonMap.entries()) {
+            const column = parseInt(button.parentElement.style.gridColumn, 10) - 1;
+            if (!columnMap.has(column)) {
+                columnMap.set(column, []);
+            }
+            columnMap.get(column).push(upgradeId);
+            maxColumn = Math.max(column, maxColumn);
+        }
+
+        if (maxColumn < 1) {
+            return;
+        }
+
+        for (let column = 1; column < maxColumn + 1; column++) {
+            this.reflowColumn(columnMap.get(column));
+        }
+    }
+
+    reflowColumn(upgradeIds) {
+        for (const upgradeId of upgradeIds) {
+            this.reflowButton(upgradeId);
+        }
+    }
+
+    reflowButton(upgradeId) {
+        const button = this.buttonMap.get(upgradeId);
+        if (!button) {
+            return;
+        }
+        const upgrade = this.upgrades.upgradeTree.get(upgradeId);
+        let prereqRowSum = 0;
+        let prereqRowCount = 0;
+        for (const prereqId of upgrade.prereqs.keys()) {
+            const prereqButton = this.buttonMap.get(prereqId);
+            if (!prereqButton) {
+                continue;
+            }
+            prereqRowCount++;
+            prereqRowSum += parseInt(prereqButton.parentElement.style.gridRow, 10);
+        }
+        if (prereqRowCount == 0) {
+            return;
+        }
+        const newRow = Math.floor(prereqRowSum / prereqRowCount);
+        const column = button.parentElement.style.gridColumn;
+        button.parentElement.removeChild(button);
+        this.getGridDiv(newRow, column).appendChild(button);
+    }
+
+    // updateButtonRow(upgrade, rowDelta, visited = new Set()) {
+    //     if (rowDelta == 0) {
+    //         return;
+    //     }
+    //     if (visited.has(upgrade.id)) {
+    //         return;
+    //     }
+    //     visited.add(upgrade.id);
+    //     const button = this.buttonMap.get(upgrade.id);
+    //     if (!button) {
+    //         return;
+    //     }
+    //     const prevRow = button.parentElement.style.gridRow;
+    //     const newRow = prevRow + rowDelta;
+
+    //     const column = button.parentElement.style.gridColumn;
+    //     button.parentElement.removeChild(button);
+    //     this.getGridDiv(newRow, column).appendChild(button);
+
+    //     for (const downstreamUpgrade of upgrade.downstream.values()) {
+    //         this.updateButtonRow(downstreamUpgrade, rowDelta, visited);
+    //     }
+    // }
 
     getLineMapKey(fromId, toId) {
         return fromId + "->" + toId;

@@ -1,9 +1,16 @@
 import Upgrade from "./upgrade.js";
-import Currency from "./currency.js";
 import PixelType from "./diggables/pixel_type.js";
 import StringUtils from "./string_utils.js";
 
 export default class Upgrades {
+    static PROGRESS_GATE_ID_1 = "progress_gate_1";
+    static PROGRESS_GATE_ID_2 = "progress_gate_2";
+    static PROGRESS_GATE_ID_3 = "progress_gate_3";
+    static PROGRESS_GATE_ID_4 = "progress_gate_4";
+    static PROGRESS_GATE_ID_5 = "progress_gate_5";
+    static PROGRESS_GATE_DESC =
+        "This will be automatically unlocked as you make progress via digging.";
+
     constructor() {
         // Base
         this.digSpeed = 0.5;
@@ -89,7 +96,53 @@ export default class Upgrades {
         return upgrades;
     }
 
+    getUpgrade(id) {
+        return this.upgradeTree.get(id);
+    }
+
     initUpgradeTree() {
+        // Progress gates
+        let progressGate1 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_1,
+            "Dig Progress 1",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            0
+        );
+        this.upgradeTree.set(progressGate1.id, progressGate1);
+        let progressGate2 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_2,
+            "Dig Progress 2",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -3
+        );
+        this.upgradeTree.set(progressGate2.id, progressGate2);
+        let progressGate3 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_3,
+            "Dig Progress 3",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -5
+        );
+        this.upgradeTree.set(progressGate3.id, progressGate3);
+        let progressGate4 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_4,
+            "Dig Progress 4",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -9
+        );
+        this.upgradeTree.set(progressGate4.id, progressGate4);
+        let progressGate5 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_5,
+            "Dig Progress 5",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -11
+        );
+        this.upgradeTree.set(progressGate5.id, progressGate5);
+
         // Aspis++ tree
         let betterDirt = new Upgrade(
             "better_dirt",
@@ -97,14 +150,11 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["+100% Aspis extracted from dirt"],
             5,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 2
                 );
-            },
-            0,
-            0
+            }
         );
         this.upgradeTree.set(betterDirt.id, betterDirt);
 
@@ -114,12 +164,9 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["TBD: Your populous will now recognize and dig up gold"],
             10,
-            Currency.ASPIS,
             () => {
                 this.unlockGold = true;
-            },
-            0,
-            0
+            }
         );
         this.upgradeTree.set(unlockGold.id, unlockGold);
 
@@ -133,7 +180,6 @@ export default class Upgrades {
             ),
             ["+100% Aspis extracted from dirt", "+25% Aspis extracted from gold"],
             30,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 2
@@ -141,9 +187,7 @@ export default class Upgrades {
                 this.aspisPer[PixelType.GOLD.name] = Math.round(
                     this.aspisPer[PixelType.GOLD.name] * 1.25
                 );
-            },
-            0,
-            1
+            }
         );
         moreAspis1.addPrereq(betterDirt);
         moreAspis1.addPrereq(unlockGold);
@@ -154,12 +198,10 @@ export default class Upgrades {
             "Elementum tormentis",
             StringUtils.dedent(
                 `Perhaps even more surprisingly, your researchers observe that treating the soil
-                cruelly is even more productive. You hope the gold is masochistic and this behavior
-                isn't entirely immoral.`
+                cruelly is even more productive.`
             ),
             ["+75% more Aspis extracted from dirt", "+60% more Aspis extracted from gold"],
             675,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 1.75
@@ -173,36 +215,11 @@ export default class Upgrades {
         this.upgradeTree.set(moreAspis2.id, moreAspis2);
 
         let moreAspis3 = new Upgrade(
-            "more_aspis_3",
-            "Venereum elementum",
-            StringUtils.dedent(
-                `Perhaps it is masochistic, and even sexual in nature. Lean into this.`
-            ),
-            ["-2% more Aspis extracted from dirt", "-1% more Aspis extracted from gold"],
-            8,
-            Currency.ASPIS,
-            () => {
-                this.aspisPer[PixelType.DIRT.name] = Math.round(
-                    this.aspisPer[PixelType.DIRT.name] * 0.98
-                );
-                this.aspisPer[PixelType.GOLD.name] = Math.round(
-                    this.aspisPer[PixelType.GOLD.name] * 0.99
-                );
-            }
-        );
-        moreAspis3.addPrereq(moreAspis2);
-        this.upgradeTree.set(moreAspis3.id, moreAspis3);
-
-        let moreAspis4 = new Upgrade(
             "more_aspis_4",
             "Nefas directionis",
-            StringUtils.dedent(
-                `Nope, that wasn't it. Let's stop doing that. I think we're all relieved that's over
-                with, the dirt included.`
-            ),
+            StringUtils.dedent(`TBD.`),
             ["+60% more Aspis extracted from dirt", "+75% Aspis extracted from gold"],
             3000,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 1.6
@@ -212,8 +229,8 @@ export default class Upgrades {
                 );
             }
         );
-        moreAspis4.addPrereq(moreAspis3);
-        this.upgradeTree.set(moreAspis4.id, moreAspis4);
+        moreAspis3.addPrereq(moreAspis2);
+        this.upgradeTree.set(moreAspis3.id, moreAspis3);
 
         let graveDigger1 = new Upgrade(
             "grave_digger_1",
@@ -221,7 +238,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD.`),
             ["Get 2 Aspis from digging up tombstones"],
             5,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = 2;
             }
@@ -237,7 +253,6 @@ export default class Upgrades {
             ),
             ["Get 8 Aspis from digging up tombstones"],
             50,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = 8;
             }
@@ -255,11 +270,11 @@ export default class Upgrades {
             ),
             ["Your populous will now recognize and dig up diamonds"],
             250,
-            Currency.ASPIS,
             () => {
                 this.unlockDiamonds = true;
             }
         );
+        //unlockDiamonds.addPrereq(progressGate1);
         unlockDiamonds.addPrereq(unlockGold);
         this.upgradeTree.set(unlockDiamonds.id, unlockDiamonds);
 
@@ -273,7 +288,6 @@ export default class Upgrades {
             ),
             ["+75% more Aspis from diamonds"],
             2300,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIAMOND.name] = Math.round(
                     this.aspisPer[PixelType.DIAMOND.name] * 1.75
@@ -291,7 +305,6 @@ export default class Upgrades {
             ),
             ["+3% more Aspis from diamonds"],
             1200,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIAMOND.name] = Math.round(
                     this.aspisPer[PixelType.DIAMOND.name] * 1.03
@@ -307,15 +320,13 @@ export default class Upgrades {
             StringUtils.dedent(`TBD: Dirt propaganda.`),
             ["The value of dirt is increased by 50%"],
             1500,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 1.5
                 );
             }
         );
-        moreAspisDirt.addPrereq(moreAspis4);
-        moreAspisDirt.addPrereq(diamondDeals);
+        moreAspisDirt.addPrereq(progressGate2);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
         let moreAspisGold = new Upgrade(
@@ -324,15 +335,13 @@ export default class Upgrades {
             StringUtils.dedent(`TBD: Gold propaganda.`),
             ["The value of gold is increased by 80%"],
             1780,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.GOLD.name] = Math.round(
                     this.aspisPer[PixelType.GOLD.name] * 1.8
                 );
             }
         );
-        moreAspisGold.addPrereq(moreAspis4);
-        moreAspisGold.addPrereq(diamondDeals);
+        moreAspisGold.addPrereq(progressGate2);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         let graveDigger3 = new Upgrade(
@@ -344,7 +353,6 @@ export default class Upgrades {
             ),
             ["Tombstones are now worth 25% of the value of diamonds."],
             1925,
-            Currency.ASPIS,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = Math.round(
                     this.aspisPer[PixelType.DIAMOND.name] * 0.25
@@ -363,7 +371,6 @@ export default class Upgrades {
                 "Your populous are much less likely to walk over something valuable without stopping to dig it up",
             ],
             275,
-            Currency.ASPIS,
             () => {
                 this.goldSeeker = true;
             }
@@ -381,7 +388,6 @@ export default class Upgrades {
             ),
             ["Digging is 2x faster"],
             10,
-            Currency.ASPIS,
             () => {
                 this.digSpeed *= 2;
             }
@@ -397,7 +403,6 @@ export default class Upgrades {
             ),
             ["Digging is 1.5x faster"],
             60,
-            Currency.ASPIS,
             () => {
                 this.digSpeed *= 1.5;
             }
@@ -414,7 +419,6 @@ export default class Upgrades {
             ),
             ["Digging is 1.25x faster"],
             220,
-            Currency.ASPIS,
             () => {
                 this.digSpeed *= 1.25;
             }
@@ -434,7 +438,6 @@ export default class Upgrades {
             ),
             ["Digging is 2x faster"],
             900,
-            Currency.ASPIS,
             () => {
                 this.digSpeed *= 2;
                 console.log("digspeed is now " + this.digSpeed);
@@ -449,7 +452,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             30,
-            Currency.ASPIS,
             () => {
                 this.digCount++;
             }
@@ -462,7 +464,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 1"],
             400,
-            Currency.ASPIS,
             () => {
                 this.digCount++;
             }
@@ -476,7 +477,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Digs before death increases by 2"],
             2350,
-            Currency.ASPIS,
             () => {
                 this.digCount += 2;
             }
@@ -493,7 +493,6 @@ export default class Upgrades {
                 "The cost of additional workers scales up more slowly",
             ],
             20,
-            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 2;
                 this.populationPowerScale = 1.9;
@@ -510,7 +509,6 @@ export default class Upgrades {
                 "The cost of additional workers scales up more slowly",
             ],
             500,
-            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 3;
                 this.populationPowerScale = 1.8;
@@ -524,11 +522,10 @@ export default class Upgrades {
             "pop_3_tbd",
             StringUtils.dedent(`TBD`),
             [
-                "The first 4 workers are now free",
+                "The first 5 workers are now free",
                 "The cost of additional workers scales up more slowly",
             ],
             1550,
-            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 4;
                 this.populationPowerScale = 1.7;
@@ -543,7 +540,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["The cost of additional workers scales up more slowly"],
             3000,
-            Currency.ASPIS,
             () => {
                 this.populationPowerScale = 1.6;
             }
@@ -557,7 +553,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["The first 10 workers are now free"],
             6500,
-            Currency.ASPIS,
             () => {
                 this.freeWorkerCount = 10;
             }
@@ -571,23 +566,14 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Unlock the Religion research wing"],
             9999,
-            Currency.ASPIS,
             () => {
                 this.religion = true;
             }
         );
-        religion.addPrereq(moreAspis4);
-        religion.addPrereq(graveDigger3);
-        religion.addPrereq(digSpeed4);
-        religion.addPrereq(digCount3);
-        religion.addPrereq(pop4);
-        religion.addPrereq(freeWorkers1);
+        religion.addPrereq(moreAspis2);
+        religion.addPrereq(progressGate2);
         this.upgradeTree.set(religion.id, religion);
 
-        this.initReligionTree(religion);
-    }
-
-    initReligionTree(rootUpgrade) {
         let afterlife = new Upgrade(
             "afterlife",
             "Supra Vita",
@@ -597,12 +583,11 @@ export default class Upgrades {
                 "Tombstone Aspis is granted immediately upon death",
             ],
             1622,
-            Currency.ASPIS,
             () => {
                 this.afterlife = true;
             }
         );
-        afterlife.addPrereq(rootUpgrade);
+        afterlife.addPrereq(religion);
         this.upgradeTree.set(afterlife.id, afterlife);
 
         let spawning1 = new Upgrade(
@@ -611,12 +596,11 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["New congregants begin to manifest without your intervention"],
             6678,
-            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs = 8000;
             }
         );
-        spawning1.addPrereq(rootUpgrade);
+        spawning1.addPrereq(religion);
         this.upgradeTree.set(spawning1.id, spawning1);
 
         let spawning2 = new Upgrade(
@@ -625,7 +609,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["New believers are brought into existence twice as often"],
             3122,
-            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs *= 0.5;
             }
@@ -639,7 +622,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["You are blessed with thrice as many new members joining your efforts"],
             10323,
-            Currency.ASPIS,
             () => {
                 this.conceptionIntervalMs = Math.round(this.conceptionIntervalMs * 0.3);
             }
@@ -653,11 +635,11 @@ export default class Upgrades {
             StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
             ["Unlocks the Serpent research wing"],
             1,
-            Currency.ASPIS,
             () => {
                 this.serpent = true;
             }
         );
+        serpent.addPrereq(progressGate4);
         serpent.addPrereq(spawning3);
         serpent.addPrereq(afterlife);
         this.upgradeTree.set(serpent.id, serpent);
@@ -672,7 +654,6 @@ export default class Upgrades {
             StringUtils.dedent(`TBD`),
             ["Allows workers to exist near the Egg."],
             1,
-            Currency.ASPIS,
             () => {
                 this.eggHandling = true;
             }

@@ -18,7 +18,6 @@ export default class UpgradesUi {
         this.buttonMap = new Map();
         this.gridMap = new Map();
         this.rowTrackMap = new Map();
-        this.rootUpgradesAdded = [];
         this.linesMap = new Map();
         this.lastLineUpdate = 0;
         this.layoutComplete = false;
@@ -51,9 +50,19 @@ export default class UpgradesUi {
 
     createButtons() {
         let rootUpgrades = this.getRootUpgrades();
+        let row = 0;
         for (const upgrade of rootUpgrades) {
             upgrade.unlock();
-            this.createButtonsFromRoot(upgrade, this.rootUpgradesAdded.length + 1);
+            this.createButtonsFromRoot(upgrade, row);
+            let column = parseInt(
+                this.buttonMap.get(upgrade.id).parentElement.style.gridColumn,
+                10
+            );
+            if (column == 1) {
+                // Only bump the next root upgrade down a row if we actually added a new root
+                // upgrade to the first column, otherwise we end up with a bunch of wasted space.
+                row++;
+            }
         }
         this.reflow();
     }
@@ -64,7 +73,6 @@ export default class UpgradesUi {
         const visited = new Set();
 
         this.createUpgradeButton(rootUpgrade, row);
-        this.rootUpgradesAdded.push(rootUpgrade.id);
         queue.push(rootUpgrade);
         visited.add(rootUpgrade.id);
 
@@ -74,6 +82,8 @@ export default class UpgradesUi {
             // Iterate through downstream upgrades
             for (const downstreamUpgrade of currentUpgrade.downstream.values()) {
                 if (this.buttonMap.has(downstreamUpgrade.id)) {
+                    // We've already added this via some other pre-req, but now we need to update
+                    // its position to better average out between its pre-reqs.
                     let rows = this.rowTrackMap.get(downstreamUpgrade.id);
                     rows.push(row);
                     let newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
@@ -92,19 +102,14 @@ export default class UpgradesUi {
                     const column = button.parentElement.style.gridColumn;
                     button.parentElement.removeChild(button);
                     this.getGridDiv(newRow, column).appendChild(button);
-                    //this.updateButtonRow(downstreamUpgrade, prevRow - newRow);
                     continue;
                 }
                 if (visited.has(downstreamUpgrade.id)) {
                     continue;
                 }
-                //let initialRow = row;
-                // for (const prereqId of downstreamUpgrade.prereqs.keys()) {
-                //     if (this.buttonMap.has(prereqId)) {
-                //         let prereqButton = this.buttonMap.get(prereqId);
-                //         initialRow = prereqButton.parentElement.style.gridRow;
-                //     }
-                // }
+                if (!downstreamUpgrade.purchasable) {
+                    downstreamUpgrade.unlock();
+                }
                 this.createUpgradeButton(downstreamUpgrade, row);
                 queue.push(downstreamUpgrade);
                 visited.add(downstreamUpgrade.id);
@@ -138,6 +143,9 @@ export default class UpgradesUi {
     }
 
     reflowColumn(upgradeIds) {
+        if (!upgradeIds) {
+            return;
+        }
         for (const upgradeId of upgradeIds) {
             this.reflowButton(upgradeId);
         }
@@ -162,35 +170,27 @@ export default class UpgradesUi {
         if (prereqRowCount == 0) {
             return;
         }
+        const prevRow = parseInt(button.parentElement.style.gridRow, 10);
         const newRow = Math.floor(prereqRowSum / prereqRowCount);
         const column = button.parentElement.style.gridColumn;
-        button.parentElement.removeChild(button);
-        this.getGridDiv(newRow, column).appendChild(button);
+        let gridDiv = this.getGridDiv(newRow, column);
+        if (gridDiv.children.length > 0) {
+            // Check the divs above or below - if they're empty, use one of them instead.
+            let below = this.getGridDiv(newRow + 1, column);
+            if (below && below.children.length == 0) {
+                gridDiv = below;
+            } else if (newRow > 1) {
+                let above = this.getGridDiv(newRow - 1, column);
+                if (above && above.children.length == 0) {
+                    gridDiv = above;
+                }
+            }
+        }
+        if (newRow != prevRow) {
+            button.parentElement.removeChild(button);
+            gridDiv.appendChild(button);
+        }
     }
-
-    // updateButtonRow(upgrade, rowDelta, visited = new Set()) {
-    //     if (rowDelta == 0) {
-    //         return;
-    //     }
-    //     if (visited.has(upgrade.id)) {
-    //         return;
-    //     }
-    //     visited.add(upgrade.id);
-    //     const button = this.buttonMap.get(upgrade.id);
-    //     if (!button) {
-    //         return;
-    //     }
-    //     const prevRow = button.parentElement.style.gridRow;
-    //     const newRow = prevRow + rowDelta;
-
-    //     const column = button.parentElement.style.gridColumn;
-    //     button.parentElement.removeChild(button);
-    //     this.getGridDiv(newRow, column).appendChild(button);
-
-    //     for (const downstreamUpgrade of upgrade.downstream.values()) {
-    //         this.updateButtonRow(downstreamUpgrade, rowDelta, visited);
-    //     }
-    // }
 
     getLineMapKey(fromId, toId) {
         return fromId + "->" + toId;
@@ -234,25 +234,27 @@ export default class UpgradesUi {
     }
 
     onShown() {
-        if (!this.layoutComplete) {
-            for (const upgrade of this.upgrades.upgradeTree.values()) {
-                if (upgrade.unlocked) {
-                    this.handleUnlock(upgrade);
-                }
-                if (upgrade.purchased) {
-                    this.handlePurchase(upgrade);
-                }
+        //if (!this.layoutComplete) {
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
+            if (upgrade.unlocked) {
+                this.handleUnlock(upgrade);
             }
-            LinkerLine.positionAll();
-            this.layoutComplete = true;
+            if (upgrade.purchased) {
+                this.handlePurchase(upgrade);
+            }
         }
+        LinkerLine.positionAll();
+        this.layoutComplete = true;
+        //}
     }
 
     onHidden() {}
 
     handleUnlock(upgrade) {
         let button = this.buttonMap.get(upgrade.id);
-        button.removeAttribute("disabled");
+        if (upgrade.purchasable) {
+            button.removeAttribute("disabled");
+        }
         let upgradeDetailsEl = document.querySelector(
             "button#" + upgrade.id + " > div.upgrade_details"
         );
@@ -360,20 +362,23 @@ export default class UpgradesUi {
     }
 
     createUpgradeButton(upgrade, row) {
+        let costClass = upgrade.purchasable ? "cost" : "cost hidden";
         let buttonInnerHtml = `<div class='upgrade_title'>
                                  <strong>${upgrade.title}</strong>
-                                 <span class='cost'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
+                                 <span class='${costClass}'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
                                </div>
                                <div class='upgrade_details' style='height: 0px;'>
                                  <div class='upgrade_desc_container'>
                                    <p class='upgrade_desc'>${upgrade.desc}</p>
-                                 </div>
-                                 <ul>`;
-        for (const bulletPt of upgrade.bulletPts) {
-            buttonInnerHtml += `<li>${bulletPt}</li>`;
+                                 </div>`;
+        if (upgrade.bulletPts.length > 0) {
+            buttonInnerHtml += `<ul>`;
+            for (const bulletPt of upgrade.bulletPts) {
+                buttonInnerHtml += `<li>${bulletPt}</li>`;
+            }
+            buttonInnerHtml += `  </ul>`;
         }
-        buttonInnerHtml += `  </ul>
-                            </div>
+        buttonInnerHtml += `</div>
                             <div class='obscured_details'>
                               <span>???</span>
                             </div>`;
@@ -382,7 +387,7 @@ export default class UpgradesUi {
         button.classList.add("upgrade");
         button.innerHTML = buttonInnerHtml;
         button.id = upgrade.id;
-        if (!upgrade.unlocked || upgrade.purchased) {
+        if (!upgrade.unlocked || upgrade.purchased || !upgrade.purchasable) {
             button.setAttribute("disabled", true);
         }
         upgrade.addListener(this.upgradeListener);

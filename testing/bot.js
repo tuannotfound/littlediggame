@@ -204,7 +204,7 @@ export default class Bot {
     findCheapestUpgrade() {
         let cheapestUpgrade = null;
         for (const upgrade of this.game.upgrades.upgradeTree.values()) {
-            if (!upgrade.unlocked || upgrade.purchased) {
+            if (!upgrade.unlocked || upgrade.purchased || !upgrade.purchasable) {
                 continue;
             }
             if (!cheapestUpgrade) {

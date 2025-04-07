@@ -641,6 +641,9 @@ export default class Game {
             if (!upgrade.unlocked) {
                 continue;
             }
+            if (!upgrade.purchasable) {
+                continue;
+            }
             if (upgrade.cost <= this.aspis) {
                 availableUpgradeCount++;
                 availableUpgrades.push(upgrade.id);
@@ -725,14 +728,17 @@ export default class Game {
         if (this.activePixelBody.className == SwissPlanet.name) {
             setTimeout(() => {
                 Story.instance.onSwissPlanet();
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_1).purchase();
             }, 500);
         } else if (this.activePixelBody.className == SpikyPlanet.name) {
             setTimeout(() => {
                 Story.instance.onSpikyPlanet();
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
             }, 500);
         } else if (this.activePixelBody.className == EggPlanet.name) {
             setTimeout(() => {
                 Story.instance.onEggPlanet();
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_3).purchase();
             }, 500);
         } else if (this.activePixelBody.className == Serpent.name) {
             setTimeout(() => {
@@ -979,6 +985,7 @@ export default class Game {
             this.particles.fireEffect(
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
+            this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_4).purchase();
             this.updateLegend();
         }
         this.bloodyAround(littleGuy.positionInPixelBodySpace);

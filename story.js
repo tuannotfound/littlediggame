@@ -116,9 +116,6 @@ export default class Story {
         if (this.introShown) {
             return;
         }
-        if (this.foremanDead) {
-            return;
-        }
         this.introShown = true;
         Dialogs.show(
             Story.FOREMAN_NAME,
@@ -174,9 +171,6 @@ export default class Story {
     }
 
     maybeHalfway(health) {
-        if (this.foremanDead) {
-            return;
-        }
         if (this.halfwayReached) {
             return;
         }
@@ -210,9 +204,6 @@ export default class Story {
     }
 
     onSwissPlanet() {
-        if (this.foremanDead) {
-            return;
-        }
         Dialogs.show(
             Story.FOREMAN_NAME,
             `Looks like we're not the first crew to be assigned this planet. I'm sure we'll have

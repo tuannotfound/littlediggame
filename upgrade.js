@@ -1,18 +1,17 @@
 export default class Upgrade {
-    constructor(id, title, desc, bulletPts, cost, currency, impactFunc, row, column) {
+    constructor(id, title, desc, bulletPts, cost, impactFunc) {
         this.id = id;
         this.title = title;
         this.desc = desc;
         this.bulletPts = bulletPts;
+        // If this is negative, it means this cannot be purchased by normal means. Additionally,
+        // if negative, the absolute value of the cost will be the column it gets placed in.
         this.cost = cost;
-        this.currency = currency;
         this.impactFunc = impactFunc;
         this.prereqs = new Map();
         this.downstream = new Map();
         this.unlocked = false;
         this.purchased = false;
-        this.row = row;
-        this.column = column;
         this.cachedDepth = -1;
         this.listeners = new Set();
         this.prereqListener = {
@@ -47,7 +46,7 @@ export default class Upgrade {
             return this.cachedDepth;
         }
         if (this.prereqs.size === 0) {
-            this.cachedDepth = 0;
+            this.cachedDepth = this.purchasable ? 0 : -this.cost;
             return this.cachedDepth;
         }
 
@@ -90,9 +89,15 @@ export default class Upgrade {
     purchase() {
         console.log("Purchase: " + this.id);
         this.purchased = true;
-        this.impactFunc();
+        if (this.impactFunc) {
+            this.impactFunc();
+        }
         for (const listener of this.listeners) {
             listener.onPurchased(this);
         }
+    }
+
+    get purchasable() {
+        return this.cost > 0;
     }
 }

@@ -42,26 +42,26 @@ export default class PanZoomWrapper {
 
     _onPanZoomEnd() {
         // Prevent the user from panning too far away from the content.
-        const rect = this.element.getBoundingClientRect();
         const parentRect = this.element.parentElement.getBoundingClientRect();
 
-        const parentCenter = new Vector(parentRect.width * 0.8, parentRect.height * 0.8);
+        const buffer = new Vector(50, 25);
+
+        const currentPan = this.panzoom.getPan();
 
         let clampedLeft = MathExtras.clamp(
-            rect.left,
-            -this.element.scrollWidth + parentCenter.x,
-            parentCenter.x
+            currentPan.x,
+            -this.element.scrollWidth + parentRect.width - buffer.x,
+            buffer.x
         );
         let clampedTop = MathExtras.clamp(
-            rect.top,
-            -this.element.scrollHeight + parentCenter.y,
-            parentCenter.y
+            currentPan.y,
+            -this.element.scrollHeight + parentRect.height - buffer.y,
+            buffer.y
         );
 
-        const delta = new Vector(clampedLeft - rect.left, clampedTop - rect.top);
+        const delta = new Vector(clampedLeft - currentPan.x, clampedTop - currentPan.y);
         delta.div(this.panzoom.getScale());
         if (delta.x != 0 || delta.y != 0) {
-            const currentPan = this.panzoom.getPan();
             const newPan = new Vector(currentPan.x + delta.x, currentPan.y + delta.y);
             this.panzoom.pan(newPan.x, newPan.y, {
                 animate: true,

@@ -79,6 +79,9 @@ export default class Upgrade {
     }
 
     unlock() {
+        if (this.unlocked) {
+            return;
+        }
         console.log("Unlock: " + this.id);
         this.unlocked = true;
         for (const listener of this.listeners) {
@@ -87,6 +90,9 @@ export default class Upgrade {
     }
 
     purchase() {
+        if (this.purchased) {
+            return;
+        }
         console.log("Purchase: " + this.id);
         this.purchased = true;
         if (this.impactFunc) {

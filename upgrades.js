@@ -5,9 +5,6 @@ import StringUtils from "./string_utils.js";
 export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";
     static PROGRESS_GATE_ID_2 = "progress_gate_2";
-    static PROGRESS_GATE_ID_3 = "progress_gate_3";
-    static PROGRESS_GATE_ID_4 = "progress_gate_4";
-    static PROGRESS_GATE_ID_5 = "progress_gate_5";
     static PROGRESS_GATE_DESC =
         "This will be automatically unlocked as you make progress via digging.";
 
@@ -27,13 +24,14 @@ export default class Upgrades {
         this.freeWorkerCount = 1;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
+        this.extraLittleGuyChance = 0;
 
         // Religion
         this.religion = false;
         this.afterlife = false;
         this.conceptionIntervalMs = -1;
-        this.heavenRevealed = false;
-        this.hellRevealed = false;
+        this.explosionChance = 0;
+        this.explosionRadius = 2;
 
         // Serpent
         this.eggHandling = false;
@@ -55,11 +53,12 @@ export default class Upgrades {
             unlockDiamonds: this.unlockDiamonds,
             populationPowerScale: this.populationPowerScale,
             goldSeeker: this.goldSeeker,
+            extraLittleGuyChance: this.extraLittleGuyChance,
             religion: this.religion,
             afterlife: this.afterlife,
             conceptionIntervalMs: this.conceptionIntervalMs,
-            heavenRevealed: this.heavenRevealed,
-            hellRevealed: this.hellRevealed,
+            explosionChance: this.explosionChance,
+            explosionRadius: this.explosionRadius,
             upgradeStates: upgradeStates,
         };
     }
@@ -73,11 +72,12 @@ export default class Upgrades {
         upgrades.unlockDiamonds = json.unlockDiamonds;
         upgrades.populationPowerScale = json.populationPowerScale;
         upgrades.goldSeeker = json.goldSeeker;
+        upgrades.extraLittleGuyChance = json.extraLittleGuyChance;
         upgrades.religion = json.religion;
         upgrades.afterlife = json.afterlife;
         upgrades.conceptionIntervalMs = json.conceptionIntervalMs;
-        upgrades.heavenRevealed = json.heavenRevealed;
-        upgrades.hellRevealed = json.hellRevealed;
+        upgrades.explosionChance = json.explosionChance;
+        upgrades.explosionRadius = json.explosionRadius;
         if (upgrades.religion) {
             upgrades.initReligionTree();
         }
@@ -115,33 +115,9 @@ export default class Upgrades {
             "Dig Progress 2",
             Upgrades.PROGRESS_GATE_DESC,
             [],
-            -9
+            -8
         );
         this.upgradeTree.set(progressGate2.id, progressGate2);
-        // let progressGate3 = new Upgrade(
-        //     Upgrades.PROGRESS_GATE_ID_3,
-        //     "Dig Progress 3",
-        //     Upgrades.PROGRESS_GATE_DESC,
-        //     [],
-        //     -5
-        // );
-        // this.upgradeTree.set(progressGate3.id, progressGate3);
-        // let progressGate4 = new Upgrade(
-        //     Upgrades.PROGRESS_GATE_ID_4,
-        //     "Dig Progress 4",
-        //     Upgrades.PROGRESS_GATE_DESC,
-        //     [],
-        //     -9
-        // );
-        // this.upgradeTree.set(progressGate4.id, progressGate4);
-        // let progressGate5 = new Upgrade(
-        //     Upgrades.PROGRESS_GATE_ID_5,
-        //     "Dig Progress 5",
-        //     Upgrades.PROGRESS_GATE_DESC,
-        //     [],
-        //     -11
-        // );
-        // this.upgradeTree.set(progressGate5.id, progressGate5);
 
         // Aspis++ tree
         let betterDirt = new Upgrade(
@@ -428,18 +404,11 @@ export default class Upgrades {
         let digSpeed4 = new Upgrade(
             "dig_speed_4",
             "Nimis longe",
-            StringUtils.dedent(
-                `They tried. They failed. It simply can't be done. It was the hubris of a prideful
-                fool: You. You are that fool. The researchers in the Shovel Division have all left.
-                But what's this? Scrawled on the blackboard in the forsaken lab, you see: "You can't
-                have more than 4 blades on a shovel. But you CAN force everyone to use two
-                quad-shovels at a time."`
-            ),
+            StringUtils.dedent(`Two words: two shovels.`),
             ["Digging is 2x faster"],
             900,
             () => {
                 this.digSpeed *= 2;
-                console.log("digspeed is now " + this.digSpeed);
             }
         );
         digSpeed4.addPrereq(digSpeed3);
@@ -546,6 +515,38 @@ export default class Upgrades {
         pop4.addPrereq(pop3);
         this.upgradeTree.set(pop4.id, pop4);
 
+        let extraLittleGuy1 = new Upgrade(
+            "extra_little_guy_1",
+            "extra_little_guy_1_tbd",
+            StringUtils.dedent(
+                `The Company announces "Bring A Worker To Work" day, where workers are welcome to
+                bring an extra worker with them to work in exchange for keeping their job.`
+            ),
+            ["Grants a 20% chance that an extra worker will spawn"],
+            900,
+            () => {
+                this.extraLittleGuyChance = 0.2;
+            }
+        );
+        extraLittleGuy1.addPrereq(pop2);
+        this.upgradeTree.set(extraLittleGuy1.id, extraLittleGuy1);
+
+        let extraLittleGuy2 = new Upgrade(
+            "extra_little_guy_2",
+            "extra_little_guy_2_tbd",
+            StringUtils.dedent(
+                `Participation in "Bring A Worker To Work" day is actually pretty important to the
+                unique culture here at The Company.`
+            ),
+            ["Increases the chance that an extra worker will spawn to 40%"],
+            1800,
+            () => {
+                this.extraLittleGuyChance = 0.4;
+            }
+        );
+        extraLittleGuy2.addPrereq(extraLittleGuy1);
+        this.upgradeTree.set(extraLittleGuy2.id, extraLittleGuy2);
+
         let freeWorkers1 = new Upgrade(
             "free_workers_1",
             "free_workers_1_tbd",
@@ -589,6 +590,51 @@ export default class Upgrades {
         afterlife.addPrereq(religion);
         this.upgradeTree.set(afterlife.id, afterlife);
 
+        let explosives1 = new Upgrade(
+            "explosives_1",
+            "explosives_1_tbd",
+            StringUtils.dedent(
+                `The Company encourages its loyal followers to go out with a 'bang' to demonstrate
+                their dedication to the Leader. Rewards for this dedication can be collected in the
+                afterlife.`
+            ),
+            ["Gives the final dig for employees a 10% chance to result in a small explosion"],
+            4421,
+            () => {
+                this.explosionChance = 0.1;
+            }
+        );
+        explosives1.addPrereq(afterlife);
+        this.upgradeTree.set(explosives1.id, explosives1);
+
+        let explosives2 = new Upgrade(
+            "explosives_2",
+            "explosives_2_tbd",
+            StringUtils.dedent(`TBD.`),
+            ["Increases the explosion rate to 25%"],
+            7001,
+            () => {
+                this.explosionChance = 0.25;
+            }
+        );
+        explosives2.addPrereq(explosives1);
+        this.upgradeTree.set(explosives2.id, explosives2);
+
+        let explosives3 = new Upgrade(
+            "explosives_3",
+            "explosives_3_tbd",
+            StringUtils.dedent(
+                `Come on, show you really mean it. If you're going to do it, do it right.`
+            ),
+            ["Doubles the size of the explosion."],
+            7001,
+            () => {
+                this.explosionRadius *= 2;
+            }
+        );
+        explosives3.addPrereq(explosives1);
+        this.upgradeTree.set(explosives3.id, explosives3);
+
         let spawning1 = new Upgrade(
             "spawning_1",
             "Immaculata Conceptionis",
@@ -628,36 +674,118 @@ export default class Upgrades {
         spawning3.addPrereq(spawning2);
         this.upgradeTree.set(spawning3.id, spawning3);
 
+        let tithing1 = new Upgrade(
+            "tithe_1",
+            "tithe_1_tbd",
+            StringUtils.dedent(
+                `The Leader requests some money. You get a sense that this is not the type of
+                request that can be denied.`
+            ),
+            ["The feeling of having done something good for the Leader is reward enough, no?"],
+            2000
+        );
+        tithing1.addPrereq(religion);
+        this.upgradeTree.set(tithing1.id, tithing1);
+
+        let tithing2 = new Upgrade(
+            "tithe_2",
+            "tithe_2_tbd",
+            StringUtils.dedent(
+                `The Leader notices that your coffers are looking quite full. Surely you wouldn't
+                even notice if some of it went to a good cause.`
+            ),
+            ["That's so kind of you"],
+            4000
+        );
+        tithing2.addPrereq(tithing1);
+        this.upgradeTree.set(tithing2.id, tithing2);
+
+        let tithing3 = new Upgrade(
+            "tithe_3",
+            "tithe_3_tbd",
+            StringUtils.dedent(
+                `The Company updates its official policy on offerings: "Gimme that."`
+            ),
+            ["You were probably going to fritter it away anyway"],
+            8000
+        );
+        tithing3.addPrereq(tithing2);
+        this.upgradeTree.set(tithing3.id, tithing3);
+
+        let digSpeed5 = new Upgrade(
+            "dig_speed_5",
+            "dig_speed_5_tbd",
+            StringUtils.dedent(
+                `Love for The Leader is at an all time high, motivating followers to strain mightily
+                against the soil to prove their worthiness.`
+            ),
+            ["Digging is 1.75x faster"],
+            6243,
+            () => {
+                this.digSpeed *= 1.75;
+            }
+        );
+        digSpeed5.addPrereq(digSpeed4);
+        digSpeed5.addPrereq(tithing1);
+        this.upgradeTree.set(digSpeed5.id, digSpeed5);
+
         let serpent = new Upgrade(
             "serpent",
             "serpent_tbd",
             StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
             ["Unlocks the Serpent research wing"],
-            1,
+            911,
             () => {
                 this.serpent = true;
             }
         );
-        serpent.addPrereq(progressGate2);
         serpent.addPrereq(spawning3);
-        serpent.addPrereq(afterlife);
+        serpent.addPrereq(tithing3);
         this.upgradeTree.set(serpent.id, serpent);
 
-        this.initSerpentTree(serpent);
-    }
-
-    initSerpentTree(rootUpgrade) {
         let eggHandling = new Upgrade(
             "egg_handling",
             "egg_handling_tbd",
             StringUtils.dedent(`TBD`),
             ["Allows workers to exist near the Egg."],
-            1,
+            191,
             () => {
                 this.eggHandling = true;
             }
         );
-        eggHandling.addPrereq(rootUpgrade);
+        eggHandling.addPrereq(progressGate2);
+        eggHandling.addPrereq(serpent);
         this.upgradeTree.set(eggHandling.id, eggHandling);
+
+        let digSpeed6 = new Upgrade(
+            "dig_speed_6",
+            "dig_speed_6_tbd",
+            StringUtils.dedent(
+                `The Book of the Serpent contains a ritual that grants beings an incredible passion
+                for destruction. You integrate it into the morning routine for your team.`
+            ),
+            ["Digging is 2.5x faster"],
+            11911,
+            () => {
+                this.digSpeed *= 2.5;
+            }
+        );
+        digSpeed6.addPrereq(digSpeed5);
+        digSpeed6.addPrereq(serpent);
+        this.upgradeTree.set(digSpeed6.id, digSpeed6);
+
+        let digSpeed7 = new Upgrade(
+            "dig_speed_7",
+            "dig_speed_7_tbd",
+            StringUtils.dedent(`You also add stretching and a light jog to the morning routine.`),
+            ["Digging is 1.2x faster"],
+            416,
+            () => {
+                this.digSpeed *= 1.2;
+            }
+        );
+        digSpeed7.addPrereq(digSpeed6);
+        digSpeed7.addPrereq(serpent);
+        this.upgradeTree.set(digSpeed7.id, digSpeed7);
     }
 }

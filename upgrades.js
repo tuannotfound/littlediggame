@@ -107,7 +107,7 @@ export default class Upgrades {
             "Dig Progress 1",
             Upgrades.PROGRESS_GATE_DESC,
             [],
-            0
+            -3
         );
         this.upgradeTree.set(progressGate1.id, progressGate1);
         let progressGate2 = new Upgrade(
@@ -115,33 +115,33 @@ export default class Upgrades {
             "Dig Progress 2",
             Upgrades.PROGRESS_GATE_DESC,
             [],
-            -3
-        );
-        this.upgradeTree.set(progressGate2.id, progressGate2);
-        let progressGate3 = new Upgrade(
-            Upgrades.PROGRESS_GATE_ID_3,
-            "Dig Progress 3",
-            Upgrades.PROGRESS_GATE_DESC,
-            [],
-            -5
-        );
-        this.upgradeTree.set(progressGate3.id, progressGate3);
-        let progressGate4 = new Upgrade(
-            Upgrades.PROGRESS_GATE_ID_4,
-            "Dig Progress 4",
-            Upgrades.PROGRESS_GATE_DESC,
-            [],
             -9
         );
-        this.upgradeTree.set(progressGate4.id, progressGate4);
-        let progressGate5 = new Upgrade(
-            Upgrades.PROGRESS_GATE_ID_5,
-            "Dig Progress 5",
-            Upgrades.PROGRESS_GATE_DESC,
-            [],
-            -11
-        );
-        this.upgradeTree.set(progressGate5.id, progressGate5);
+        this.upgradeTree.set(progressGate2.id, progressGate2);
+        // let progressGate3 = new Upgrade(
+        //     Upgrades.PROGRESS_GATE_ID_3,
+        //     "Dig Progress 3",
+        //     Upgrades.PROGRESS_GATE_DESC,
+        //     [],
+        //     -5
+        // );
+        // this.upgradeTree.set(progressGate3.id, progressGate3);
+        // let progressGate4 = new Upgrade(
+        //     Upgrades.PROGRESS_GATE_ID_4,
+        //     "Dig Progress 4",
+        //     Upgrades.PROGRESS_GATE_DESC,
+        //     [],
+        //     -9
+        // );
+        // this.upgradeTree.set(progressGate4.id, progressGate4);
+        // let progressGate5 = new Upgrade(
+        //     Upgrades.PROGRESS_GATE_ID_5,
+        //     "Dig Progress 5",
+        //     Upgrades.PROGRESS_GATE_DESC,
+        //     [],
+        //     -11
+        // );
+        // this.upgradeTree.set(progressGate5.id, progressGate5);
 
         // Aspis++ tree
         let betterDirt = new Upgrade(
@@ -274,7 +274,6 @@ export default class Upgrades {
                 this.unlockDiamonds = true;
             }
         );
-        //unlockDiamonds.addPrereq(progressGate1);
         unlockDiamonds.addPrereq(unlockGold);
         this.upgradeTree.set(unlockDiamonds.id, unlockDiamonds);
 
@@ -326,7 +325,7 @@ export default class Upgrades {
                 );
             }
         );
-        moreAspisDirt.addPrereq(progressGate2);
+        moreAspisDirt.addPrereq(progressGate1);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
         let moreAspisGold = new Upgrade(
@@ -341,7 +340,7 @@ export default class Upgrades {
                 );
             }
         );
-        moreAspisGold.addPrereq(progressGate2);
+        moreAspisGold.addPrereq(progressGate1);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         let graveDigger3 = new Upgrade(
@@ -571,7 +570,7 @@ export default class Upgrades {
             }
         );
         religion.addPrereq(moreAspis2);
-        religion.addPrereq(progressGate2);
+        religion.addPrereq(progressGate1);
         this.upgradeTree.set(religion.id, religion);
 
         let afterlife = new Upgrade(
@@ -639,7 +638,7 @@ export default class Upgrades {
                 this.serpent = true;
             }
         );
-        serpent.addPrereq(progressGate4);
+        serpent.addPrereq(progressGate2);
         serpent.addPrereq(spawning3);
         serpent.addPrereq(afterlife);
         this.upgradeTree.set(serpent.id, serpent);

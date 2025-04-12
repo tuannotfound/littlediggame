@@ -50,7 +50,7 @@ export default class UpgradesUi {
 
     createButtons() {
         let rootUpgrades = this.getRootUpgrades();
-        let row = 0;
+        let row = 1;
         for (const upgrade of rootUpgrades) {
             upgrade.unlock();
             this.createButtonsFromRoot(upgrade, row);

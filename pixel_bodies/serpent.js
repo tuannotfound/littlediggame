@@ -12,6 +12,9 @@ export default class Serpent extends PixelBody {
     static MIN_SIZE = 2;
     static BORDER_BUFFER_PIXELS = 2;
     static BLACK_SKY = new Color().immutableCopy();
+    static KILL_ALL_INTERVAL_MS = 10 * 1000;
+    static KILL_ALL_ANIMATION_FRAMES = 20;
+    static KILL_ALL_SEGMENT_OFFSET_MS = 100;
 
     constructor(
         width,
@@ -31,6 +34,8 @@ export default class Serpent extends PixelBody {
         this.loose = false;
         this.serpentLooseCallback = null;
         this.segments = [];
+
+        this.lastKillAllTime = 0;
     }
 
     static fromJSON(json, upgrades) {
@@ -77,6 +82,7 @@ export default class Serpent extends PixelBody {
         }
         console.log("Initializing Serpent w/ segment count of " + this.segmentCount);
         super.init(upgrades);
+        this.lastKillAllTime = performance.now();
     }
 
     // Override
@@ -159,7 +165,20 @@ export default class Serpent extends PixelBody {
         if (this.loose && allSegmentsOutsideBounds) {
             this.serpentLooseCallback();
         }
+        const now = performance.now();
+        if (this.lastKillAllTime + Serpent.KILL_ALL_INTERVAL_MS < now) {
+            this.lastKillAllTime = now;
+            this.killAll();
+        }
         super.update();
+    }
+
+    killAll() {
+        for (let i = 0; i < this.segments.length; i++) {
+            setTimeout(() => {
+                this.segments[i].killAll();
+            }, i * Serpent.KILL_ALL_SEGMENT_OFFSET_MS);
+        }
     }
 
     destroy() {
@@ -483,11 +502,25 @@ class Segment {
         return this.isWithinBounds(nextRenderPosition);
     }
 
+    killAll() {
+        this.killAllAnimationFrame = Serpent.KILL_ALL_ANIMATION_FRAMES;
+    }
+
     // Returns true if we actually moved (i.e. renderPosition changed),
     // false otherwise.
     update() {
         if (this.pixels.length == 0) {
             return false;
+        }
+        if (this.killAllAnimationFrame > 0) {
+            this.killAllAnimationFrame--;
+            for (const pixel of this.pixels) {
+                if (this.killAllAnimationFrame == 0) {
+                    pixel.unsetColorOverride();
+                } else {
+                    pixel.setColorOverride(Color.WHITE);
+                }
+            }
         }
         if (!this.foreSegment) {
             // We're a head segment, decide if we're going to turn.

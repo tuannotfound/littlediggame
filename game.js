@@ -1052,9 +1052,9 @@ export default class Game {
         Story.instance.maybeForemansSonDead();
         if (this.upgrades.afterlife) {
             if (littleGuy.saintly) {
-                this.angelCount++;
+                this.upgrades.updateKarma(1);
             } else {
-                this.demonCount++;
+                this.upgrades.updateKarma(-1);
             }
             this.aspis += this.upgrades.aspisPer[PixelType.TOMBSTONE.name];
             this.updateAspis();
@@ -1073,8 +1073,12 @@ export default class Game {
             this.particles.explosionEffect(
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
+        } else if (littleGuy.deathBySerpent) {
+            this.particles.bloodEffect(
+                this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
+            );
         }
-        this.bloodyAround(littleGuy.positionInPixelBodySpace);
+        this.bloodyAround(littleGuy);
     }
 
     handleInactive(littleGuy) {

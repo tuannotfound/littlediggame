@@ -79,6 +79,7 @@ export default class LittleGuy {
         this.explosive = Math.random() < this.upgrades.explosionChance;
         this.deathByEgg = false;
         this.framesSinceDeath = 0;
+        this.deathBySerpent = false;
 
         this.listeners = [];
     }
@@ -402,6 +403,13 @@ export default class LittleGuy {
             this.deathByEgg = true;
             this.die();
             return;
+        } else if (
+            this.closestSurfacePixel.type == PixelType.SERPENT &&
+            this.closestSurfacePixel.hasColorOverride()
+        ) {
+            this.deathBySerpent = true;
+            this.die();
+            return;
         }
 
         // Update our position to match the pixel we're standing on, in case it moved.
@@ -531,7 +539,7 @@ export default class LittleGuy {
 
     die() {
         this.alive = false;
-        if (this.deathByEgg) {
+        if (this.deathByEgg || this.deathBySerpent) {
             this.explosive = false;
         }
 

@@ -45,6 +45,7 @@ export default class Pixel {
 
         this._color = null;
         this._surfaceColor = null;
+        this._colorOverride = null;
 
         this.isSurface = false;
         // 0-1, where 0 is no change to the color, 1 is fully black
@@ -123,7 +124,7 @@ export default class Pixel {
             return;
         }
         let pixelIndex = (renderPosition.x + renderPosition.y * imageData.width) * 4;
-        let color = this.getRenderColor();
+        let color = this.hasColorOverride() ? this._colorOverride : this.getRenderColor();
         let darkness = window.DEBUG ? 0 : this.darkness;
         imageData.data[pixelIndex] = Math.round(color.r * (1 - darkness)); // Red
         imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - darkness)); // Green
@@ -139,6 +140,18 @@ export default class Pixel {
         if (alphaBefore !== alphaAfter) {
             this.needsUpdate = true;
         }
+    }
+
+    setColorOverride(color) {
+        this._colorOverride = color;
+    }
+
+    unsetColorOverride() {
+        this._colorOverride = null;
+    }
+
+    hasColorOverride() {
+        return this._colorOverride !== null;
     }
 
     // Accounts for if we're acting like dirt.

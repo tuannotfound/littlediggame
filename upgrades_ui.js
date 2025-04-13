@@ -171,7 +171,7 @@ export default class UpgradesUi {
             return;
         }
         const prevRow = parseInt(button.parentElement.style.gridRow, 10);
-        const newRow = Math.floor(prereqRowSum / prereqRowCount);
+        const newRow = Math.floor(prereqRowSum / prereqRowCount) + 1;
         const column = button.parentElement.style.gridColumn;
         let gridDiv = this.getGridDiv(newRow, column);
         if (gridDiv.children.length > 0) {

@@ -33,8 +33,6 @@ export default class LittleGuy {
     static DIG_PROBABILITY_PCT = 0.005;
     // The likelihood that we'll continue moving in the direction we were already moving in.
     static DIRECTION_PERSISTENCE_FACTOR = 0.9;
-    // The likelihood this little guy will get into heaven.
-    static SAINTLY_PCT = 0.95;
     static DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE = 40;
 
     constructor(pixelBody, positionInPixelBodySpace, upgrades, immaculate) {
@@ -70,7 +68,9 @@ export default class LittleGuy {
         this.digsRemaining = this.upgrades.digCount;
 
         // Less likely to be saintly if they were not immaculate.
-        let saintlyThreshold = this.immaculate ? this.SAINTLY_PCT : this.SAINTLY_PCT / 1.5;
+        let saintlyThreshold = this.immaculate
+            ? this.upgrades.saintlyPctImmaculate
+            : this.upgrades.saintlyPctMaculate;
         this.saintly = Math.random() < saintlyThreshold;
         if (!this.saintly) {
             console.log("Uh oh, we got a bad one, folks");

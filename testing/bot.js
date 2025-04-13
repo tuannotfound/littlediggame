@@ -300,6 +300,7 @@ class Event {
         this.digSpeed = upgrades.digSpeed;
         this.digCount = upgrades.digCount;
         this.freeWorkerCount = upgrades.freeWorkerCount;
+        this.karma = upgrades.karma;
     }
 
     static getHeaders() {
@@ -325,6 +326,7 @@ class Event {
             "digSpeed",
             "digCount",
             "freeWorkerCount",
+            "karma",
         ];
     }
 
@@ -351,6 +353,7 @@ class Event {
         data.push(this.digSpeed);
         data.push(this.digCount);
         data.push(this.freeWorkerCount);
+        data.push(this.karma);
         return data;
     }
 }

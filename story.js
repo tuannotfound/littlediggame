@@ -120,10 +120,13 @@ export default class Story {
         Dialogs.show(
             Story.FOREMAN_NAME,
             `You know the drill: extract the resources, leave nothing behind, and then on to the
-            next one.<br>
+            next one.
+            <br><br>
+            Just be careful with your budget. Remember: the more workers you have active, the more
+            expensive it is to bring more onboard. Pace yourself.
+            <br><br>
             Let's get started, boss-man.`,
             this.foremanAvatarPath
-            //20
         );
     }
 
@@ -149,7 +152,7 @@ export default class Story {
         this.sonDead = true;
 
         Dialogs.show(
-            Story.FOREMAN_NAME + " (bereaved)",
+            Story.FOREMAN_NAME + " (mildly bereaved)",
             `That was my son.<br><br>
             He served The Company well.`,
             this.foremanAvatarPath,
@@ -601,8 +604,8 @@ export default class Story {
         );
     }
 
-    thanks(stats) {
-        let plusSign = stats.karma > 0 ? "+" : "";
+    thanks(stats, karma) {
+        let plusSign = karma > 0 ? "+" : "";
         Dialogs.show(
             Story.GAME_DEV_NAME,
             `You played for ${stats.runtimeAsHMS}. In that time, you...
@@ -613,7 +616,7 @@ export default class Story {
             <br>
             <i class="fa-solid fa-skull"></i> Expended the lives of ${stats.deathCount} loyal workers
             <br>
-            <i class="fa-solid fa-hand-sparkles"></i> Finished with ${plusSign}${stats.karma} karma`,
+            <i class="fa-solid fa-hand-sparkles"></i> Finished with ${plusSign}${karma} karma`,
             Story.GAME_DEV_AVATAR_PATH,
             30
         );

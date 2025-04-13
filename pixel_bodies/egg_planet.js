@@ -80,4 +80,13 @@ export default class EggPlanet extends CircularPlanet {
             bottom: new Color(96, 18, 117).immutableCopy(),
         };
     }
+
+    isOnlyEggRemaining() {
+        for (const pixel of this.pixels) {
+            if (pixel.type !== PixelType.EGG) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

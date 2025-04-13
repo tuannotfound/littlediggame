@@ -3,7 +3,7 @@ import Layer from "./layer.js";
 import Vector from "./vector.js";
 
 export default class Sky {
-    static TRANSITION_DURATION_FRAMES = 120;
+    static DEFAULT_TRANSITION_DURATION_FRAMES = 120;
     static DEFAULT_BAND_HEIGHT_PX = 10;
 
     constructor() {
@@ -14,6 +14,7 @@ export default class Sky {
         this.bandCount = 0;
         this.bandHeight = 0;
         this.transitionFrameCount = -1;
+        this.transitionDurationFrames = -1;
     }
 
     toJSON() {
@@ -46,11 +47,12 @@ export default class Sky {
         this.updateRenderData();
     }
 
-    setColors(colors) {
+    setColors(colors, transitionDurationFrames = Sky.DEFAULT_TRANSITION_DURATION_FRAMES) {
         if (this.colors && this.colors.top == colors.top && this.colors.bottom == colors.bottom) {
             return;
         }
         this.transitionFrameCount = 0;
+        this.transitionDurationFrames = transitionDurationFrames;
         this.prevColors = this.colors;
         this.colors = colors;
         if (this.prevColors == null) {
@@ -63,8 +65,9 @@ export default class Sky {
         if (this.transitionFrameCount < 0) {
             return;
         }
-        if (this.transitionFrameCount > Sky.TRANSITION_DURATION_FRAMES) {
+        if (this.transitionFrameCount > this.transitionDurationFrames) {
             this.transitionFrameCount = -1;
+            this.transitionDurationFrames = -1;
             return;
         }
         this.transitionFrameCount++;
@@ -79,7 +82,7 @@ export default class Sky {
             return;
         }
         let ctx = this.layer.getContext();
-        let transitionProgress = this.transitionFrameCount / Sky.TRANSITION_DURATION_FRAMES;
+        let transitionProgress = this.transitionFrameCount / this.transitionDurationFrames;
         for (let i = 0; i < this.bandCount; i++) {
             let factor = i / (this.bandCount - 1);
             let color = Color.lerp(this.colors.top, this.colors.bottom, factor);

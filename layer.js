@@ -23,7 +23,7 @@ export default class Layer {
     initOnscreen(container) {
         this.canvas = document.createElement("canvas");
         this.initCommon();
-        this.canvas.id = this.name;
+        this.canvas.id = "layer_" + this.name;
 
         this.canvas.onselectstart = function () {
             return false;

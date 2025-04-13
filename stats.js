@@ -5,7 +5,6 @@ export default class Stats {
         this.clickCount_ = 0;
         this.digCount_ = 0;
         this.deathCount_ = 0;
-        this.karma_ = 100;
     }
 
     static fromJSON(json) {
@@ -64,13 +63,5 @@ export default class Stats {
 
     get digCount() {
         return this.digCount_;
-    }
-
-    updateKarma(dk) {
-        this.karma_ += dk;
-    }
-
-    get karma() {
-        return this.karma_;
     }
 }

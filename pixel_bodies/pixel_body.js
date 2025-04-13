@@ -3,6 +3,7 @@ import Layer from "../layer.js";
 import PixelType from "../diggables/pixel_type.js";
 import PixelFactory from "../diggables/pixel_factory.js";
 import Pixel from "../diggables/pixel.js";
+import MathExtras from "../math_extras.js";
 
 // Base class for things that are composed of diggable pixels.
 export default class PixelBody {
@@ -232,6 +233,15 @@ export default class PixelBody {
         }
 
         return closestPixel;
+    }
+
+    getRandomSurfacePixel() {
+        if (this.surfacePixels.length === 0) {
+            return null;
+        }
+
+        const index = Math.round(MathExtras.randomBetween(0, this.surfacePixels.length - 1));
+        return this.surfacePixels[index];
     }
 
     findSurfacePixels(pixels, width, height) {

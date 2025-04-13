@@ -38,6 +38,7 @@ export default class Game {
     ZOOM_DURATION_MS = 1000 * 2;
     GAME_OVER_ZOOM_DURATION_MS = 1000 * 20;
     FINAL_LEVEL_DURATION_MINUTES = 3;
+    MAX_LITTLE_GUYS = 200;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -565,9 +566,16 @@ export default class Game {
                 Story.instance.maybeEggPlanet4(body.health);
                 Story.instance.maybeEggPlanet5(body.health);
                 if (Story.instance.maybeEggReveal1(body.eggReveal)) {
-                    this.sky.setColors(body.altSkyColors);
+                    this.sky.setColors(
+                        body.altSkyColors,
+                        Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2
+                    );
                 }
                 Story.instance.maybeEggReveal2(body.eggReveal);
+
+                if (body.eggReveal > 0 && body.isOnlyEggRemaining()) {
+                    this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
+                }
             } else if (body.className == Serpent.name) {
                 Story.instance.maybeSerpent1(body.health);
                 Story.instance.maybeSerpent2(body.health);
@@ -792,7 +800,7 @@ export default class Game {
 
     endGameForRealForReal(won) {
         this.gameState = won ? GameState.WON : GameState.LOST;
-        Story.instance.thanks(this.stats);
+        Story.instance.thanks(this.stats, Math.round(this.upgrades.karma));
     }
 
     updateLegend() {
@@ -835,8 +843,8 @@ export default class Game {
             return;
         }
 
-        let gameCoords = new Vector(event.offsetX, event.offsetY);
-        let activeBodyCoords = this.gameToActiveBodyCoords(gameCoords);
+        const gameCoords = new Vector(event.offsetX, event.offsetY);
+        const activeBodyCoords = this.gameToActiveBodyCoords(gameCoords);
         if (window.DEBUG) {
             console.log(
                 "Translating mouse click @ " +
@@ -849,11 +857,19 @@ export default class Game {
             return;
         }
         this.stats.recordClick();
-        let closestSurfacePixel = this.activePixelBody.getClosestSurfacePixel(activeBodyCoords);
+        const closestSurfacePixel = this.activePixelBody.getClosestSurfacePixel(activeBodyCoords);
         if (!closestSurfacePixel) {
             return;
         }
         this.spawn(closestSurfacePixel.position, false);
+
+        if (Math.random() < this.upgrades.extraLittleGuyChance) {
+            const randomSurfacePixel = this.activePixelBody.getRandomSurfacePixel();
+            if (!randomSurfacePixel) {
+                return;
+            }
+            this.spawn(randomSurfacePixel.position, true);
+        }
     }
 
     get activePixelBody() {
@@ -901,11 +917,25 @@ export default class Game {
             return;
         }
         if (!immaculate) {
-            if (this.spawnCost > this.aspis && !window.DEBUG) {
+            if (this.spawnCost > this.aspis) {
                 this.startNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
                 return;
             }
             this.stopNotEnoughAspisAnimation([this.spawnCostElement.parentElement]);
+        }
+        if (this.littleGuys.length >= this.MAX_LITTLE_GUYS) {
+            if (!immaculate) {
+                this.startAnimation(
+                    [this.littleGuyCountElement.parentElement],
+                    this.PULSE_ANIMATION_NAME,
+                    this.PULSE_ANIMATION_DURATION_MS
+                );
+                return;
+            }
+            this.stopAnimation(
+                [this.littleGuyCountElement.parentElement],
+                this.PULSE_ANIMATION_NAME
+            );
         }
 
         if (!this.activePixelBody) {
@@ -983,7 +1013,6 @@ export default class Game {
             this.particles.fireEffect(
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
-            this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
             this.updateLegend();
         }
         this.bloodyAround(littleGuy.positionInPixelBodySpace);

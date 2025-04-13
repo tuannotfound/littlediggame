@@ -6,9 +6,11 @@ export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";
     static PROGRESS_GATE_ID_2 = "progress_gate_2";
     static PROGRESS_GATE_DESC =
-        "This will be automatically unlocked as you make progress via digging.";
+        "This will be automatically unlocked as you make progress by digging.";
 
     constructor() {
+        this.karma_ = 100;
+
         // Base
         this.digSpeed = 0.5;
         this.digCount = 2;
@@ -25,6 +27,8 @@ export default class Upgrades {
         this.populationPowerScale = 2;
         this.goldSeeker = false;
         this.extraLittleGuyChance = 0;
+        this.showWorkerEV = false;
+        this.aspisOnDeathAsEvRate = 0;
 
         // Religion
         this.religion = false;
@@ -32,6 +36,8 @@ export default class Upgrades {
         this.conceptionIntervalMs = -1;
         this.explosionChance = 0;
         this.explosionRadius = 2;
+        this.saintlyPctImmaculate = 0.625;
+        this.saintlyPctMaculate = 0.4;
 
         // Serpent
         this.eggHandling = false;
@@ -51,49 +57,67 @@ export default class Upgrades {
             aspisPer: this.aspisPer,
             unlockGold: this.unlockGold,
             unlockDiamonds: this.unlockDiamonds,
+            freeWorkerCount: this.freeWorkerCount,
             populationPowerScale: this.populationPowerScale,
             goldSeeker: this.goldSeeker,
             extraLittleGuyChance: this.extraLittleGuyChance,
+            showWorkerEV: this.showWorkerEV,
+            aspisOnDeathAsEvRate: this.aspisOnDeathAsEvRate,
             religion: this.religion,
             afterlife: this.afterlife,
             conceptionIntervalMs: this.conceptionIntervalMs,
             explosionChance: this.explosionChance,
             explosionRadius: this.explosionRadius,
+            saintlyPctImmaculate: this.saintlyPctImmaculate,
+            saintlyPctMaculate: this.saintlyPctMaculate,
+            eggHandling: this.eggHandling,
             upgradeStates: upgradeStates,
         };
     }
 
     static fromJSON(json) {
-        let upgrades = new Upgrades();
+        const upgrades = new Upgrades();
         upgrades.digSpeed = json.digSpeed;
         upgrades.digCount = json.digCount;
         upgrades.aspisPer = json.aspisPer;
         upgrades.unlockGold = json.unlockGold;
         upgrades.unlockDiamonds = json.unlockDiamonds;
+        upgrades.freeWorkerCount = json.freeWorkerCount;
         upgrades.populationPowerScale = json.populationPowerScale;
         upgrades.goldSeeker = json.goldSeeker;
         upgrades.extraLittleGuyChance = json.extraLittleGuyChance;
+        upgrades.showWorkerEV = json.showWorkerEV;
+        upgrades.aspisOnDeathAsEvRate = json.aspisOnDeathAsEvRate;
         upgrades.religion = json.religion;
         upgrades.afterlife = json.afterlife;
         upgrades.conceptionIntervalMs = json.conceptionIntervalMs;
         upgrades.explosionChance = json.explosionChance;
         upgrades.explosionRadius = json.explosionRadius;
-        if (upgrades.religion) {
-            upgrades.initReligionTree();
-        }
+        upgrades.saintlyPctImmaculate = json.saintlyPctImmaculate;
+        upgrades.saintlyPctMaculate = json.saintlyPctMaculate;
+        upgrades.eggHandling = json.eggHandling;
+
         for (let i = 0; i < json.upgradeStates.length; i++) {
-            let upgradeState = json.upgradeStates[i];
+            const upgradeState = json.upgradeStates[i];
             if (!upgrades.upgradeTree.has(upgradeState.id)) {
                 console.warn(
                     "Unable to restore upgrade state for upgrade with ID " + upgradeState.id
                 );
                 continue;
             }
-            let upgrade = upgrades.upgradeTree.get(upgradeState.id);
+            const upgrade = upgrades.upgradeTree.get(upgradeState.id);
             upgrade.unlocked = upgradeState.unlocked;
             upgrade.purchased = upgradeState.purchased;
         }
         return upgrades;
+    }
+
+    updateKarma(dk) {
+        this.karma_ += dk;
+    }
+
+    get karma() {
+        return this.karma_;
     }
 
     getUpgrade(id) {
@@ -102,7 +126,7 @@ export default class Upgrades {
 
     initUpgradeTree() {
         // Progress gates
-        let progressGate1 = new Upgrade(
+        const progressGate1 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_1,
             "Dig Progress 1",
             Upgrades.PROGRESS_GATE_DESC,
@@ -110,7 +134,7 @@ export default class Upgrades {
             -3
         );
         this.upgradeTree.set(progressGate1.id, progressGate1);
-        let progressGate2 = new Upgrade(
+        const progressGate2 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_2,
             "Dig Progress 2",
             Upgrades.PROGRESS_GATE_DESC,
@@ -120,7 +144,7 @@ export default class Upgrades {
         this.upgradeTree.set(progressGate2.id, progressGate2);
 
         // Aspis++ tree
-        let betterDirt = new Upgrade(
+        const betterDirt = new Upgrade(
             "better_dirt",
             "better_dirt_tbd",
             StringUtils.dedent(`TBD`),
@@ -134,7 +158,7 @@ export default class Upgrades {
         );
         this.upgradeTree.set(betterDirt.id, betterDirt);
 
-        let unlockGold = new Upgrade(
+        const unlockGold = new Upgrade(
             "unlock_gold",
             "gold_tbd",
             StringUtils.dedent(`TBD`),
@@ -146,7 +170,7 @@ export default class Upgrades {
         );
         this.upgradeTree.set(unlockGold.id, unlockGold);
 
-        let moreAspis1 = new Upgrade(
+        const moreAspis1 = new Upgrade(
             "more_aspis_1",
             "Elementum amicus",
             StringUtils.dedent(
@@ -169,7 +193,7 @@ export default class Upgrades {
         moreAspis1.addPrereq(unlockGold);
         this.upgradeTree.set(moreAspis1.id, moreAspis1);
 
-        let moreAspis2 = new Upgrade(
+        const moreAspis2 = new Upgrade(
             "more_aspis_2",
             "Elementum tormentis",
             StringUtils.dedent(
@@ -190,7 +214,7 @@ export default class Upgrades {
         moreAspis2.addPrereq(moreAspis1);
         this.upgradeTree.set(moreAspis2.id, moreAspis2);
 
-        let moreAspis3 = new Upgrade(
+        const moreAspis3 = new Upgrade(
             "more_aspis_4",
             "Nefas directionis",
             StringUtils.dedent(`TBD.`),
@@ -208,7 +232,7 @@ export default class Upgrades {
         moreAspis3.addPrereq(moreAspis2);
         this.upgradeTree.set(moreAspis3.id, moreAspis3);
 
-        let graveDigger1 = new Upgrade(
+        const graveDigger1 = new Upgrade(
             "grave_digger_1",
             "Dens cadaver",
             StringUtils.dedent(`TBD.`),
@@ -216,11 +240,12 @@ export default class Upgrades {
             5,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = 2;
+                this.updateKarma(-5);
             }
         );
         this.upgradeTree.set(graveDigger1.id, graveDigger1);
 
-        let graveDigger2 = new Upgrade(
+        const graveDigger2 = new Upgrade(
             "grave_digger_2",
             "Sepulchri furem",
             StringUtils.dedent(
@@ -231,12 +256,13 @@ export default class Upgrades {
             50,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = 8;
+                this.updateKarma(-10);
             }
         );
         graveDigger2.addPrereq(graveDigger1);
         this.upgradeTree.set(graveDigger2.id, graveDigger2);
 
-        let unlockDiamonds = new Upgrade(
+        const unlockDiamonds = new Upgrade(
             "unlock_diamonds",
             "Scintillare lapis",
             StringUtils.dedent(
@@ -251,9 +277,10 @@ export default class Upgrades {
             }
         );
         unlockDiamonds.addPrereq(unlockGold);
+        unlockDiamonds.addPrereq(moreAspis1);
         this.upgradeTree.set(unlockDiamonds.id, unlockDiamonds);
 
-        let diamondDeals = new Upgrade(
+        const diamondDeals = new Upgrade(
             "diamond_deals",
             "Mercator pulchra",
             StringUtils.dedent(
@@ -272,7 +299,7 @@ export default class Upgrades {
         diamondDeals.addPrereq(unlockDiamonds);
         this.upgradeTree.set(diamondDeals.id, diamondDeals);
 
-        let bloodDiamonds = new Upgrade(
+        const bloodDiamonds = new Upgrade(
             "blood_diamonds",
             "Prodita sanguine",
             StringUtils.dedent(
@@ -284,12 +311,13 @@ export default class Upgrades {
                 this.aspisPer[PixelType.DIAMOND.name] = Math.round(
                     this.aspisPer[PixelType.DIAMOND.name] * 1.03
                 );
+                this.updateKarma(-20);
             }
         );
         bloodDiamonds.addPrereq(diamondDeals);
         this.upgradeTree.set(bloodDiamonds.id, bloodDiamonds);
 
-        let moreAspisDirt = new Upgrade(
+        const moreAspisDirt = new Upgrade(
             "more_aspis_dirt",
             "more_aspis_dirt_tbd",
             StringUtils.dedent(`TBD: Dirt propaganda.`),
@@ -304,7 +332,7 @@ export default class Upgrades {
         moreAspisDirt.addPrereq(progressGate1);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
-        let moreAspisGold = new Upgrade(
+        const moreAspisGold = new Upgrade(
             "more_aspis_gold",
             "more_aspis_gold_tbd",
             StringUtils.dedent(`TBD: Gold propaganda.`),
@@ -319,7 +347,7 @@ export default class Upgrades {
         moreAspisGold.addPrereq(progressGate1);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
-        let graveDigger3 = new Upgrade(
+        const graveDigger3 = new Upgrade(
             "grave_digger_3",
             "grave_digger_3_tbd",
             StringUtils.dedent(
@@ -332,18 +360,22 @@ export default class Upgrades {
                 this.aspisPer[PixelType.TOMBSTONE.name] = Math.round(
                     this.aspisPer[PixelType.DIAMOND.name] * 0.25
                 );
+                this.updateKarma(-15);
             }
         );
         graveDigger3.addPrereq(graveDigger2);
         graveDigger3.addPrereq(diamondDeals);
         this.upgradeTree.set(graveDigger3.id, graveDigger3);
 
-        let goldSeeker = new Upgrade(
+        const goldSeeker = new Upgrade(
             "gold_seeker",
             "Thesaurum sub pede",
             "",
             [
-                "Your populous are much less likely to walk over something valuable without stopping to dig it up",
+                StringUtils.dedent(
+                    `Your populous are much less likely to walk over something valuable without
+                    stopping to dig it up`
+                ),
             ],
             275,
             () => {
@@ -354,7 +386,7 @@ export default class Upgrades {
         this.upgradeTree.set(goldSeeker.id, goldSeeker);
 
         // Digging++ tree
-        let digSpeed1 = new Upgrade(
+        const digSpeed1 = new Upgrade(
             "dig_speed_1",
             "Duplex trulla",
             StringUtils.dedent(
@@ -369,7 +401,7 @@ export default class Upgrades {
         );
         this.upgradeTree.set(digSpeed1.id, digSpeed1);
 
-        let digSpeed2 = new Upgrade(
+        const digSpeed2 = new Upgrade(
             "dig_speed_2",
             "Factum est iterum",
             StringUtils.dedent(
@@ -385,7 +417,7 @@ export default class Upgrades {
         digSpeed2.addPrereq(digSpeed1);
         this.upgradeTree.set(digSpeed2.id, digSpeed2);
 
-        let digSpeed3 = new Upgrade(
+        const digSpeed3 = new Upgrade(
             "dig_speed_3",
             "Non potest esse",
             StringUtils.dedent(
@@ -401,7 +433,7 @@ export default class Upgrades {
         digSpeed3.addPrereq(digSpeed2);
         this.upgradeTree.set(digSpeed3.id, digSpeed3);
 
-        let digSpeed4 = new Upgrade(
+        const digSpeed4 = new Upgrade(
             "dig_speed_4",
             "Nimis longe",
             StringUtils.dedent(`Two words: two shovels.`),
@@ -414,11 +446,11 @@ export default class Upgrades {
         digSpeed4.addPrereq(digSpeed3);
         this.upgradeTree.set(digSpeed4.id, digSpeed4);
 
-        let digCount1 = new Upgrade(
+        const digCount1 = new Upgrade(
             "dig_count_1",
             "Salutem et incolumitatem",
             StringUtils.dedent(`TBD`),
-            ["Digs before death increases by 1"],
+            ["Digs before retirement increases by 1"],
             30,
             () => {
                 this.digCount++;
@@ -426,11 +458,11 @@ export default class Upgrades {
         );
         this.upgradeTree.set(digCount1.id, digCount1);
 
-        let digCount2 = new Upgrade(
+        const digCount2 = new Upgrade(
             "dig_count_2",
             "Salus et sanitas",
             StringUtils.dedent(`TBD`),
-            ["Digs before death increases by 1"],
+            ["Digs before retirement increases by 1"],
             400,
             () => {
                 this.digCount++;
@@ -439,11 +471,11 @@ export default class Upgrades {
         digCount2.addPrereq(digCount1);
         this.upgradeTree.set(digCount2.id, digCount2);
 
-        let digCount3 = new Upgrade(
+        const digCount3 = new Upgrade(
             "dig_count_3",
             "Ferro pollicem tabernus",
             StringUtils.dedent(`TBD`),
-            ["Digs before death increases by 2"],
+            ["Digs before retirement increases by 2"],
             2350,
             () => {
                 this.digCount += 2;
@@ -452,7 +484,7 @@ export default class Upgrades {
         digCount3.addPrereq(digCount2);
         this.upgradeTree.set(digCount3.id, digCount3);
 
-        let pop1 = new Upgrade(
+        const pop1 = new Upgrade(
             "pop_1",
             "Opus insumptuosus",
             StringUtils.dedent(`TBD`),
@@ -468,7 +500,7 @@ export default class Upgrades {
         );
         this.upgradeTree.set(pop1.id, pop1);
 
-        let pop2 = new Upgrade(
+        const pop2 = new Upgrade(
             "pop_2",
             "pop_2_tbd",
             StringUtils.dedent(`TBD`),
@@ -485,7 +517,7 @@ export default class Upgrades {
         pop2.addPrereq(pop1);
         this.upgradeTree.set(pop2.id, pop2);
 
-        let pop3 = new Upgrade(
+        const pop3 = new Upgrade(
             "pop_3",
             "pop_3_tbd",
             StringUtils.dedent(`TBD`),
@@ -502,7 +534,7 @@ export default class Upgrades {
         pop3.addPrereq(pop2);
         this.upgradeTree.set(pop3.id, pop3);
 
-        let pop4 = new Upgrade(
+        const pop4 = new Upgrade(
             "pop_4",
             "pop_4_tbd",
             StringUtils.dedent(`TBD`),
@@ -515,12 +547,46 @@ export default class Upgrades {
         pop4.addPrereq(pop3);
         this.upgradeTree.set(pop4.id, pop4);
 
-        let extraLittleGuy1 = new Upgrade(
+        const workerEv = new Upgrade(
+            "worker_ev",
+            "worker_ev_tbd",
+            StringUtils.dedent(
+                `An accountant joins the team to help you make more informed hiring decisions.`
+            ),
+            ["Adds the expected value for workers to the info box"],
+            5050,
+            () => {
+                this.showWorkerEV = true;
+            }
+        );
+        workerEv.addPrereq(pop3);
+        this.upgradeTree.set(workerEv.id, workerEv);
+
+        const deathMoney = new Upgrade(
+            "death_money",
+            "death_money_tbd",
+            StringUtils.dedent(
+                `Successfully make the argument that the families of retired workers should pay The
+                Company for the loss in productivity that results from the cessation of their life
+                function.`
+            ),
+            ["Receive 10% of the expected value of a worker upon the retirement of any worker"],
+            9680,
+            () => {
+                this.aspisOnDeathAsEvRate = 0.5;
+                this.updateKarma(-20);
+            }
+        );
+        deathMoney.addPrereq(workerEv);
+        deathMoney.addPrereq(digCount3);
+        this.upgradeTree.set(deathMoney.id, deathMoney);
+
+        const extraLittleGuy1 = new Upgrade(
             "extra_little_guy_1",
             "extra_little_guy_1_tbd",
             StringUtils.dedent(
-                `The Company announces "Bring A Worker To Work" day, where workers are welcome to
-                bring an extra worker with them to work in exchange for keeping their job.`
+                `The Company announces <q>Bring A Worker To Work</q> day, where workers are welcome
+                to bring an extra worker with them to work in exchange for keeping their job.`
             ),
             ["Grants a 20% chance that an extra worker will spawn"],
             900,
@@ -528,15 +594,15 @@ export default class Upgrades {
                 this.extraLittleGuyChance = 0.2;
             }
         );
-        extraLittleGuy1.addPrereq(pop2);
+        extraLittleGuy1.addPrereq(pop1);
         this.upgradeTree.set(extraLittleGuy1.id, extraLittleGuy1);
 
-        let extraLittleGuy2 = new Upgrade(
+        const extraLittleGuy2 = new Upgrade(
             "extra_little_guy_2",
             "extra_little_guy_2_tbd",
             StringUtils.dedent(
-                `Participation in "Bring A Worker To Work" day is actually pretty important to the
-                unique culture here at The Company.`
+                `Participation in <q>Bring A Worker To Work</q> day is actually pretty important to
+                the unique culture here at The Company.`
             ),
             ["Increases the chance that an extra worker will spawn to 40%"],
             1800,
@@ -544,10 +610,11 @@ export default class Upgrades {
                 this.extraLittleGuyChance = 0.4;
             }
         );
+        extraLittleGuy2.addPrereq(pop2);
         extraLittleGuy2.addPrereq(extraLittleGuy1);
         this.upgradeTree.set(extraLittleGuy2.id, extraLittleGuy2);
 
-        let freeWorkers1 = new Upgrade(
+        const freeWorkers1 = new Upgrade(
             "free_workers_1",
             "free_workers_1_tbd",
             StringUtils.dedent(`TBD`),
@@ -560,7 +627,7 @@ export default class Upgrades {
         freeWorkers1.addPrereq(pop3);
         this.upgradeTree.set(freeWorkers1.id, freeWorkers1);
 
-        let religion = new Upgrade(
+        const religion = new Upgrade(
             "religion",
             "In Deo Omnia Possibilia",
             StringUtils.dedent(`TBD`),
@@ -574,13 +641,13 @@ export default class Upgrades {
         religion.addPrereq(progressGate1);
         this.upgradeTree.set(religion.id, religion);
 
-        let afterlife = new Upgrade(
+        const afterlife = new Upgrade(
             "afterlife",
             "Supra Vita",
             StringUtils.dedent(`TBD`),
             [
-                "Death no longer results in a tombstone being created",
-                "Tombstone Aspis is granted immediately upon death",
+                "Retirement no longer results in a tombstone being created",
+                "Tombstone Aspis is granted immediately upon retirement",
             ],
             1622,
             () => {
@@ -590,13 +657,13 @@ export default class Upgrades {
         afterlife.addPrereq(religion);
         this.upgradeTree.set(afterlife.id, afterlife);
 
-        let explosives1 = new Upgrade(
+        const explosives1 = new Upgrade(
             "explosives_1",
             "explosives_1_tbd",
             StringUtils.dedent(
-                `The Company encourages its loyal followers to go out with a 'bang' to demonstrate
-                their dedication to the Leader. Rewards for this dedication can be collected in the
-                afterlife.`
+                `The Company encourages its loyal followers to go out with a <q>bang</q> to
+                demonstrate their dedication to the Leader. Rewards for this dedication can be
+                collected in the afterlife.`
             ),
             ["Gives the final dig for employees a 10% chance to result in a small explosion"],
             4421,
@@ -607,7 +674,7 @@ export default class Upgrades {
         explosives1.addPrereq(afterlife);
         this.upgradeTree.set(explosives1.id, explosives1);
 
-        let explosives2 = new Upgrade(
+        const explosives2 = new Upgrade(
             "explosives_2",
             "explosives_2_tbd",
             StringUtils.dedent(`TBD.`),
@@ -620,7 +687,7 @@ export default class Upgrades {
         explosives2.addPrereq(explosives1);
         this.upgradeTree.set(explosives2.id, explosives2);
 
-        let explosives3 = new Upgrade(
+        const explosives3 = new Upgrade(
             "explosives_3",
             "explosives_3_tbd",
             StringUtils.dedent(
@@ -635,7 +702,7 @@ export default class Upgrades {
         explosives3.addPrereq(explosives1);
         this.upgradeTree.set(explosives3.id, explosives3);
 
-        let spawning1 = new Upgrade(
+        const spawning1 = new Upgrade(
             "spawning_1",
             "Immaculata Conceptionis",
             StringUtils.dedent(`TBD`),
@@ -648,7 +715,7 @@ export default class Upgrades {
         spawning1.addPrereq(religion);
         this.upgradeTree.set(spawning1.id, spawning1);
 
-        let spawning2 = new Upgrade(
+        const spawning2 = new Upgrade(
             "spawning_2",
             "Beati Lumbi",
             StringUtils.dedent(`TBD`),
@@ -661,7 +728,7 @@ export default class Upgrades {
         spawning2.addPrereq(spawning1);
         this.upgradeTree.set(spawning2.id, spawning2);
 
-        let spawning3 = new Upgrade(
+        const spawning3 = new Upgrade(
             "spawning_3",
             "spawning_3_tbd",
             StringUtils.dedent(`TBD`),
@@ -674,7 +741,7 @@ export default class Upgrades {
         spawning3.addPrereq(spawning2);
         this.upgradeTree.set(spawning3.id, spawning3);
 
-        let tithing1 = new Upgrade(
+        const tithing1 = new Upgrade(
             "tithe_1",
             "tithe_1_tbd",
             StringUtils.dedent(
@@ -682,12 +749,16 @@ export default class Upgrades {
                 request that can be denied.`
             ),
             ["The feeling of having done something good for the Leader is reward enough, no?"],
-            2000
+            2000,
+            () => {
+                this.saintlyPctImmaculate = 0.75;
+                this.saintlyPctMaculate = 0.5;
+            }
         );
         tithing1.addPrereq(religion);
         this.upgradeTree.set(tithing1.id, tithing1);
 
-        let tithing2 = new Upgrade(
+        const tithing2 = new Upgrade(
             "tithe_2",
             "tithe_2_tbd",
             StringUtils.dedent(
@@ -695,24 +766,32 @@ export default class Upgrades {
                 even notice if some of it went to a good cause.`
             ),
             ["That's so kind of you"],
-            4000
+            4000,
+            () => {
+                this.saintlyPctImmaculate = 0.875;
+                this.saintlyPctMaculate = 0.6;
+            }
         );
         tithing2.addPrereq(tithing1);
         this.upgradeTree.set(tithing2.id, tithing2);
 
-        let tithing3 = new Upgrade(
+        const tithing3 = new Upgrade(
             "tithe_3",
             "tithe_3_tbd",
             StringUtils.dedent(
-                `The Company updates its official policy on offerings: "Gimme that."`
+                `The Company helpfully updates its official policy on offerings: <q>Gimme that.</q>`
             ),
             ["You were probably going to fritter it away anyway"],
-            8000
+            8000,
+            () => {
+                this.saintlyPctImmaculate = 1;
+                this.saintlyPctMaculate = 0.7;
+            }
         );
         tithing3.addPrereq(tithing2);
         this.upgradeTree.set(tithing3.id, tithing3);
 
-        let digSpeed5 = new Upgrade(
+        const digSpeed5 = new Upgrade(
             "dig_speed_5",
             "dig_speed_5_tbd",
             StringUtils.dedent(
@@ -729,7 +808,7 @@ export default class Upgrades {
         digSpeed5.addPrereq(tithing1);
         this.upgradeTree.set(digSpeed5.id, digSpeed5);
 
-        let serpent = new Upgrade(
+        const serpent = new Upgrade(
             "serpent",
             "serpent_tbd",
             StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
@@ -743,7 +822,7 @@ export default class Upgrades {
         serpent.addPrereq(tithing3);
         this.upgradeTree.set(serpent.id, serpent);
 
-        let eggHandling = new Upgrade(
+        const eggHandling = new Upgrade(
             "egg_handling",
             "egg_handling_tbd",
             StringUtils.dedent(`TBD`),
@@ -757,7 +836,7 @@ export default class Upgrades {
         eggHandling.addPrereq(serpent);
         this.upgradeTree.set(eggHandling.id, eggHandling);
 
-        let digSpeed6 = new Upgrade(
+        const digSpeed6 = new Upgrade(
             "dig_speed_6",
             "dig_speed_6_tbd",
             StringUtils.dedent(
@@ -774,18 +853,38 @@ export default class Upgrades {
         digSpeed6.addPrereq(serpent);
         this.upgradeTree.set(digSpeed6.id, digSpeed6);
 
-        let digSpeed7 = new Upgrade(
+        const digSpeed7 = new Upgrade(
             "dig_speed_7",
             "dig_speed_7_tbd",
             StringUtils.dedent(`You also add stretching and a light jog to the morning routine.`),
-            ["Digging is 1.2x faster"],
-            416,
+            ["Digging is 1.1x faster"],
+            6,
             () => {
-                this.digSpeed *= 1.2;
+                this.digSpeed *= 1.1;
             }
         );
         digSpeed7.addPrereq(digSpeed6);
         digSpeed7.addPrereq(serpent);
         this.upgradeTree.set(digSpeed7.id, digSpeed7);
+
+        const finalPush = new Upgrade(
+            "final_push",
+            "final_push_tbd",
+            StringUtils.dedent(`Throw all you've got at it for the final push.`),
+            [
+                "Digging is 1.5x faster",
+                "New followers are manifested 1.35x more frequently",
+                "Increases the explosion rate to 40%",
+            ],
+            91100,
+            () => {
+                this.digSpeed *= 1.5;
+                this.conceptionIntervalMs *= 0.74;
+                this.explosionChance = 0.4;
+            }
+        );
+        finalPush.addPrereq(digSpeed7);
+        finalPush.addPrereq(eggHandling);
+        this.upgradeTree.set(finalPush.id, finalPush);
     }
 }

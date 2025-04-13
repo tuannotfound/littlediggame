@@ -170,23 +170,31 @@ export default class UpgradesUi {
         if (prereqRowCount == 0) {
             return;
         }
-        const prevRow = parseInt(button.parentElement.style.gridRow, 10);
-        const newRow = Math.floor(prereqRowSum / prereqRowCount) + 1;
+        const currentRow = parseInt(button.parentElement.style.gridRow, 10);
+        const newRow = Math.max(1, Math.floor(prereqRowSum / prereqRowCount));
         const column = button.parentElement.style.gridColumn;
         let gridDiv = this.getGridDiv(newRow, column);
-        if (gridDiv.children.length > 0) {
+        // expectedChildCount is basically just tracking whether the div we're checking is the one
+        // we're already in. If we're already in it, then we expect to find just 1 child (us),
+        // otherwise we want to find an empty div.
+        let expectedChildCount = currentRow == newRow ? 1 : 0;
+        if (gridDiv.children.length > expectedChildCount) {
             // Check the divs above or below - if they're empty, use one of them instead.
-            let below = this.getGridDiv(newRow + 1, column);
-            if (below && below.children.length == 0) {
+            let testRow = newRow + 1;
+            expectedChildCount = currentRow == testRow ? 1 : 0;
+            const below = this.getGridDiv(testRow, column);
+            if (below && below.children.length == expectedChildCount) {
                 gridDiv = below;
             } else if (newRow > 1) {
-                let above = this.getGridDiv(newRow - 1, column);
-                if (above && above.children.length == 0) {
+                testRow = newRow - 1;
+                expectedChildCount = currentRow == testRow ? 1 : 0;
+                const above = this.getGridDiv(testRow, column);
+                if (above && above.children.length == expectedChildCount) {
                     gridDiv = above;
                 }
             }
         }
-        if (newRow != prevRow) {
+        if (newRow != currentRow) {
             button.parentElement.removeChild(button);
             gridDiv.appendChild(button);
         }

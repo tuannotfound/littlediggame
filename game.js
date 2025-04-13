@@ -1057,7 +1057,7 @@ export default class Game {
             this.updateAspis();
         }
         if (this.upgrades.aspisOnDeathAsEvRate > 0) {
-            this.aspis += this.workerEv * this.upgrades.aspisOnDeathAsEvRate;
+            this.aspis += Math.round(this.workerEv * this.upgrades.aspisOnDeathAsEvRate);
             this.updateAspis();
         }
         if (littleGuy.deathByEgg) {

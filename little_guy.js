@@ -549,6 +549,9 @@ export default class LittleGuy {
                 this.upgrades.explosionRadius
             );
             for (const nearbyPixel of nearbyPixels) {
+                if (nearbyPixel.type == PixelType.EGG && !this.upgrades.eggHandling) {
+                    continue;
+                }
                 this.pixelBody.removePixel(nearbyPixel);
                 this.notifyDigComplete(nearbyPixel);
             }

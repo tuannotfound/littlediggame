@@ -6,7 +6,6 @@ export default class Bot {
     GAME_SPEED = 5;
     FRAME_INTERVAL = 1000 / this.TARGET_FPS;
     TAG = "[BOT] ";
-    SPAWN_MAX = 250;
 
     constructor(game) {
         this.game = game;
@@ -120,7 +119,7 @@ export default class Bot {
         if (!this.game.activePixelBody) {
             return;
         }
-        let expectedValue = this.calculateExpectedValueOfLittleGuy();
+        const expectedValue = this.game.calculateExpectedValue();
         while (this.shouldSpawn(expectedValue)) {
             let coords = new Vector(
                 Math.random() * this.game.activePixelBody.layer.width - 1,
@@ -144,7 +143,7 @@ export default class Bot {
     }
 
     shouldSpawn(expectedValue) {
-        if (this.game.littleGuys.length >= this.SPAWN_MAX) {
+        if (this.game.littleGuys.length >= this.game.MAX_LITTLE_GUYS) {
             return false;
         }
         if (this.game.spawnCost == 0) {

@@ -77,25 +77,7 @@ export default class Upgrades {
 
     static fromJSON(json) {
         const upgrades = new Upgrades();
-        upgrades.digSpeed = json.digSpeed;
-        upgrades.digCount = json.digCount;
-        upgrades.aspisPer = json.aspisPer;
-        upgrades.unlockGold = json.unlockGold;
-        upgrades.unlockDiamonds = json.unlockDiamonds;
-        upgrades.freeWorkerCount = json.freeWorkerCount;
-        upgrades.populationPowerScale = json.populationPowerScale;
-        upgrades.goldSeeker = json.goldSeeker;
-        upgrades.extraLittleGuyChance = json.extraLittleGuyChance;
-        upgrades.showWorkerEV = json.showWorkerEV;
-        upgrades.aspisOnDeathAsEvRate = json.aspisOnDeathAsEvRate;
-        upgrades.religion = json.religion;
-        upgrades.afterlife = json.afterlife;
-        upgrades.conceptionIntervalMs = json.conceptionIntervalMs;
-        upgrades.explosionChance = json.explosionChance;
-        upgrades.explosionRadius = json.explosionRadius;
-        upgrades.saintlyPctImmaculate = json.saintlyPctImmaculate;
-        upgrades.saintlyPctMaculate = json.saintlyPctMaculate;
-        upgrades.eggHandling = json.eggHandling;
+        Object.assign(upgrades, json);
 
         for (let i = 0; i < json.upgradeStates.length; i++) {
             const upgradeState = json.upgradeStates[i];

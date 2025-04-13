@@ -115,9 +115,6 @@ export default class Game {
 
         this.workerEv = 0;
 
-        this.angelCount = 0;
-        this.demonCount = 0;
-
         this.lastConceptionTime = 0;
 
         this.perfStats = new PerfStats();

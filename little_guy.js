@@ -19,6 +19,7 @@ export default class LittleGuy {
         new Color(86, 49, 23).immutableCopy(),
     ];
     static ASSUMED_FPS = 60;
+    static EXPLOSIVE_BODY_COLOR = new Color(214, 58, 41).immutableCopy();
     static DEFAULT_BODY_COLOR = new Color(87, 125, 180).immutableCopy();
     // Angelic robes.
     static ASCENDING_BODY_COLOR = new Color(215, 215, 215).immutableCopy();
@@ -75,6 +76,7 @@ export default class LittleGuy {
         if (!this.saintly) {
             console.log("Uh oh, we got a bad one, folks");
         }
+        this.explosive = Math.random() < this.upgrades.explosionChance;
         this.deathByEgg = false;
         this.framesSinceDeath = 0;
 
@@ -221,6 +223,9 @@ export default class LittleGuy {
         }
         if (this.shouldRenderDigPose()) {
             return this.headColor;
+        }
+        if (this.explosive) {
+            return LittleGuy.EXPLOSIVE_BODY_COLOR;
         }
         return LittleGuy.DEFAULT_BODY_COLOR;
     }
@@ -526,6 +531,20 @@ export default class LittleGuy {
 
     die() {
         this.alive = false;
+        if (this.deathByEgg) {
+            this.explosive = false;
+        }
+
+        if (this.explosive) {
+            const nearbyPixels = this.pixelBody.getPixelsAround(
+                this.positionInPixelBodySpace,
+                this.upgrades.explosionRadius
+            );
+            for (const nearbyPixel of nearbyPixels) {
+                this.pixelBody.removePixel(nearbyPixel);
+                this.notifyDigComplete(nearbyPixel);
+            }
+        }
         this.notifyDeath();
     }
 

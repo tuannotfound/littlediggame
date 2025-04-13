@@ -34,7 +34,7 @@ export default class Upgrades {
         this.religion = false;
         this.afterlife = false;
         this.conceptionIntervalMs = -1;
-        this.explosionChance = 0;
+        this.explosionChance = 0.5;
         this.explosionRadius = 2;
         this.saintlyPctImmaculate = 0.625;
         this.saintlyPctMaculate = 0.4;

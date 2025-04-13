@@ -1069,18 +1069,10 @@ export default class Game {
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
             this.updateLegend();
-        } else if (Math.random() < this.upgrades.explosionChance) {
+        } else if (littleGuy.explosive) {
             this.particles.explosionEffect(
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
-            const nearbyPixels = littleGuy.pixelBody.getPixelsAround(
-                littleGuy.positionInPixelBodySpace,
-                this.upgrades.explosionRadius
-            );
-            for (const nearbyPixel of nearbyPixels) {
-                littleGuy.pixelBody.removePixel(nearbyPixel);
-                littleGuy.notifyDigComplete(nearbyPixel);
-            }
         }
         this.bloodyAround(littleGuy.positionInPixelBodySpace);
     }

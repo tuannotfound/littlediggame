@@ -555,7 +555,7 @@ export default class Upgrades {
             ["Receive 10% of the expected value of a worker upon the retirement of any worker"],
             9680,
             () => {
-                this.aspisOnDeathAsEvRate = 0.5;
+                this.aspisOnDeathAsEvRate = 0.1;
                 this.updateKarma(-20);
             }
         );

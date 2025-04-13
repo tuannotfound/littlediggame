@@ -191,7 +191,7 @@ export default class Bot {
             this.peakAspis,
             manualLittleGuyCount,
             autoLittleGuyCount,
-            this.calculateExpectedValueOfLittleGuy(),
+            this.game.calculateExpectedValue(),
             this.game.activePixelBody ? this.game.activePixelBody.health : 0,
             this.game.upgrades,
             this.findCheapestUpgrade(),
@@ -214,39 +214,6 @@ export default class Bot {
             }
         }
         return cheapestUpgrade;
-    }
-
-    calculateExpectedValueOfLittleGuy() {
-        if (!this.game.activePixelBody) {
-            return 0;
-        }
-        // Looking at the surface of the planet, we can average out the value of each pixel and
-        // multiply that by the number of digs each little guy will perform to get the EV of
-        // spawning a new little guy.
-        let surface = this.game.activePixelBody.surfacePixels;
-        if (surface.length == 0) {
-            return 0;
-        }
-        let totalValue = 0;
-        for (let i = 0; i < surface.length; i++) {
-            let surfacePixel = surface[i];
-            if (!surfacePixel) {
-                continue;
-            }
-            let pixelType = surfacePixel.type;
-            if (pixelType == PixelType.GOLD && !this.game.upgrades.unlockGold) {
-                pixelType = PixelType.DIRT;
-            } else if (pixelType == PixelType.DIAMOND && !this.game.upgrades.unlockDiamonds) {
-                pixelType = PixelType.DIRT;
-            } else if (pixelType == PixelType.EGG && !this.game.upgrades.eggHandling) {
-                // Can't dig this yet, so it effectively contributes 0 value.
-                continue;
-            }
-            totalValue += this.game.upgrades.aspisPer[pixelType.name];
-        }
-        let avgValue = totalValue / surface.length;
-        let expectedValue = avgValue * this.game.upgrades.digCount;
-        return Math.round(100 * expectedValue) / 100;
     }
 }
 

@@ -215,6 +215,24 @@ export default class PixelBody {
         return pixels;
     }
 
+    getPixelsAround(center, radius) {
+        const pixelsAround = [];
+        for (let x = center.x - radius; x < center.x + radius; x++) {
+            for (let y = center.y - radius; y < center.y + radius; y++) {
+                const dist = new Vector(center.x - x, center.y - y).mag();
+                if (dist > radius) {
+                    continue;
+                }
+                const pixel = this.getPixel(new Vector(x, y));
+                if (!pixel) {
+                    continue;
+                }
+                pixelsAround.push(pixel);
+            }
+        }
+        return pixelsAround;
+    }
+
     getClosestSurfacePixel(position) {
         if (this.surfacePixels.length === 0) {
             return null;

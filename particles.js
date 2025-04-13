@@ -54,7 +54,7 @@ export default class Particles {
     }
 
     bloodEffect(position) {
-        let count = MathExtras.randomBetween(12, 18);
+        let count = Math.round(MathExtras.randomBetween(12, 18));
         let minInitialVelocity = new Vector(-0.4, -0.6);
         let maxInitialVelocity = new Vector(0.4, -0.2);
         for (let i = 0; i < count; i++) {
@@ -68,7 +68,7 @@ export default class Particles {
     }
 
     fireEffect(position) {
-        let count = MathExtras.randomBetween(15, 20);
+        let count = Math.round(MathExtras.randomBetween(15, 20));
         let smokeCount = Math.round(count * 0.4);
         let smokeGradient = new Gradient(new Color(190, 190, 190, 150), new Color(40, 40, 40, 200));
         let fireCount = count - smokeCount;
@@ -122,6 +122,33 @@ export default class Particles {
                 particle.fadeSpeed = 10;
                 this.particles.push(particle);
             }, i * 100);
+        }
+    }
+
+    explosionEffect(position) {
+        const waveColors = [
+            [Color.BLACK, Color.DARK_ORANGE],
+            [Color.DARK_ORANGE, Color.ORANGE],
+            [Color.ORANGE, Color.YELLOW],
+        ];
+        for (let i = 0; i < waveColors.length; i++) {
+            setTimeout(() => {
+                let colors = waveColors[i];
+                let color = colors[Math.round(MathExtras.randomBetween(0, colors.length - 1))];
+                let count = Math.round(MathExtras.randomBetween(12, 18));
+                let minInitialVelocity = new Vector(-0.7, -1);
+                let maxInitialVelocity = new Vector(0.7, 1);
+                for (let i = 0; i < count; i++) {
+                    let initialVelocity = new Vector(
+                        MathExtras.randomBetween(minInitialVelocity.x, maxInitialVelocity.x),
+                        MathExtras.randomBetween(minInitialVelocity.y, maxInitialVelocity.y)
+                    );
+                    let particle = new Particle(position, Color.wiggle(color, 3), initialVelocity);
+                    particle.fadeDelay = 8;
+                    particle.fadeSpeed = 30;
+                    this.particles.push(particle);
+                }
+            }, i * 80);
         }
     }
 

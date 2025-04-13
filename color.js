@@ -1,9 +1,14 @@
 import MathExtras from "./math_extras.js";
 
 export default class Color {
+    static WHITE = new Color(255, 255, 255).immutableCopy();
+    static BLACK = new Color(0, 0, 0).immutableCopy();
     static BLOOD = new Color(168, 37, 37).immutableCopy();
     static FIRE_START = new Color(237, 65, 7).immutableCopy();
     static FIRE_END = new Color(252, 244, 91).immutableCopy();
+    static DARK_ORANGE = new Color(214, 98, 26).immutableCopy();
+    static ORANGE = new Color(235, 148, 35).immutableCopy();
+    static YELLOW = new Color(255, 255, 71).immutableCopy();
 
     constructor(r, g, b, a) {
         if (

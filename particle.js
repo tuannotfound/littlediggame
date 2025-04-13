@@ -16,8 +16,12 @@ export default class Particle {
         this.oldPosition.sub(velocity);
         this.oldRenderPosition = this.renderPosition.copy();
 
+        // How many render passes before the fade begins
+        this.fadeDelay = 0;
         // Subtracted from the alpha every render pass
         this.fadeSpeed = 0;
+
+        this.renderCount = 0;
 
         this.gravity = gravity ? gravity : new Vector(0, 1);
 
@@ -41,7 +45,9 @@ export default class Particle {
         }
         let pixelIndex = (this.renderPosition.x + this.renderPosition.y * imageData.width) * 4;
 
-        this.color.a = Math.max(this.color.a - this.fadeSpeed, 0);
+        if (this.renderCount >= this.fadeDelay) {
+            this.color.a = Math.max(this.color.a - this.fadeSpeed, 0);
+        }
         if (this.color.a <= 0) {
             this.active = false;
         }
@@ -49,6 +55,8 @@ export default class Particle {
         imageData.data[pixelIndex + 1] = Math.round(this.color.g); // Green
         imageData.data[pixelIndex + 2] = Math.round(this.color.b); // Blue
         imageData.data[pixelIndex + 3] = Math.round(this.color.a); // Alpha
+
+        this.renderCount++;
     }
 
     update() {

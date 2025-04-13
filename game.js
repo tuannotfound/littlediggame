@@ -113,6 +113,8 @@ export default class Game {
         this.digsPerDeathElement = null;
         this.availableUpgradeCount = 0;
 
+        this.workerEv = 0;
+
         this.angelCount = 0;
         this.demonCount = 0;
 
@@ -548,6 +550,7 @@ export default class Game {
         this.particles.coinEffect(positionInParticlesSpace, value);
 
         this.updateHealth();
+        this.updateExpectedValue();
 
         if (this.upgrades.unlockDiamonds && pixel.type == PixelType.DIAMOND) {
             Story.instance.maybeFirstDiamond();
@@ -966,6 +969,54 @@ export default class Game {
 
     updateDigsPerDeath() {
         this.digsPerDeathElement.innerHTML = this.upgrades.digCount;
+        this.updateExpectedValue();
+    }
+
+    updateExpectedValue() {
+        if (!this.upgrades.showWorkerEV) {
+            return;
+        }
+        const evContainer = document.getElementById("worker_ev_container");
+        if (evContainer.classList.contains("hidden")) {
+            evContainer.classList.remove("hidden");
+        }
+        const evSpan = document.getElementById("worker_ev");
+        this.workerEv = Math.round(this.calculateExpectedValue());
+        evSpan.innerHTML = this.workerEv;
+    }
+
+    calculateExpectedValue() {
+        const body = this.activePixelBody;
+        if (!body) {
+            return 0;
+        }
+        // Looking at the surface of the planet, we can average out the value of each pixel and
+        // multiply that by the number of digs each little guy will perform to get an estimate of
+        // the EV of spawning a new little guy.
+        const surface = body.surfacePixels;
+        if (surface.length == 0) {
+            return 0;
+        }
+        let totalValue = 0;
+        for (let i = 0; i < surface.length; i++) {
+            let surfacePixel = surface[i];
+            if (!surfacePixel) {
+                continue;
+            }
+            let pixelType = surfacePixel.type;
+            if (pixelType == PixelType.GOLD && !this.upgrades.unlockGold) {
+                pixelType = PixelType.DIRT;
+            } else if (pixelType == PixelType.DIAMOND && !this.upgrades.unlockDiamonds) {
+                pixelType = PixelType.DIRT;
+            } else if (pixelType == PixelType.EGG && !this.upgrades.eggHandling) {
+                // Can't dig this yet, so it effectively contributes 0 value.
+                continue;
+            }
+            totalValue += this.upgrades.aspisPer[pixelType.name];
+        }
+        const avgValue = totalValue / surface.length;
+        const expectedValue = avgValue * this.upgrades.digCount;
+        return expectedValue;
     }
 
     // Center is in planet space
@@ -1008,12 +1059,28 @@ export default class Game {
             this.aspis += this.upgrades.aspisPer[PixelType.TOMBSTONE.name];
             this.updateAspis();
         }
+        if (this.upgrades.aspisOnDeathAsEvRate > 0) {
+            this.aspis += this.workerEv * this.upgrades.aspisOnDeathAsEvRate;
+            this.updateAspis();
+        }
         if (littleGuy.deathByEgg) {
             this.knowsEggDeath = true;
             this.particles.fireEffect(
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
             this.updateLegend();
+        } else if (Math.random() < this.upgrades.explosionChance) {
+            this.particles.explosionEffect(
+                this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
+            );
+            const nearbyPixels = littleGuy.pixelBody.getPixelsAround(
+                littleGuy.positionInPixelBodySpace,
+                this.upgrades.explosionRadius
+            );
+            for (const nearbyPixel of nearbyPixels) {
+                littleGuy.pixelBody.removePixel(nearbyPixel);
+                littleGuy.notifyDigComplete(nearbyPixel);
+            }
         }
         this.bloodyAround(littleGuy.positionInPixelBodySpace);
     }

@@ -5,6 +5,7 @@ import StringUtils from "./string_utils.js";
 export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";
     static PROGRESS_GATE_ID_2 = "progress_gate_2";
+    static PROGRESS_GATE_ID_3 = "progress_gate_3";
     static PROGRESS_GATE_DESC =
         "This will be automatically unlocked as you make progress by digging.";
 
@@ -23,6 +24,7 @@ export default class Upgrades {
         this.aspisPer[PixelType.SERPENT.name] = 5555;
         this.unlockGold = false;
         this.unlockDiamonds = false;
+        this.bloodDiamonds = false;
         this.freeWorkerCount = 1;
         this.populationPowerScale = 2;
         this.goldSeeker = false;
@@ -57,6 +59,7 @@ export default class Upgrades {
             aspisPer: this.aspisPer,
             unlockGold: this.unlockGold,
             unlockDiamonds: this.unlockDiamonds,
+            bloodDiamonds: this.bloodDiamonds,
             freeWorkerCount: this.freeWorkerCount,
             populationPowerScale: this.populationPowerScale,
             goldSeeker: this.goldSeeker,
@@ -113,7 +116,7 @@ export default class Upgrades {
             "Dig Progress 1",
             Upgrades.PROGRESS_GATE_DESC,
             [],
-            -3
+            -1
         );
         this.upgradeTree.set(progressGate1.id, progressGate1);
         const progressGate2 = new Upgrade(
@@ -121,9 +124,17 @@ export default class Upgrades {
             "Dig Progress 2",
             Upgrades.PROGRESS_GATE_DESC,
             [],
-            -8
+            -3
         );
         this.upgradeTree.set(progressGate2.id, progressGate2);
+        const progressGate3 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_3,
+            "Dig Progress 3",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -8
+        );
+        this.upgradeTree.set(progressGate3.id, progressGate3);
 
         // Aspis++ tree
         const betterDirt = new Upgrade(
@@ -258,7 +269,7 @@ export default class Upgrades {
                 this.unlockDiamonds = true;
             }
         );
-        unlockDiamonds.addPrereq(unlockGold);
+        unlockDiamonds.addPrereq(progressGate1);
         unlockDiamonds.addPrereq(moreAspis1);
         this.upgradeTree.set(unlockDiamonds.id, unlockDiamonds);
 
@@ -294,6 +305,7 @@ export default class Upgrades {
                     this.aspisPer[PixelType.DIAMOND.name] * 1.03
                 );
                 this.updateKarma(-20);
+                this.bloodDiamonds = true;
             }
         );
         bloodDiamonds.addPrereq(diamondDeals);
@@ -311,7 +323,7 @@ export default class Upgrades {
                 );
             }
         );
-        moreAspisDirt.addPrereq(progressGate1);
+        moreAspisDirt.addPrereq(progressGate2);
         this.upgradeTree.set(moreAspisDirt.id, moreAspisDirt);
 
         const moreAspisGold = new Upgrade(
@@ -326,7 +338,7 @@ export default class Upgrades {
                 );
             }
         );
-        moreAspisGold.addPrereq(progressGate1);
+        moreAspisGold.addPrereq(progressGate2);
         this.upgradeTree.set(moreAspisGold.id, moreAspisGold);
 
         const graveDigger3 = new Upgrade(
@@ -620,7 +632,7 @@ export default class Upgrades {
             }
         );
         religion.addPrereq(moreAspis2);
-        religion.addPrereq(progressGate1);
+        religion.addPrereq(progressGate2);
         this.upgradeTree.set(religion.id, religion);
 
         const afterlife = new Upgrade(
@@ -814,7 +826,7 @@ export default class Upgrades {
                 this.eggHandling = true;
             }
         );
-        eggHandling.addPrereq(progressGate2);
+        eggHandling.addPrereq(progressGate3);
         eggHandling.addPrereq(serpent);
         this.upgradeTree.set(eggHandling.id, eggHandling);
 

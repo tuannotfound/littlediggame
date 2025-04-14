@@ -113,6 +113,8 @@ export default class Game {
         this.digsPerDeathElement = null;
         this.availableUpgradeCount = 0;
 
+        this.bloodDiamondEffectShown = false;
+
         this.workerEv = 0;
 
         this.lastConceptionTime = 0;
@@ -142,6 +144,7 @@ export default class Game {
             knowsDeath: this.knowsDeath,
             knowsDirt: this.knowsDirt,
             knowsEggDeath: this.knowsEggDeath,
+            bloodDiamondEffectShown: this.bloodDiamondEffectShown,
             story: Story.instance,
             stats: this.stats,
         };
@@ -192,6 +195,7 @@ export default class Game {
         game.knowsDeath = json.knowsDeath;
         game.knowsDirt = json.knowsDirt;
         game.knowsEggDeath = json.knowsEggDeath;
+        game.bloodDiamondEffectShown = json.bloodDiamondEffectShown;
 
         Story.fromJSON(json.story);
 
@@ -311,6 +315,7 @@ export default class Game {
             if (!GameState.isPaused(this.gameState)) {
                 Dialogs.resume();
             }
+            this.maybeBloodDiamondEffect();
         });
         this.availableUpgradeCount = document.getElementById("available_upgrade_count");
 
@@ -574,7 +579,7 @@ export default class Game {
                 Story.instance.maybeEggReveal2(body.eggReveal);
 
                 if (body.eggReveal > 0 && body.isOnlyEggRemaining()) {
-                    this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
+                    this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_3).purchase();
                 }
             } else if (body.className == Serpent.name) {
                 Story.instance.maybeSerpent1(body.health);
@@ -627,6 +632,22 @@ export default class Game {
         if (this.activePixelBody) {
             // Force the planet to redraw, just in case any new pixel types have been revealed.
             this.activePixelBody.needsUpdate = true;
+        }
+    }
+
+    maybeBloodDiamondEffect() {
+        if (this.upgrades.bloodDiamonds && !this.bloodDiamondEffectShown) {
+            this.bloodDiamondEffectShown = true;
+            if (this.littleGuys.length > 0) {
+                const victim = this.littleGuys[0];
+                victim.die();
+                this.bloodyAround(this.pixelBodyToParticleSpace(victim.positionInPixelBodySpace));
+            } else if (this.activePixelBody) {
+                const surfacePixel = this.activePixelBody.getRandomSurfacePixel();
+                if (surfacePixel) {
+                    this.bloodyAround(this.pixelBodyToParticleSpace(surfacePixel.position));
+                }
+            }
         }
     }
 
@@ -736,6 +757,7 @@ export default class Game {
         if (this.activePixelBody.className == SwissPlanet.name) {
             setTimeout(() => {
                 Story.instance.onSwissPlanet();
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_1).purchase();
             }, 500);
         } else if (this.activePixelBody.className == SpikyPlanet.name) {
             setTimeout(() => {
@@ -744,7 +766,7 @@ export default class Game {
         } else if (this.activePixelBody.className == EggPlanet.name) {
             setTimeout(() => {
                 Story.instance.onEggPlanet();
-                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_1).purchase();
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
             }, 500);
         } else if (this.activePixelBody.className == Serpent.name) {
             setTimeout(() => {
@@ -1018,9 +1040,6 @@ export default class Game {
 
     // Center is in planet space
     bloodyAround(center) {
-        if (!this.blood) {
-            return;
-        }
         this.particles.bloodEffect(this.pixelBodyToParticleSpace(center));
         if (!this.activePixelBody) {
             return;
@@ -1075,7 +1094,10 @@ export default class Game {
                 this.pixelBodyToParticleSpace(littleGuy.positionInPixelBodySpace)
             );
         }
-        this.bloodyAround(littleGuy);
+
+        if (this.blood) {
+            this.bloodyAround(littleGuy);
+        }
     }
 
     handleInactive(littleGuy) {

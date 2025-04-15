@@ -43,16 +43,24 @@ export default class Dialogs {
         return Math.max(Dialogs.MIN_CALCULATED_DURATION_S, calculatedDurationS);
     }
 
-    static show(title, msg, avatarPath, durationS = -1, dismissCallback = () => {}) {
+    static show(
+        title,
+        msg,
+        avatarPath,
+        durationS = -1,
+        shownCallback = () => {},
+        dismissCallback = () => {}
+    ) {
         const dedentedMsg = StringUtils.dedent(msg);
         if (durationS <= 0) {
             durationS = Dialogs.calculateDurationSeconds(dedentedMsg);
         }
-        let dialog = new Dialog.Builder(document.getElementById("overlay"))
+        const dialog = new Dialog.Builder(document.getElementById("overlay"))
             .withAvatar(avatarPath) // Optional
             .withTitle(title)
             .withMessage(dedentedMsg)
             .withDuration(durationS)
+            .withShownCallback(shownCallback)
             .withDismissCallback(() => {
                 Dialogs.onDialogDismissed();
                 dismissCallback();
@@ -104,10 +112,12 @@ class Dialog {
         this.content = document.createElement("div");
         this.content.classList.add("dialog-content");
 
+        this.titleContainer = document.createElement("div");
+        this.titleContainer.classList.add("dialog-title");
         this.title = document.createElement("h3");
-        this.title.classList.add("dialog-title");
         this.title.innerHTML = builder.title;
-        this.content.appendChild(this.title);
+        this.titleContainer.appendChild(this.title);
+        this.content.appendChild(this.titleContainer);
 
         this.message = document.createElement("p");
         this.message.classList.add("dialog-message");
@@ -121,6 +131,8 @@ class Dialog {
         this.dialog.appendChild(this.timerBar);
 
         this.dialogRoot.appendChild(this.dialog);
+
+        this.shownCallback = builder.shownCallback;
 
         this.durationS = builder.durationS;
         this.dismissCallback = builder.dismissCallback;
@@ -140,6 +152,7 @@ class Dialog {
                 this.title = "";
                 this.message = "";
                 this.durationS = Dialogs.DEFAULT_DURATION_S;
+                this.shownCallback = null;
                 this.dismissCallback = null;
             }
 
@@ -162,6 +175,11 @@ class Dialog {
                 if (durationS) {
                     this.durationS = durationS;
                 }
+                return this;
+            }
+
+            withShownCallback(shownCallback) {
+                this.shownCallback = shownCallback;
                 return this;
             }
 
@@ -234,6 +252,9 @@ class Dialog {
         }
         this.shown = true;
         this.container.appendChild(this.dialogRoot);
+        if (this.shownCallback) {
+            this.shownCallback(this);
+        }
         this.startTimer();
     }
 }

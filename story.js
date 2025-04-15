@@ -1,4 +1,5 @@
 import Dialogs from "./dialogs.js";
+import AnagramRevealer from "./anagram_revealer.js";
 
 export default class Story {
     static _instance;
@@ -259,6 +260,8 @@ export default class Story {
             come, for us. Biiiiiig things. And the best part? Nothing can stop us.`,
             this.foremanAvatarPath,
             -1,
+
+            () => {},
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -266,6 +269,8 @@ export default class Story {
                         `Ssssssssssssssssssssssss.`,
                         Story.SERPENT_AVATAR_PATH,
                         0.5,
+
+                        () => {},
                         () => {
                             setTimeout(() => {
                                 Dialogs.show(
@@ -311,6 +316,8 @@ export default class Story {
             move on to your next assignment. Do not panic.`,
             Story.COMPANY_COMMUNICATION_AVATAR_PATH,
             20,
+
+            () => {},
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -443,6 +450,18 @@ export default class Story {
             I must consume.`,
             Story.SERPENT_AVATAR_PATH,
             -1,
+            (dialog) => {
+                // Swap out the title with an anagram revealer.
+                const anagramRevealer = new AnagramRevealer(
+                    dialog.titleContainer,
+                    Story.SERPENT_DISGUISE_NAME,
+                    Story.SERPENT_NAME
+                );
+                anagramRevealer.init("h3");
+                setTimeout(() => {
+                    anagramRevealer.reveal();
+                }, 500);
+            },
             () => {
                 setTimeout(() => {
                     Dialogs.show(

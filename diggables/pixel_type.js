@@ -11,6 +11,9 @@ const PixelType = {
     DIAMOND: Object.freeze({
         name: "DIAMOND",
     }),
+    MAGIC: Object.freeze({
+        name: "MAGIC",
+    }),
     EGG: Object.freeze({
         name: "EGG",
     }),

@@ -1,6 +1,8 @@
 import CircularPlanet from "./circular_planet.js";
 import Pixel from "../diggables/pixel.js";
 import Color from "../color.js";
+import Vector from "../vector.js";
+import PixelType from "../diggables/pixel_type.js";
 
 // Doesn't really work well with a radius < 20 or so.
 export default class SpikyPlanet extends CircularPlanet {
@@ -19,6 +21,30 @@ export default class SpikyPlanet extends CircularPlanet {
     static fromJSON(json, upgrades) {
         let planet = new SpikyPlanet(json.baseRadius);
         return CircularPlanet.fromJSON(json, upgrades, planet);
+    }
+
+    createInitialPixels() {
+        super.createInitialPixels();
+        this.emplaceMagic();
+    }
+
+    emplaceMagic() {
+        // Put a single magic pixel near the center of the planet.
+        let magicRadius = Math.round(this.radius * 0.25);
+        let magicTheta = Math.random() * 2 * Math.PI;
+        const coords = new Vector(
+            magicRadius * Math.cos(magicTheta),
+            magicRadius * Math.sin(magicTheta)
+        );
+        coords.add(this.center);
+        coords.round();
+        let existing = this.getPixel(coords);
+        if (existing) {
+            this.removePixel(existing, false);
+        } else {
+            throw new Error("SpikyPlanet: emplaceMagic() failed.");
+        }
+        this.addPixel(coords, PixelType.MAGIC);
     }
 
     get skyColors() {

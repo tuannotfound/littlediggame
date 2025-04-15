@@ -7,8 +7,14 @@ export default class Color {
     static FIRE_START = new Color(237, 65, 7).immutableCopy();
     static FIRE_END = new Color(252, 244, 91).immutableCopy();
     static DARK_ORANGE = new Color(214, 98, 26).immutableCopy();
+    static RED = new Color(247, 70, 57).immutableCopy();
     static ORANGE = new Color(235, 148, 35).immutableCopy();
-    static YELLOW = new Color(255, 255, 71).immutableCopy();
+    static LIGHT_ORANGE = new Color(247, 172, 52).immutableCopy();
+    static YELLOW = new Color(235, 245, 56).immutableCopy();
+    static GREEN = new Color(50, 230, 59).immutableCopy();
+    static BLUE = new Color(39, 97, 245).immutableCopy();
+    static PURPLE = new Color(210, 60, 240).immutableCopy();
+    static PINK = new Color(252, 50, 205).immutableCopy();
 
     constructor(r, g, b, a) {
         if (

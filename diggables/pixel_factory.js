@@ -3,6 +3,7 @@ import Dirt from "./dirt.js";
 import Tombstone from "./tombstone.js";
 import Gold from "./gold.js";
 import Diamond from "./diamond.js";
+import Magic from "./magic.js";
 import Egg from "./egg.js";
 import Serpent from "./serpent.js";
 
@@ -17,6 +18,8 @@ export default class PixelFactory {
                 return new Gold(position, upgrades, healthModifier);
             case PixelType.DIAMOND:
                 return new Diamond(position, upgrades, healthModifier);
+            case PixelType.MAGIC:
+                return new Magic(position, upgrades);
             case PixelType.EGG:
                 return new Egg(position, upgrades);
             case PixelType.SERPENT:

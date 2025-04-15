@@ -827,6 +827,9 @@ export default class Game {
 
     updateLegend() {
         for (const pixelType of Object.values(PixelType)) {
+            if (pixelType == PixelType.MAGIC) {
+                continue;
+            }
             document.getElementById("aspis_per_" + pixelType.name).innerText =
                 this.upgrades.aspisPer[pixelType.name];
         }

@@ -41,7 +41,7 @@
     margin: 0 0 5px 0;
 }
 
-.dialog-title > h3 {
+.dialog-title h3 {
     font-size: 1.2em;
     margin: 0px;
 }

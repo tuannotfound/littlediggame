@@ -449,13 +449,15 @@ export default class Story {
             <br><br>
             I must consume.`,
             Story.SERPENT_AVATAR_PATH,
-            -1,
+            15,
             (dialog) => {
                 // Swap out the title with an anagram revealer.
                 const anagramRevealer = new AnagramRevealer(
                     dialog.titleContainer,
                     Story.SERPENT_DISGUISE_NAME,
-                    Story.SERPENT_NAME
+                    Story.SERPENT_NAME,
+                    true,
+                    6000
                 );
                 anagramRevealer.init("h3");
                 setTimeout(() => {

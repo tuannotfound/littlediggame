@@ -558,6 +558,19 @@ export default class Game {
             Story.instance.maybeFirstDiamond();
         }
 
+        if (pixel.type == PixelType.MAGIC) {
+            Story.instance.onMagicDiscovered(() => {
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
+            });
+        }
+
+        // Check if magic discovery was interrupted.
+        if (!Story.instance.magicDiscoveryInProgress && Story.instance.magicDiscoveryInterrupted) {
+            Story.instance.onMagicAnalyzed(() => {
+                this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
+            });
+        }
+
         let body = this.activePixelBody;
         if (body) {
             if (body.className == CircularPlanet.name) {

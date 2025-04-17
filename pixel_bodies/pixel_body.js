@@ -333,7 +333,13 @@ export default class PixelBody {
 
         for (const pixel of pixels) {
             const x = pixel.position.x;
+            if (x < 0 || x >= width) {
+                continue;
+            }
             const y = pixel.position.y;
+            if (y < 0 || y >= height) {
+                continue;
+            }
             if (!visited[x][y]) {
                 dfs(x, y);
             }

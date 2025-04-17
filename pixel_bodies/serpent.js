@@ -176,6 +176,10 @@ export default class Serpent extends PixelBody {
     killAll() {
         for (let i = 0; i < this.segments.length; i++) {
             setTimeout(() => {
+                if (i >= this.segments.length) {
+                    // This is possible if a segment gets destroyed before the timeout elapses.
+                    return;
+                }
                 this.segments[i].killAll();
             }, i * Serpent.KILL_ALL_SEGMENT_OFFSET_MS);
         }

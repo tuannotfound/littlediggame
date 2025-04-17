@@ -1,6 +1,7 @@
 import Upgrade from "./upgrade.js";
 import PixelType from "./diggables/pixel_type.js";
 import StringUtils from "./string_utils.js";
+import Story from "./story.js";
 
 export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";
@@ -20,8 +21,9 @@ export default class Upgrades {
         this.aspisPer[PixelType.GOLD.name] = 8;
         this.aspisPer[PixelType.TOMBSTONE.name] = 0;
         this.aspisPer[PixelType.DIAMOND.name] = 50;
-        this.aspisPer[PixelType.EGG.name] = 393;
-        this.aspisPer[PixelType.SERPENT.name] = 5555;
+        this.aspisPer[PixelType.MAGIC.name] = 5000;
+        this.aspisPer[PixelType.EGG.name] = 333;
+        this.aspisPer[PixelType.SERPENT.name] = 666;
         this.unlockGold = false;
         this.unlockDiamonds = false;
         this.bloodDiamonds = false;
@@ -444,7 +446,7 @@ export default class Upgrades {
             "dig_count_1",
             "Salutem et incolumitatem",
             StringUtils.dedent(`TBD`),
-            ["Digs before retirement increases by 1"],
+            ["Digs before <q>retirement</q> increases by 1"],
             30,
             () => {
                 this.digCount++;
@@ -580,10 +582,10 @@ export default class Upgrades {
             "extra_little_guy_1_tbd",
             StringUtils.dedent(
                 `The Company announces <q>Bring A Worker To Work</q> day, where workers are welcome
-                to bring an extra worker with them to work in exchange for keeping their job.`
+                to bring an extra worker with them to work in exchange for more work.`
             ),
             ["Grants a 20% chance that an extra worker will spawn"],
-            900,
+            120,
             () => {
                 this.extraLittleGuyChance = 0.2;
             }
@@ -625,10 +627,11 @@ export default class Upgrades {
             "religion",
             "In Deo Omnia Possibilia",
             StringUtils.dedent(`TBD`),
-            ["Unlock the Religion research wing"],
+            ["Unlock the potential of The Artifact"],
             9999,
             () => {
                 this.religion = true;
+                Story.instance.onReligionUnlocked();
             }
         );
         religion.addPrereq(moreAspis2);
@@ -805,11 +808,19 @@ export default class Upgrades {
         const serpent = new Upgrade(
             "serpent",
             "serpent_tbd",
-            StringUtils.dedent(`TBD: The book of the Serpent is discovered.`),
+            StringUtils.dedent(
+                `A tome with a cover consisting of a gilded snake twisted around a depiction of The
+                Artifact was discovered conspicously placed on the desk of one of the researchers.
+                They claim to have no knowledge of how it arrived there.
+                <br><br>
+                The book almost certainly contains Forbidden Knowledge, which you vaguely remember
+                being mentioned during your orientation at The Company.`
+            ),
             ["Unlocks the Serpent research wing"],
             911,
             () => {
                 this.serpent = true;
+                Story.instance.onSerpentUnlocked();
             }
         );
         serpent.addPrereq(spawning3);

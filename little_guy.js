@@ -433,7 +433,8 @@ export default class LittleGuy {
             forcedToDig =
                 (this.upgrades.unlockGold && this.closestSurfacePixel.type == PixelType.GOLD) ||
                 (this.upgrades.unlockDiamonds &&
-                    this.closestSurfacePixel.type == PixelType.DIAMOND);
+                    this.closestSurfacePixel.type == PixelType.DIAMOND) ||
+                this.closestSurfacePixel.type == PixelType.MAGIC;
         }
         if (forcedToDig || Math.random() < LittleGuy.DIG_PROBABILITY_PCT) {
             this.startDigging();

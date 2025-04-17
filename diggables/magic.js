@@ -2,6 +2,7 @@ import Color from "../color.js";
 import Pixel from "./pixel.js";
 import PixelType from "./pixel_type.js";
 import MathExtras from "../math_extras.js";
+import Story from "../story.js";
 
 export default class Magic extends Pixel {
     static FRAMES_PER_COLOR_CHANGE = 15;
@@ -29,13 +30,20 @@ export default class Magic extends Pixel {
 
         this.color = Magic.SURFACE_COLORS[this.colorIndex];
         this.surfaceColor = this.color;
+
+        this.previouslyActedLikeDirt = true;
     }
 
     actLikeDirt() {
         if (window.DEBUG) {
             return false;
         }
-        return this.darkness >= Magic.DARKNESS_HIDE_THRESHOLD;
+        const actLikeDirt = this.darkness >= Magic.DARKNESS_HIDE_THRESHOLD;
+        if (actLikeDirt !== this.previouslyActedLikeDirt) {
+            Story.instance.onMagicRevealed();
+        }
+        this.previouslyActedLikeDirt = actLikeDirt;
+        return actLikeDirt;
     }
 
     getRenderColor() {

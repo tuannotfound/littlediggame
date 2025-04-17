@@ -9,6 +9,10 @@ export default class Story {
     static FOREMAN_DIAMONDS_AVATAR_PATH = "assets/foreman_diamonds_avatar.png";
     static RESEARCHER_NAME = "Researcher";
     static RESEARCHER_AVATAR_PATH = "assets/researcher_avatar.png";
+    static RESEARCHER_SEMI_RELIGIOUS_NAME = "Enlightened Seeker";
+    static RESEARCHER_SEMI_RELIGIOUS_AVATAR_PATH = "assets/researcher_avatar.png";
+    static RESEARCHER_RELIGIOUS_NAME = "Hierophantic Apostle";
+    static RESEARCHER_RELIGIOUS_AVATAR_PATH = "assets/researcher_avatar.png";
     static SERPENT_DISGUISE_NAME = "Shep Trente";
     static SERPENT_DISGUISE_AVATAR_PATH = "assets/serpent_disguise_avatar.png";
     static SERPENT_PARTIAL_DISGUISE_NAME = Story.SERPENT_DISGUISE_NAME + "?";
@@ -51,6 +55,8 @@ export default class Story {
         this.serpentName = Story.SERPENT_DISGUISE_NAME;
         this.serpentAvatarPath = Story.SERPENT_DISGUISE_AVATAR_PATH;
         this.foremanAvatarPath = Story.FOREMAN_AVATAR_PATH;
+        this.researcherName = Story.RESEARCHER_NAME;
+        this.researcherAvatarPath = Story.RESEARCHER_AVATAR_PATH;
 
         this.preloaded = false;
 
@@ -61,11 +67,16 @@ export default class Story {
         this.halfwayReached = false;
         this.firstDiamond = false;
         this.foremanDead = false;
+        this.magicRevealed = false;
+        this.magicDiscoveryInProgress = false;
+        this.magicDiscoveryInterrupted = false;
+        this.magicDiscovered = false;
         this.eggPlanet1 = false;
         this.eggPlanet2 = false;
         this.eggPlanet3 = false;
         this.eggPlanet4 = false;
         this.eggPlanet5 = false;
+        this.serpentUnlocked = false;
         this.eggReveal1 = false;
         this.eggReveal2 = false;
         this.serpent1 = false;
@@ -80,6 +91,7 @@ export default class Story {
         const story = new Story();
         Object.assign(story, json);
         story.preloaded = false;
+        story.magicDiscoveryInProgress = false;
         return story;
     }
 
@@ -167,10 +179,10 @@ export default class Story {
         }
         this.researchIntroduced = true;
         Dialogs.show(
-            Story.RESEARCHER_NAME,
+            this.researcherName,
             `The mobile research lab has been quite productive. Please visit at your earliest
             convenience so we can share with you what we've been working on.`,
-            Story.RESEARCHER_AVATAR_PATH
+            this.researcherAvatarPath
         );
     }
 
@@ -290,6 +302,89 @@ export default class Story {
         );
     }
 
+    onMagicRevealed() {
+        if (this.magicRevealed) {
+            return;
+        }
+        this.magicRevealed = true;
+
+        let name = this.foremanDead ? this.serpentName : Story.FOREMAN_NAME;
+        let avatarPath = this.foremanDead ? this.serpentAvatarPath : this.foremanAvatarPath;
+        Dialogs.show(
+            name,
+            `What is that thing? Send some workers to go dig it up. I expect the researchers will
+            be interested in taking a closer look.`,
+            avatarPath
+        );
+    }
+
+    onMagicDiscovered(analysisCompleteCallback) {
+        if (this.magicDiscovered || this.magicDiscoveryInProgress) {
+            return;
+        }
+        // We do this because if the user quits before this sequence finishes and then reloads,
+        // they would never see the dialog again and thus never finish the magic discovery if we
+        // were only checking and setting magicDiscovered. So introduce the 'in progress' member
+        // that we can use to avoid showing the dialog multiple times, but reset it when loading
+        // from JSON.
+        this.magicDiscoveryInProgress = true;
+        this.magicDiscoveryInterrupted = true;
+        Dialogs.show(
+            this.researcherName,
+            `This appears to be an empyrean artifact with potentially massive ramifications for
+            our understanding of the cosmos. We'll need some time to study it.`,
+            this.researcherAvatarPath,
+            -1,
+            () => {},
+            () => {
+                setTimeout(() => {
+                    // To get past the check in onMagicAnalyzed:
+                    this.magicDiscoveryInProgress = false;
+                    this.onMagicAnalyzed(analysisCompleteCallback);
+                }, 5000);
+            }
+        );
+    }
+
+    onMagicAnalyzed(analysisCompleteCallback) {
+        if (this.magicDiscoveryInProgress) {
+            return;
+        }
+        this.magicDiscoveryInProgress = true;
+        Dialogs.show(
+            this.researcherName,
+            `Our analysis of the artifact you discovered is complete. I must urge you to visit us in
+            the research lab so we can demonstrate just how significantly it has broadened our
+            potential.
+            <br><br>
+            Oh, and bring cash.`,
+            this.researcherAvatarPath,
+            -1,
+            () => {},
+            () => {
+                this.magicDiscoveryInProgress = false;
+                this.magicDiscoveryInterrupted = false;
+                this.magicDiscovered = true;
+                analysisCompleteCallback();
+            }
+        );
+    }
+
+    onReligionUnlocked() {
+        if (this.religionUnlocked) {
+            return;
+        }
+        this.religionUnlocked = true;
+        this.researcherName = Story.RESEARCHER_SEMI_RELIGIOUS_NAME;
+        this.researcherAvatarPath = Story.RESEARCHER_SEMI_RELIGIOUS_AVATAR_PATH;
+        Dialogs.show(
+            this.researcherName,
+            `We at the lab consider ourselves fortunate to recieve your funding at such a
+            providential time`,
+            this.researcherAvatarPath
+        );
+    }
+
     onEggPlanet() {
         Dialogs.show(
             this.serpentName,
@@ -358,10 +453,12 @@ export default class Story {
         this.serpentName = Story.SERPENT_PARTIAL_DISGUISE_NAME;
         this.serpentAvatarPath = Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH;
         this.eggPlanet3 = true;
+        Dialogs.show(this.serpentName, `The great conssstriction is nigh.`, this.serpentAvatarPath);
         Dialogs.show(
-            this.serpentName,
-            `Do you hear that? Itss sssong sssibilatessss. The great conssstriction is nigh.`,
-            this.serpentAvatarPath
+            this.researcherName,
+            `We've been consulting with The Artifact and are becoming increasingly concerned that
+            foreman ${Story.SERPENT_DISGUISE_NAME} is working against the will of The Company.`,
+            this.researcherAvatarPath
         );
     }
 
@@ -417,6 +514,28 @@ export default class Story {
             `You ssssee it now, do you? Your purpose. Proceed with abandon.`,
             Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
             10
+        );
+    }
+
+    onSerpentUnlocked() {
+        if (this.serpentUnlocked) {
+            return;
+        }
+        this.serpentUnlocked = true;
+        this.researcherName = Story.RESEARCHER_RELIGIOUS_NAME;
+        this.researcherAvatarPath = Story.RESEARCHER_RELIGIOUS_AVATAR_PATH;
+        Dialogs.show(
+            this.researcherName,
+            `The path you embark on is not one of light. As your loyal subjects in the lab, we are
+            bound to continue our work as you see fit, but I urge you to pursue this Serpent
+            business no further.`,
+            this.researcherAvatarPath
+        );
+        Dialogs.show(
+            this.serpentName,
+            `<q>The path you embark on is...</q> - pathetic. Knowledge is power, and the truth will
+            ssset you free.`,
+            this.serpentAvatarPath
         );
     }
 

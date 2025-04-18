@@ -169,6 +169,13 @@ export default class PixelBody {
         this.updateSurface();
     }
 
+    removePixels(pixels) {
+        for (const pixel of pixels) {
+            this.removePixel(pixel, false);
+        }
+        this.updateSurface();
+    }
+
     removePixel(pixel, updateSurface = true) {
         let index = this.pixels.indexOf(pixel);
         if (index < 0) {

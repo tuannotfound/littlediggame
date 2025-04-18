@@ -264,14 +264,14 @@ export default class Story {
         if (this.foremanDead) {
             return;
         }
-        if (health > 0.75) {
+        if (health > 0.15) {
             return;
         }
         this.foremanDead = true;
         Dialogs.show(
             Story.FOREMAN_NAME,
-            `Just between me, you, and The Company: I think we've made a great team. Big things to
-            come, for us. Biiiiiig things. And the best part? Nothing can stop us.`,
+            `Just between you, me, and The Company: I think we've made a great team. Big things to
+            come, for us. Biiiiiig things.`,
             this.foremanAvatarPath,
             -1,
 

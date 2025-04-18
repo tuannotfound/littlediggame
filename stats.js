@@ -61,6 +61,10 @@ export default class Stats {
         this.digCount_++;
     }
 
+    recordDigs(count) {
+        this.digCount_ += count;
+    }
+
     get digCount() {
         return this.digCount_;
     }

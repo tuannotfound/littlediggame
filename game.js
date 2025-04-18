@@ -80,8 +80,8 @@ export default class Game {
 
         this.littleGuys = [];
         this.littleGuyListener = {
-            onDigComplete: (pixel) => {
-                this.onDigComplete(pixel);
+            onDigsComplete: (pixels) => {
+                this.onDigsComplete(pixels);
             },
             onDeath: (littleGuy) => {
                 this.handleDeath(littleGuy);
@@ -526,44 +526,66 @@ export default class Game {
         }
     }
 
-    onDigComplete(pixel) {
-        this.stats.recordDig();
+    onDigsComplete(pixels) {
+        if (pixels.length == 0) {
+            return;
+        }
+        this.stats.recordDigs(pixels.length);
         if (!this.knowsDirt) {
             this.knowsDirt = true;
             this.updateLegend();
         }
-        let value = this.upgrades.aspisPer[pixel.type.name];
-        if (
-            (pixel.type == PixelType.GOLD && !this.upgrades.unlockGold) ||
-            (pixel.type == PixelType.DIAMOND && !this.upgrades.unlockDiamonds)
-        ) {
-            // Pretend we dug up some dirt if we haven't researched the real type yet.
-            value = this.upgrades.aspisPer[PixelType.DIRT.name];
+
+        let totalValue = 0;
+        let includedDiamond = false;
+        let includedMagic = false;
+        let positionsSum = new Vector();
+        for (const pixel of pixels) {
+            let value = this.upgrades.aspisPer[pixel.type.name];
+            if (
+                (pixel.type == PixelType.GOLD && !this.upgrades.unlockGold) ||
+                (pixel.type == PixelType.DIAMOND && !this.upgrades.unlockDiamonds)
+            ) {
+                // Pretend we dug up some dirt if we haven't researched the real type yet.
+                value = this.upgrades.aspisPer[PixelType.DIRT.name];
+            }
+            totalValue += value;
+
+            if (this.upgrades.unlockDiamonds && pixel.type == PixelType.DIAMOND) {
+                includedDiamond = true;
+            }
+
+            if (pixel.type == PixelType.MAGIC) {
+                includedMagic = true;
+            }
+
+            positionsSum.add(pixel.position);
         }
-        this.aspis += value;
-        if (value > 0) {
+
+        this.aspis += totalValue;
+        if (totalValue > 0) {
             this.updateAspis();
         }
-        let positionInParticlesSpace = this.pixelBodyToParticleSpace(pixel.position);
-        let color = new Color(pixel.getRenderColor());
+        const avgPosition = positionsSum.div(pixels.length);
+        avgPosition.round();
+        let positionInParticlesSpace = this.pixelBodyToParticleSpace(avgPosition);
+
+        let color = new Color(pixels[0].getRenderColor());
         // The pixel itself will likely be invisible post-dig, so make sure we reset the alpha.
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
-        this.particles.coinEffect(positionInParticlesSpace, value);
 
         this.updateHealth();
         this.updateExpectedValue();
 
-        if (this.upgrades.unlockDiamonds && pixel.type == PixelType.DIAMOND) {
+        if (includedDiamond) {
             Story.instance.maybeFirstDiamond();
         }
-
-        if (pixel.type == PixelType.MAGIC) {
+        if (includedMagic) {
             Story.instance.onMagicDiscovered(() => {
                 this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_2).purchase();
             });
         }
-
         // Check if magic discovery was interrupted.
         if (!Story.instance.magicDiscoveryInProgress && Story.instance.magicDiscoveryInterrupted) {
             Story.instance.onMagicAnalyzed(() => {

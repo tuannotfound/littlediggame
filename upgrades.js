@@ -7,6 +7,7 @@ export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";
     static PROGRESS_GATE_ID_2 = "progress_gate_2";
     static PROGRESS_GATE_ID_3 = "progress_gate_3";
+    static PROGRESS_GATE_ID_4 = "progress_gate_4";
     static PROGRESS_GATE_DESC =
         "This will be automatically unlocked as you make progress by digging.";
 
@@ -137,6 +138,14 @@ export default class Upgrades {
             -8
         );
         this.upgradeTree.set(progressGate3.id, progressGate3);
+        const progressGate4 = new Upgrade(
+            Upgrades.PROGRESS_GATE_ID_4,
+            "Dig Progress 4",
+            Upgrades.PROGRESS_GATE_DESC,
+            [],
+            -10
+        );
+        this.upgradeTree.set(progressGate4.id, progressGate4);
 
         // Aspis++ tree
         const betterDirt = new Upgrade(
@@ -890,6 +899,7 @@ export default class Upgrades {
         );
         finalPush.addPrereq(digSpeed7);
         finalPush.addPrereq(eggHandling);
+        finalPush.addPrereq(progressGate4);
         this.upgradeTree.set(finalPush.id, finalPush);
     }
 }

@@ -137,9 +137,9 @@ export default class LittleGuy {
         this.goToNearestSurfacePixel();
     }
 
-    notifyDigComplete(pixel) {
+    notifyDigsComplete(pixels) {
         for (const listener of this.listeners) {
-            listener.onDigComplete(pixel);
+            listener.onDigsComplete(pixels);
         }
     }
 
@@ -527,7 +527,7 @@ export default class LittleGuy {
         this.digging = false;
         if (this.pixelBeingDug != null) {
             this.pixelBody.removePixel(this.pixelBeingDug);
-            this.notifyDigComplete(this.pixelBeingDug);
+            this.notifyDigsComplete([this.pixelBeingDug]);
         }
         this.goToNearestSurfacePixel();
 
@@ -549,13 +549,18 @@ export default class LittleGuy {
                 this.positionInPixelBodySpace,
                 this.upgrades.explosionRadius
             );
+            const toRemove = [];
             for (const nearbyPixel of nearbyPixels) {
                 if (nearbyPixel.type == PixelType.EGG && !this.upgrades.eggHandling) {
                     continue;
                 }
-                this.pixelBody.removePixel(nearbyPixel);
-                this.notifyDigComplete(nearbyPixel);
+                if (nearbyPixel.type == PixelType.MAGIC) {
+                    continue;
+                }
+                toRemove.push(nearbyPixel);
             }
+            this.pixelBody.removePixels(toRemove);
+            this.notifyDigsComplete(toRemove);
         }
         this.notifyDeath();
     }

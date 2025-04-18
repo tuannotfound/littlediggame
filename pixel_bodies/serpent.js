@@ -12,7 +12,8 @@ export default class Serpent extends PixelBody {
     static MIN_SIZE = 2;
     static BORDER_BUFFER_PIXELS = 2;
     static BLACK_SKY = new Color().immutableCopy();
-    static KILL_ALL_INTERVAL_MS = 10 * 1000;
+    static KILL_ALL_INTERVAL_MIN_MS = 10 * 1000;
+    static KILL_ALL_INTERVAL_MAX_MS = 15 * 1000;
     static KILL_ALL_ANIMATION_FRAMES = 20;
     static KILL_ALL_SEGMENT_OFFSET_MS = 100;
 
@@ -35,7 +36,7 @@ export default class Serpent extends PixelBody {
         this.serpentLooseCallback = null;
         this.segments = [];
 
-        this.lastKillAllTime = 0;
+        this.nextKillAllTime = 0;
     }
 
     static fromJSON(json, upgrades) {
@@ -82,7 +83,7 @@ export default class Serpent extends PixelBody {
         }
         console.log("Initializing Serpent w/ segment count of " + this.segmentCount);
         super.init(upgrades);
-        this.lastKillAllTime = performance.now();
+        this.nextKillAllTime = performance.now() + Serpent.KILL_ALL_INTERVAL_MAX_MS;
     }
 
     // Override
@@ -166,8 +167,14 @@ export default class Serpent extends PixelBody {
             this.serpentLooseCallback();
         }
         const now = performance.now();
-        if (this.lastKillAllTime + Serpent.KILL_ALL_INTERVAL_MS < now) {
-            this.lastKillAllTime = now;
+        if (now > this.nextKillAllTime) {
+            this.nextKillAllTime = Math.round(
+                now +
+                    MathExtras.randomBetween(
+                        Serpent.KILL_ALL_INTERVAL_MIN_MS,
+                        Serpent.KILL_ALL_INTERVAL_MAX_MS
+                    )
+            );
             this.killAll();
         }
         super.update();

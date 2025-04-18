@@ -597,6 +597,8 @@ export default class Game {
         if (body) {
             if (body.className == CircularPlanet.name) {
                 Story.instance.maybeHalfway(body.health);
+            } else if (body.className == SwissPlanet.name) {
+                Story.instance.maybeSwissPlanet1(body.health);
             } else if (body.className == SpikyPlanet.name) {
                 Story.instance.maybeDeathOfForeman(body.health);
             } else if (body.className == EggPlanet.name) {

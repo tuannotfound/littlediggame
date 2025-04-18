@@ -254,8 +254,8 @@ export default class Story {
         }
         Dialogs.show(
             Story.FOREMAN_NAME,
-            `This should be a nice change of pace. The air is cold but clean. I think the crew will
-            really enjoy living out the remainder of their days here.`,
+            `This should be a nice change of pace. The air is cold but clean. Just be careful around
+            those crevasses.`,
             this.foremanAvatarPath
         );
     }

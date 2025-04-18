@@ -10,9 +10,9 @@ export default class Story {
     static RESEARCHER_NAME = "Researcher";
     static RESEARCHER_AVATAR_PATH = "assets/researcher_avatar.png";
     static RESEARCHER_SEMI_RELIGIOUS_NAME = "Enlightened Seeker";
-    static RESEARCHER_SEMI_RELIGIOUS_AVATAR_PATH = "assets/researcher_avatar.png";
+    static RESEARCHER_SEMI_RELIGIOUS_AVATAR_PATH = "assets/researcher_semi_religious_avatar.png";
     static RESEARCHER_RELIGIOUS_NAME = "Hierophantic Apostle";
-    static RESEARCHER_RELIGIOUS_AVATAR_PATH = "assets/researcher_avatar.png";
+    static RESEARCHER_RELIGIOUS_AVATAR_PATH = "assets/researcher_religious_avatar.png";
     static SERPENT_DISGUISE_NAME = "Shep Trente";
     static SERPENT_DISGUISE_AVATAR_PATH = "assets/serpent_disguise_avatar.png";
     static SERPENT_PARTIAL_DISGUISE_NAME = Story.SERPENT_DISGUISE_NAME + "?";
@@ -34,6 +34,8 @@ export default class Story {
     static IMAGE_PATHS = [
         Story.FOREMAN_AVATAR_PATH,
         Story.RESEARCHER_AVATAR_PATH,
+        Story.RESEARCHER_SEMI_RELIGIOUS_AVATAR_PATH,
+        Story.RESEARCHER_RELIGIOUS_AVATAR_PATH,
         Story.SERPENT_DISGUISE_AVATAR_PATH,
         Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
         Story.SERPENT_AVATAR_PATH,

@@ -94,6 +94,10 @@ export default class Dialogs {
 }
 
 class Dialog {
+    // To prevent accidental dismissals of dialogs as soon as they appear, prevent dismissal for
+    // some short duration.
+    static DISMISSABLE_DELAY_MS = 750;
+
     constructor(builder) {
         this.container = builder.container;
         this.dialogRoot = document.createElement("div");
@@ -135,13 +139,19 @@ class Dialog {
         this.shownCallback = builder.shownCallback;
 
         this.durationS = builder.durationS;
+        this.dismissable = false;
         this.dismissCallback = builder.dismissCallback;
         this.dismissed = false;
 
         this.shown = false;
         this.timerPausedTime = null;
 
-        this.dialog.addEventListener("click", this.dismiss.bind(this));
+        this.dialog.addEventListener("click", () => {
+            if (!this.dismissable || this.dismissed) {
+                return;
+            }
+            this.dismiss();
+        });
     }
 
     static get Builder() {
@@ -226,6 +236,11 @@ class Dialog {
             return;
         }
         const elapsed = performance.now() - this.timerStartTime;
+        if (elapsed > Dialog.DISMISSABLE_DELAY_MS) {
+            this.dialog.classList.add("dismissable");
+            this.timerBar.classList.add("dismissable");
+            this.dismissable = true;
+        }
         const progress = Math.min(1, elapsed / (1000 * this.durationS));
         this.timerBar.style.width = `${(1 - progress) * 100}%`;
 

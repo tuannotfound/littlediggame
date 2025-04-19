@@ -2,7 +2,9 @@ import Game from "./game.js";
 import SaveLoad from "./save_load.js";
 
 import "./main.css";
+import "./cooldown_button.css";
 import "./dialogs.css";
+import "./timer_bar.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 
 import Bot from "./testing/bot.js";

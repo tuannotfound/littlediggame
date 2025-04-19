@@ -18,6 +18,8 @@ export default class LittleGuy {
         new Color(134, 76, 43).immutableCopy(),
         new Color(86, 49, 23).immutableCopy(),
     ];
+    static DEBUG_OUTLINE_COLOR = new Color(0, 0, 0, 40).immutableCopy();
+    static SHIELDED_OUTLINE_COLOR = new Color(93, 140, 194, 190).immutableCopy();
     static ASSUMED_FPS = 60;
     static EXPLOSIVE_BODY_COLOR = new Color(214, 58, 41).immutableCopy();
     static DEFAULT_BODY_COLOR = new Color(87, 125, 180).immutableCopy();
@@ -60,6 +62,7 @@ export default class LittleGuy {
         this.diggingFrames = 0;
         this.pixelBeingDug = null;
         this.framesSinceLastMove = 0;
+        this._shielded = false;
         // Whether we're dead or alive.
         this.alive = true;
         this.ascentionProgressPct = 0;
@@ -95,12 +98,15 @@ export default class LittleGuy {
             digging: this.digging,
             pixelBeingDug: this.pixelBeingDug,
             digProcessPct: this.digProcessPct,
+            shielded: this._shielded,
             alive: this.alive,
             ascentionProgressPct: this.ascentionProgressPct,
             active: this.active,
             digsRemaining: this.digsRemaining,
             saintly: this.saintly,
+            explosive: this.explosive,
             deathByEgg: this.deathByEgg,
+            deathBySerpent: this.deathBySerpent,
         };
     }
 
@@ -120,12 +126,15 @@ export default class LittleGuy {
         littleGuy.digging = json.digging;
         littleGuy.pixelBeingDug = pixelBeingDug;
         littleGuy.digProcessPct = json.digProcessPct;
+        littleGuy.shielded = json.shielded;
         littleGuy.alive = json.alive;
         littleGuy.ascentionProgressPct = json.ascentionProgressPct;
         littleGuy.active = json.active;
         littleGuy.digsRemaining = json.digsRemaining;
         littleGuy.saintly = json.saintly;
+        littleGuy.explosive = json.explosive;
         littleGuy.deathByEgg = json.deathByEgg;
+        littleGuy.deathBySerpent = json.deathBySerpent;
         return littleGuy;
     }
 
@@ -204,7 +213,7 @@ export default class LittleGuy {
             }
         }
         if (this.shouldRenderDigPose()) {
-            return LittleGuy.TRANSPARENT_COLOR;
+            return null;
         }
         return this.headColor;
     }
@@ -231,6 +240,11 @@ export default class LittleGuy {
         return LittleGuy.DEFAULT_BODY_COLOR;
     }
 
+    set shielded(value) {
+        this._shielded = value;
+        this.updateRenderData();
+    }
+
     shouldRenderDigPose() {
         // The dig pose is where the head replaces the body, as if the little guy is crouched down
         // at work. The little guy should pop in and out of the dig pose during dig operations.
@@ -247,25 +261,28 @@ export default class LittleGuy {
     }
 
     updateRenderData() {
-        let imageData = this.layer
+        const imageData = this.layer
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
 
-        if (window.DEBUG) {
+        if (this._shielded || window.DEBUG) {
+            const color = this._shielded
+                ? LittleGuy.SHIELDED_OUTLINE_COLOR
+                : LittleGuy.DEBUG_OUTLINE_COLOR;
             for (let x = 0; x < this.layer.width; x++) {
                 for (let y = 0; y < this.layer.height; y++) {
-                    let i = (x + y * imageData.width) * 4;
-                    imageData.data[i] = 0; // Red
-                    imageData.data[i + 1] = 0; // Green
-                    imageData.data[i + 2] = 0; // Blue
-                    imageData.data[i + 3] = 40; // Alpha
+                    const i = (x + y * imageData.width) * 4;
+                    imageData.data[i] = color.r; // Red
+                    imageData.data[i + 1] = color.g; // Green
+                    imageData.data[i + 2] = color.b; // Blue
+                    imageData.data[i + 3] = color.a; // Alpha
                 }
             }
         }
 
-        let bodyPosition = new Vector(1, 1);
-        let bodyIndex = (bodyPosition.x + bodyPosition.y * imageData.width) * 4;
-        let bodyColor = this.getBodyColor();
+        const bodyPosition = new Vector(1, 1);
+        const bodyIndex = (bodyPosition.x + bodyPosition.y * imageData.width) * 4;
+        const bodyColor = this.getBodyColor();
         imageData.data[bodyIndex] = bodyColor.r; // Red
         imageData.data[bodyIndex + 1] = bodyColor.g; // Green
         imageData.data[bodyIndex + 2] = bodyColor.b; // Blue
@@ -273,12 +290,14 @@ export default class LittleGuy {
 
         const headPosition = bodyPosition.copy();
         headPosition.add(this.orientation);
-        let headIndex = (headPosition.x + headPosition.y * imageData.width) * 4;
-        let headColor = this.getHeadColor();
-        imageData.data[headIndex] = headColor.r; // Red
-        imageData.data[headIndex + 1] = headColor.g; // Green
-        imageData.data[headIndex + 2] = headColor.b; // Blue
-        imageData.data[headIndex + 3] = headColor.a; // Alpha
+        const headIndex = (headPosition.x + headPosition.y * imageData.width) * 4;
+        const headColor = this.getHeadColor();
+        if (headColor) {
+            imageData.data[headIndex] = headColor.r; // Red
+            imageData.data[headIndex + 1] = headColor.g; // Green
+            imageData.data[headIndex + 2] = headColor.b; // Blue
+            imageData.data[headIndex + 3] = headColor.a; // Alpha
+        }
         this.layer.getContext().putImageData(imageData, 0, 0);
     }
 
@@ -407,9 +426,13 @@ export default class LittleGuy {
             this.closestSurfacePixel.type == PixelType.SERPENT &&
             this.closestSurfacePixel.hasColorOverride()
         ) {
-            this.deathBySerpent = true;
-            this.die();
-            return;
+            // Kind of a roundabout way to know that this guy needs to die. Why should LittleGuy
+            // have to know about the inner workings of Serpent.js? 'Cause I'm lazy, that's why.
+            if (!this._shielded) {
+                this.deathBySerpent = true;
+                this.die();
+                return;
+            }
         }
 
         // Update our position to match the pixel we're standing on, in case it moved.

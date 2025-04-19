@@ -23,6 +23,7 @@ import Story from "./story.js";
 import Dialogs from "./dialogs.js";
 import GameOverArt from "./game_over_art.js";
 import Stats from "./stats.js";
+import CooldownButton from "./cooldown_button.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -39,6 +40,8 @@ export default class Game {
     GAME_OVER_ZOOM_DURATION_MS = 1000 * 20;
     FINAL_LEVEL_DURATION_MINUTES = 3;
     MAX_LITTLE_GUYS = 200;
+    SHIELD_DURATION_MS = 1000 * 3;
+    SHIELD_COST_PER_LITTLE_GUY = 911;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -112,6 +115,11 @@ export default class Game {
         this.spawnCostElement = null;
         this.digsPerDeathElement = null;
         this.availableUpgradeCount = 0;
+        this.shieldActive = false;
+        this.shieldCost = 0;
+        this.shieldCostElement = null;
+        this.shieldCostContainerElement = null;
+        this.shieldCooldownButton = null;
 
         this.bloodDiamondEffectShown = false;
 
@@ -325,6 +333,23 @@ export default class Game {
 
         this.healthElement = document.getElementById("health");
         this.updateHealth();
+
+        this.shieldCostElement = document.getElementById("shield_cost");
+        this.shieldCostContainerElement = this.shieldCostElement.parentElement;
+        const shieldButtonEl = document.getElementById("shield");
+        this.addClickEventListener(shieldButtonEl, () => {
+            if (GameState.isPaused(this.gameState)) {
+                return;
+            }
+            this.activateShield();
+        });
+        this.shieldCooldownButton = new CooldownButton(
+            shieldButtonEl,
+            this.SHIELD_DURATION_MS,
+            () => {
+                this.deactivateShield();
+            }
+        );
 
         this.littleGuyCountElement = document.getElementById("little_guy_count");
         this.spawnCostElement = document.getElementById("spawn_cost");
@@ -644,6 +669,40 @@ export default class Game {
         return particleCoords;
     }
 
+    activateShield() {
+        if (this.shieldActive) {
+            return;
+        }
+        if (this.shieldCost > this.aspis) {
+            this.startNotEnoughAspisAnimation([this.shieldCostContainerElement]);
+            return;
+        }
+        if (this.littleGuys.length == 0) {
+            return;
+        }
+        this.stopNotEnoughAspisAnimation([this.shieldCostContainerElement]);
+        this.aspis -= this.shieldCost;
+        this.updateAspis();
+        this.shieldActive = true;
+
+        for (const littleGuy of this.littleGuys) {
+            littleGuy.shielded = true;
+        }
+
+        this.shieldCooldownButton.startCooldown();
+    }
+
+    deactivateShield() {
+        if (!this.shieldActive) {
+            return;
+        }
+        this.shieldActive = false;
+
+        for (const littleGuy of this.littleGuys) {
+            littleGuy.shielded = false;
+        }
+    }
+
     onUpgradePurchased(upgrade, button) {
         let buttonCostEl = document.querySelector(
             "button#" + button.id + " > div.upgrade_title > span.cost"
@@ -666,6 +725,9 @@ export default class Game {
         this.updateSpawnCost();
         this.updateDigsPerDeath();
         this.updateLegend();
+        if (upgrade.id == Upgrades.SHIELDS_ID) {
+            this.shieldCooldownButton.buttonEl.classList.remove("hidden");
+        }
         if (this.activePixelBody) {
             // Force the planet to redraw, just in case any new pixel types have been revealed.
             this.activePixelBody.needsUpdate = true;
@@ -763,6 +825,7 @@ export default class Game {
         this.notifyResize();
         this.updateActivePixelBodyPosition();
         if (this.activePixelBody.className == Serpent.name) {
+            this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_4).purchase();
             // Swap out the planet icon for the serpent
             document.getElementById("planet_icon").classList.add("hidden");
             document.getElementById("serpent_icon").classList.remove("hidden");
@@ -841,6 +904,7 @@ export default class Game {
             showUpgradesBtn.classList.add("hidden");
             let infoContainer = document.getElementById("info_container");
             infoContainer.classList.add("hidden");
+            shieldCooldownButton.buttonEl.classList.add("hidden");
             let pauseBtn = document.getElementById("pause_resume");
             pauseBtn.setAttribute("disabled", "");
             this.showGameOverScreen(won);
@@ -1007,6 +1071,9 @@ export default class Game {
         littleGuy.addListener(this.littleGuyListener);
         littleGuy.init();
         this.littleGuys.push(littleGuy);
+        if (this.shieldActive) {
+            littleGuy.shielded = true;
+        }
         if (!immaculate) {
             this.aspis -= this.spawnCost;
             if (this.spawnCost > 0) {
@@ -1024,6 +1091,17 @@ export default class Game {
         this.spawnCost = Math.floor(maculateCount ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
+
+        // Piggy back on this to also update the shield cost.
+        if (this.upgrades.shieldsUnlocked) {
+            this.shieldCost = this.littleGuys.length * this.SHIELD_COST_PER_LITTLE_GUY;
+            if (this.shieldCost == 0) {
+                this.shieldCooldownButton.buttonEl.disabled = true;
+            } else if (!this.shieldCooldownButton.isCooldownInProgress) {
+                this.shieldCooldownButton.buttonEl.disabled = false;
+            }
+            this.shieldCostElement.innerHTML = this.shieldCost;
+        }
     }
 
     updateDigsPerDeath() {
@@ -1182,9 +1260,11 @@ export default class Game {
             this.tick(this.then);
             this.stats.resetLastUpdateTime();
             Dialogs.resume();
+            this.shieldCooldownButton.resumeCooldown();
         } else {
             this.stats.updateRuntime();
             Dialogs.pause();
+            this.shieldCooldownButton.pauseCooldown();
         }
         this.maybeSave();
     }

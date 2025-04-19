@@ -11,6 +11,8 @@ export default class Upgrades {
     static PROGRESS_GATE_DESC =
         "This will be automatically unlocked as you make progress by digging.";
 
+    static SHIELDS_ID = "shields";
+
     constructor() {
         this.karma_ = 100;
 
@@ -46,6 +48,7 @@ export default class Upgrades {
 
         // Serpent
         this.eggHandling = false;
+        this.shieldsUnlocked = false;
 
         this.upgradeTree = new Map();
         this.initUpgradeTree();
@@ -880,6 +883,19 @@ export default class Upgrades {
         digSpeed7.addPrereq(digSpeed6);
         digSpeed7.addPrereq(serpent);
         this.upgradeTree.set(digSpeed7.id, digSpeed7);
+
+        const shields = new Upgrade(
+            Upgrades.SHIELDS_ID,
+            "shields_tbd",
+            StringUtils.dedent(`TBD`),
+            ["Unlocks the Shield ability"],
+            25000,
+            () => {
+                this.shieldsUnlocked = true;
+            }
+        );
+        shields.addPrereq(progressGate4);
+        this.upgradeTree.set(shields.id, shields);
 
         const finalPush = new Upgrade(
             "final_push",

@@ -131,7 +131,7 @@ class Dialog {
         this.dialog.appendChild(this.content);
 
         this.timerBar = document.createElement("div");
-        this.timerBar.classList.add("dialog-timer-bar");
+        this.timerBar.classList.add("timer-bar");
         this.dialog.appendChild(this.timerBar);
 
         this.dialogRoot.appendChild(this.dialog);
@@ -139,15 +139,16 @@ class Dialog {
         this.shownCallback = builder.shownCallback;
 
         this.durationS = builder.durationS;
-        this.dismissable = false;
         this.dismissCallback = builder.dismissCallback;
         this.dismissed = false;
 
         this.shown = false;
+        this.timerStarted = false;
         this.timerPausedTime = null;
+        this.timerInterval = null;
 
         this.dialog.addEventListener("click", () => {
-            if (!this.dismissable || this.dismissed) {
+            if (!this.timerStarted || this.dismissed) {
                 return;
             }
             this.dismiss();
@@ -206,14 +207,16 @@ class Dialog {
     }
 
     startTimer() {
+        this.timerStarted = true;
         this.timerStartTime = performance.now();
+        this.dialog.classList.add("dismissable");
         this.timerInterval = setInterval(() => {
             this.updateTimer();
         }, 100);
     }
 
     pauseTimer() {
-        if (!this.shown || this.timerPausedTime) {
+        if (!this.timerStarted || this.timerPausedTime) {
             return;
         }
         this.timerPausedTime = performance.now();
@@ -221,7 +224,7 @@ class Dialog {
     }
 
     resumeTimer() {
-        if (!this.shown || !this.timerPausedTime) {
+        if (!this.timerStarted || !this.timerPausedTime) {
             return;
         }
         this.timerStartTime += performance.now() - this.timerPausedTime;
@@ -236,11 +239,6 @@ class Dialog {
             return;
         }
         const elapsed = performance.now() - this.timerStartTime;
-        if (elapsed > Dialog.DISMISSABLE_DELAY_MS) {
-            this.dialog.classList.add("dismissable");
-            this.timerBar.classList.add("dismissable");
-            this.dismissable = true;
-        }
         const progress = Math.min(1, elapsed / (1000 * this.durationS));
         this.timerBar.style.width = `${(1 - progress) * 100}%`;
 
@@ -270,6 +268,8 @@ class Dialog {
         if (this.shownCallback) {
             this.shownCallback(this);
         }
-        this.startTimer();
+        setTimeout(() => {
+            this.startTimer();
+        }, Dialog.DISMISSABLE_DELAY_MS);
     }
 }

@@ -11,15 +11,11 @@
                 <button id="new_game">New Game</button>
                 <button id="load_game" disabled>Load Game</button>
                 <button id="save_game" disabled class="hidden">Save Game</button>
-                <!-- TBD: Move this button back to the debug section -->
-                <button id="next_pixel_body">Next Pixel Body (dbg)</button>
 
                 <div id="settings_container">
                     <button id="settings_button"><i class="fa-solid fa-gear"></i></button>
                     <div id="settings_dropdown" class="hidden">
-                        <label> <input type="checkbox" id="blood" /> Veia mode</label>
                         <label> <input type="checkbox" id="censor" /> Censor nipples</label>
-                        <label> <input type="checkbox" id="debug_checkbox" /> Debug</label>
                     </div>
                 </div>
                 <button id="pause_resume">
@@ -28,15 +24,26 @@
                 </button>
             </div>
             <div id="debug" class="hidden">
-                <br />
-                <button id="plus_10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
-                <button id="plus_100">+100&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
-                <button id="plus_1000">+1000&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
-                <button id="plus_10000">
-                    +10000&nbsp;<i class="fa-solid fa-austral-sign"></i>
-                </button>
-                <br />
-                <button id="bot"></button>
+                <div>
+                    <button id="next_pixel_body">Next Pixel Body (dbg)</button>
+                    <label> <input type="checkbox" id="blood" /> Veia mode</label>
+                    <label> <input type="checkbox" id="debug_checkbox" /> Debugging Mode</label>
+                </div>
+                <div>
+                    <button id="plus_10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
+                    <button id="plus_100">
+                        +100&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                    </button>
+                    <button id="plus_1000">
+                        +1000&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                    </button>
+                    <button id="plus_10000">
+                        +10000&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                    </button>
+                </div>
+                <div>
+                    <button id="bot"></button>
+                </div>
             </div>
         </div>
         <div id="game"></div>

@@ -15,7 +15,20 @@
                 <div id="settings_container">
                     <button id="settings_button"><i class="fa-solid fa-gear"></i></button>
                     <div id="settings_dropdown" class="hidden">
-                        <label> <input type="checkbox" id="censor" /> Censor nipples</label>
+                        <label for="sfx_volume_slider" style="grid-column: 1">SFX</label>
+                        <div id="sfx_volume_container" style="grid-column: 2">
+                            <i id="sfx_volume_icon" class="fa-solid fa-volume-low"></i>
+                            <input
+                                type="range"
+                                value="50"
+                                min="0"
+                                max="100"
+                                id="sfx_volume_slider"
+                            />
+                            <span id="sfx_volume_value">50</span>
+                        </div>
+                        <label for="censor" style="grid-column: 1">Censor nipples</label>
+                        <input type="checkbox" id="censor" style="grid-column: 2" />
                     </div>
                 </div>
                 <button id="pause_resume">

@@ -24,6 +24,7 @@ import Dialogs from "./dialogs.js";
 import GameOverArt from "./game_over_art.js";
 import Stats from "./stats.js";
 import CooldownButton from "./cooldown_button.js";
+import Audio from "./audio.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -637,6 +638,7 @@ export default class Game {
                         body.altSkyColors,
                         Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2
                     );
+                    Audio.instance.playOminousWind();
                 }
                 Story.instance.maybeEggReveal2(body.eggReveal);
 
@@ -684,6 +686,7 @@ export default class Game {
         this.aspis -= this.shieldCost;
         this.updateAspis();
         this.shieldActive = true;
+        Audio.instance.playShield();
 
         for (const littleGuy of this.littleGuys) {
             littleGuy.shielded = true;
@@ -831,6 +834,7 @@ export default class Game {
             document.getElementById("serpent_icon").classList.remove("hidden");
             // Initialize the hourglass
             this.hourglass.init(this.finalLevelLost.bind(this));
+            Audio.instance.playOminousSting();
             // Save once and then prevent further saving.
             this.maybeSave();
             let saveGameBtn = document.getElementById("save_game");

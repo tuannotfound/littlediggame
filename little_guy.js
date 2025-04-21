@@ -2,6 +2,7 @@ import Layer from "./layer.js";
 import Vector from "./vector.js";
 import PixelType from "./diggables/pixel_type.js";
 import Color from "./color.js";
+import Audio from "./audio.js";
 
 export default class LittleGuy {
     static HEAD_COLORS = [
@@ -483,6 +484,7 @@ export default class LittleGuy {
         let added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
         if (added) {
             this.pixelBody.updateSurface();
+            Audio.instance.playDeath();
         }
 
         this.setInactive();
@@ -554,6 +556,11 @@ export default class LittleGuy {
         if (this.pixelBeingDug != null) {
             this.pixelBody.removePixel(this.pixelBeingDug);
             this.notifyDigsComplete([this.pixelBeingDug]);
+            if (this.pixelBeingDug.type == PixelType.DIRT || this.pixelBeingDug.actLikeDirt()) {
+                Audio.instance.playDirtDig();
+            } else {
+                Audio.instance.playOreDig();
+            }
         }
         this.goToNearestSurfacePixel();
 
@@ -637,8 +644,10 @@ export default class LittleGuy {
                 return;
             }
         }
+        let didDamage = false;
         if (this.diggingFrames % LittleGuy.ASSUMED_FPS == 0) {
             this.pixelBeingDug.damage(this.upgrades.digSpeed * LittleGuy.ASSUMED_FPS);
+            didDamage = true;
         }
         let wasRenderingDigPose = this.shouldRenderDigPose();
         this.diggingFrames++;
@@ -648,6 +657,12 @@ export default class LittleGuy {
 
         if (this.pixelBeingDug.getHealth() <= 0) {
             this.finishDigging();
+        } else if (didDamage) {
+            if (this.pixelBeingDug.type == PixelType.DIRT || this.pixelBeingDug.actLikeDirt()) {
+                Audio.instance.playDirtDamage();
+            } else {
+                Audio.instance.playOreDamage();
+            }
         }
     }
 
@@ -921,7 +936,6 @@ export default class LittleGuy {
         let selectedCandidate = selected.original;
 
         // 5. Move to that position.
-        //let selectedCandidate = candidates[direction > 0 ? 0 : candidates.length - 1];
         let newPosition = selectedCandidate.position.copy();
         this.orientation = selectedCandidate.orientation;
         if (window.DEBUG) {
@@ -941,5 +955,6 @@ export default class LittleGuy {
         this.updateOrientation();
         this.updateRenderData();
         this.framesSinceLastMove = 0;
+        Audio.instance.playWalk();
     }
 }

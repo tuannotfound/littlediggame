@@ -21,7 +21,7 @@ module.exports = {
                 use: ["style-loader", "css-loader"],
             },
             {
-                test: /\.(png|svg|jpg|jpeg|gif)$/i, // Add a rule for image files
+                test: /\.(png|svg|jpg|jpeg|gif|ogg|wav)$/i, // Add a rule for image files
                 type: "asset/resource", // Use asset/resource to emit separate files
             },
         ],

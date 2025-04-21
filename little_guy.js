@@ -126,7 +126,7 @@ export default class LittleGuy {
         littleGuy.digging = json.digging;
         littleGuy.pixelBeingDug = pixelBeingDug;
         littleGuy.digProcessPct = json.digProcessPct;
-        littleGuy.shielded = json.shielded;
+        littleGuy._shielded = json.shielded;
         littleGuy.alive = json.alive;
         littleGuy.ascentionProgressPct = json.ascentionProgressPct;
         littleGuy.active = json.active;
@@ -261,6 +261,9 @@ export default class LittleGuy {
     }
 
     updateRenderData() {
+        if (!this.layer.initialized) {
+            return;
+        }
         const imageData = this.layer
             .getContext()
             .createImageData(this.layer.width, this.layer.height);

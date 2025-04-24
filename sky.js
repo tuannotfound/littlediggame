@@ -44,7 +44,7 @@ export default class Sky {
 
     onResize(newSize) {
         // Some buffer around the edges to ensure resize transitions don't flash any ankle.
-        this.size.setXY(newSize.x * 2, newSize.y + 2);
+        this.size.set(newSize.x * 2, newSize.y + 2);
         this.layer.onResize(this.size);
         this.bandCount = Math.max(2, Math.ceil(this.size.y / Sky.DEFAULT_BAND_HEIGHT_PX));
         this.bandHeight = Math.ceil(this.size.y / this.bandCount);

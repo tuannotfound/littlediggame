@@ -510,7 +510,7 @@ export default class Game {
         if (!activePixelBody) {
             return;
         }
-        this.activePixelBodyPosition.setXY(
+        this.activePixelBodyPosition.set(
             this.width - activePixelBody.layer.width * this.zoomLevel,
             this.height - activePixelBody.layer.height * this.zoomLevel
         );
@@ -520,7 +520,7 @@ export default class Game {
         // This makes this method poorly named, but going to update the hourglass position here too
         // because nobody can stop me.
         if (this.hourglass && this.hourglass.initialized) {
-            this.hourglassPosition.setXY(
+            this.hourglassPosition.set(
                 this.width - this.hourglass.layer.width * this.zoomLevel,
                 this.height - this.hourglass.layer.height * this.zoomLevel
             );

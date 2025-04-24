@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2025 Alexander Douglas
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 .pulsing {
     animation: 0.5s ease-in-out 4 alternate pulse;
 }

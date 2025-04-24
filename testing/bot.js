@@ -28,7 +28,7 @@ export default class Bot {
         console.log(this.TAG + "Starting bot");
         this.startTimeMillis = performance.now();
         this.running = true;
-        this.game.gameSpeed = this.GAME_SPEED;
+        window.GAME_SPEED = this.GAME_SPEED;
         this.then = performance.now();
         this.tick(this.then);
     }
@@ -40,7 +40,7 @@ export default class Bot {
         console.log(this.TAG + "Stopping bot");
         this.running = false;
         this.game.particles.particles = [];
-        this.game.gameSpeed = 1;
+        window.GAME_SPEED = 1;
         this.triggerCsvDownload(
             this.generateCsv(),
             "planeteater_bot_" + this.getDateTimeForFileName() + ".csv"

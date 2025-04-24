@@ -75,7 +75,6 @@ export default class Game {
         this.now = 0;
         this.then = 0;
         this.upgradesUi = new UpgradesUi();
-        this.gameSpeed = 1;
 
         this.stats = new Stats();
 
@@ -908,7 +907,7 @@ export default class Game {
             showUpgradesBtn.classList.add("hidden");
             let infoContainer = document.getElementById("info_container");
             infoContainer.classList.add("hidden");
-            shieldCooldownButton.buttonEl.classList.add("hidden");
+            this.shieldCooldownButton.buttonEl.classList.add("hidden");
             let pauseBtn = document.getElementById("pause_resume");
             pauseBtn.setAttribute("disabled", "");
             this.showGameOverScreen(won);
@@ -1309,7 +1308,7 @@ export default class Game {
         this.then = this.now - (elapsedMs % this.FRAME_INTERVAL_MS);
 
         this.perfStats.begin();
-        for (let i = 0; i < this.gameSpeed; i++) {
+        for (let i = 0; i < window.GAME_SPEED; i++) {
             this.runUpdate(elapsedMs);
         }
         this.render();
@@ -1361,7 +1360,7 @@ export default class Game {
         }
 
         // Don't do particles on higher game speeds (used for testing only)
-        if (this.gameSpeed == 1) {
+        if (window.GAME_SPEED == 1) {
             this.particles.update();
         }
     }
@@ -1447,7 +1446,7 @@ export default class Game {
         }
         // Render particles last as they go on top of everything else.
         // Don't do particles on higher game speeds (used for testing only).
-        if (this.gameSpeed == 1 && this.particles.layer?.initialized) {
+        if (window.GAME_SPEED == 1 && this.particles.layer?.initialized) {
             this.layer.getContext().drawImage(
                 this.particles.layer.canvas,
                 0, // source x

@@ -141,7 +141,7 @@ class Dialog {
 
         this.shownCallback = builder.shownCallback;
 
-        this.durationS = builder.durationS;
+        this.durationS = builder.durationS / window.GAME_SPEED;
         this.dismissCallback = builder.dismissCallback;
         this.dismissed = false;
 
@@ -273,6 +273,6 @@ class Dialog {
         }
         setTimeout(() => {
             this.startTimer();
-        }, Dialog.DISMISSABLE_DELAY_MS);
+        }, Dialog.DISMISSABLE_DELAY_MS / window.GAME_SPEED);
     }
 }

@@ -13,6 +13,7 @@ window.SETTINGS = {
     censored: false,
     volume: 0.5,
 };
+window.GAME_SPEED = 1;
 
 var game = null;
 var bot = null;
@@ -125,6 +126,9 @@ function initialize(debug) {
         if (bot && bot.running) {
             bot.stop();
         } else {
+            if (!game) {
+                newGameBtn.click();
+            }
             bot = new Bot(game);
             bot.start();
         }
@@ -169,19 +173,21 @@ function initSettings() {
         }
     });
 
+    const updateVolume = function (volume) {
+        window.SETTINGS.volume = volume;
+        if (volume == 0) {
+            Howler.mute(true);
+        } else {
+            Howler.mute(false);
+            console.log("Setting Howler volume to " + volume);
+            Howler.volume(volume);
+        }
+    };
+    updateVolume(window.SETTINGS.volume);
     const sfxVolumeContainer = document.getElementById("sfx_volume_container");
     const sfxVolumeWidget = new VolumeWidget(sfxVolumeContainer, "sfx", window.SETTINGS.volume);
     sfxVolumeWidget.addListener({
-        onVolumeChange: (volume) => {
-            window.SETTINGS.volume = volume;
-            if (volume == 0) {
-                Howler.mute(true);
-            } else {
-                Howler.mute(false);
-                console.log("Setting Howler volume to " + volume);
-                Howler.volume(volume);
-            }
-        },
+        onVolumeChange: updateVolume,
         onVolumeChangeComplete: () => {
             SaveLoad.saveSettings();
         },

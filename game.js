@@ -25,6 +25,7 @@ import GameOverArt from "./game_over_art.js";
 import Stats from "./stats.js";
 import CooldownButton from "./cooldown_button.js";
 import Audio from "./audio.js";
+import CssEffects from "./css_effects.js";
 
 export default class Game {
     MIN_WIDTH = 300;
@@ -35,8 +36,6 @@ export default class Game {
     AUTO_SAVE_INTERVAL_MS = 30000;
     TARGET_FPS = 60;
     FRAME_INTERVAL_MS = 1000 / this.TARGET_FPS;
-    PULSE_ANIMATION_NAME = "pulsing";
-    PULSE_ANIMATION_DURATION_MS = 1000 * 0.5 * 4;
     ZOOM_DURATION_MS = 1000 * 2;
     GAME_OVER_ZOOM_DURATION_MS = 1000 * 20;
     FINAL_LEVEL_DURATION_MINUTES = 3;
@@ -1002,7 +1001,7 @@ export default class Game {
         if (others) {
             animated.push(...others);
         }
-        this.startAnimation(animated, this.PULSE_ANIMATION_NAME, this.PULSE_ANIMATION_DURATION_MS);
+        CssEffects.startPulseAnimation(animated);
     }
 
     stopNotEnoughAspisAnimation(others) {
@@ -1010,27 +1009,7 @@ export default class Game {
         if (others) {
             animated.push(...others);
         }
-        this.stopAnimation(animated, this.PULSE_ANIMATION_NAME);
-    }
-
-    startAnimation(elements, name, durationMs) {
-        console.log("Starting " + name + " animation");
-        for (const element of elements) {
-            if (element.classList.contains(name)) {
-                continue;
-            }
-            element.classList.add(name);
-        }
-        setTimeout(() => {
-            console.log("Stopping " + name + " animation");
-            this.stopAnimation(elements, name);
-        }, durationMs);
-    }
-
-    stopAnimation(elements, name) {
-        for (const element of elements) {
-            element.classList.remove(name);
-        }
+        CssEffects.stopPulseAnimation(animated);
     }
 
     spawn(position, immaculate) {
@@ -1046,17 +1025,10 @@ export default class Game {
         }
         if (this.littleGuys.length >= this.MAX_LITTLE_GUYS) {
             if (!immaculate) {
-                this.startAnimation(
-                    [this.littleGuyCountElement.parentElement],
-                    this.PULSE_ANIMATION_NAME,
-                    this.PULSE_ANIMATION_DURATION_MS
-                );
+                CssEffects.startPulseAnimation([this.littleGuyCountElement.parentElement]);
                 return;
             }
-            this.stopAnimation(
-                [this.littleGuyCountElement.parentElement],
-                this.PULSE_ANIMATION_NAME
-            );
+            CssEffects.stopPulseAnimation([this.littleGuyCountElement.parentElement]);
         }
 
         if (!this.activePixelBody) {

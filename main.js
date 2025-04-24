@@ -1,10 +1,8 @@
 import Game from "./game.js";
 import SaveLoad from "./save_load.js";
+import VolumeWidget from "./volume_widget.js";
 
 import "./main.css";
-import "./cooldown_button.css";
-import "./dialogs.css";
-import "./timer_bar.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 
 import Bot from "./testing/bot.js";
@@ -13,10 +11,12 @@ const RESIZE_DELAY_MS = 100;
 window.DEBUG = false;
 window.SETTINGS = {
     censored: false,
+    volume: 0.5,
 };
 
 var game = null;
 var bot = null;
+
 document.onreadystatechange = function () {
     if (document.readyState == "complete") {
         const paramsString = window.location.search;
@@ -53,6 +53,8 @@ function initialize(debug) {
             loadGameBtn.setAttribute("disabled", "");
         }
     });
+
+    initSettings();
 
     const upgradesContainer = document.getElementById("upgrades_container");
 
@@ -129,26 +131,6 @@ function initialize(debug) {
         updateBotText();
     });
 
-    const settingsButton = document.getElementById("settings_button");
-    const settingsDropdown = document.getElementById("settings_dropdown");
-
-    settingsButton.addEventListener("click", function (event) {
-        event.stopPropagation(); // Prevent the click from immediately closing the dropdown
-        settingsDropdown.classList.toggle("hidden");
-    });
-
-    // Close the dropdown if the user clicks outside of it
-    window.addEventListener("click", function (event) {
-        if (!settingsButton.contains(event.target) && !settingsDropdown.contains(event.target)) {
-            settingsDropdown.classList.add("hidden");
-        }
-    });
-
-    let censorBtn = document.getElementById("censor");
-    censorBtn.addEventListener("change", () => {
-        window.SETTINGS.censor = censorBtn.checked;
-    });
-
     if (debug) {
         const debugDiv = document.getElementById("debug");
         debugDiv.classList.remove("hidden");
@@ -166,5 +148,54 @@ function initialize(debug) {
             game.activePixelBody.needsUpdate = true;
         }
         console.log("Debug: " + window.DEBUG);
+    });
+}
+
+function initSettings() {
+    SaveLoad.loadSettings();
+
+    const settingsButton = document.getElementById("settings_button");
+    const settingsDropdown = document.getElementById("settings_dropdown");
+
+    settingsButton.addEventListener("click", function (event) {
+        event.stopPropagation(); // Prevent the click from immediately closing the dropdown
+        settingsDropdown.classList.toggle("hidden");
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener("click", function (event) {
+        if (!settingsButton.contains(event.target) && !settingsDropdown.contains(event.target)) {
+            settingsDropdown.classList.add("hidden");
+        }
+    });
+
+    const sfxVolumeContainer = document.getElementById("sfx_volume_container");
+    const sfxVolumeWidget = new VolumeWidget(sfxVolumeContainer, "sfx", window.SETTINGS.volume);
+    sfxVolumeWidget.addListener({
+        onVolumeChange: (volume) => {
+            window.SETTINGS.volume = volume;
+            if (volume == 0) {
+                Howler.mute(true);
+            } else {
+                Howler.mute(false);
+                console.log("Setting Howler volume to " + volume);
+                Howler.volume(volume);
+            }
+        },
+        onVolumeChangeComplete: () => {
+            SaveLoad.saveSettings();
+        },
+    });
+
+    const censorBtn = document.getElementById("censor");
+    const toBeCensored = document.getElementById("to_be_censored");
+    censorBtn.checked = window.SETTINGS.censor;
+    if (censorBtn.checked) {
+        toBeCensored.classList.add("blurry_text");
+    }
+    censorBtn.addEventListener("change", () => {
+        window.SETTINGS.censor = censorBtn.checked;
+        toBeCensored.classList.toggle("blurry_text");
+        SaveLoad.saveSettings();
     });
 }

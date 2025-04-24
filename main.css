@@ -24,11 +24,6 @@ body {
 body {
     background-color: rgb(250, 250, 250);
 }
-/* @media (prefers-color-scheme: dark) {
-    body {
-        background-color: rgb(127, 127, 127);
-    }
-} */
 
 canvas {
     image-rendering: pixelated;
@@ -58,12 +53,21 @@ input[type="checkbox"] {
     width: 0.8rem;
 }
 
-.hidden {
-    display: none !important;
-}
-
 #header {
     margin: 10px 0px 20px 0px;
+}
+
+#debug {
+    display: flow;
+}
+
+#to_be_censored {
+    transition: color 0.25s, text-shadow 0.25s;
+}
+
+.blurry_text {
+    color: transparent;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
 }
 
 #header > div {
@@ -71,6 +75,11 @@ input[type="checkbox"] {
     height: fit-content;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+.break {
+    flex-basis: 100%;
+    height: 0;
 }
 
 .linker-line {

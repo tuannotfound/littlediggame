@@ -1,3 +1,6 @@
+import "./cooldown_button.css";
+import "./timer_bar.css";
+
 export default class CooldownButton {
     constructor(buttonEl, cooldownDurationMs, onCooldownElapsedCallback) {
         this.buttonEl = buttonEl;

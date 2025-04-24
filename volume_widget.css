@@ -1,0 +1,9 @@
+.volume_value {
+    width: 2rem;
+    text-align: end;
+}
+
+.volume_icon {
+    width: 1.5rem;
+    text-align: start;
+}

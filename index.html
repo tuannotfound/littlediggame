@@ -4,6 +4,11 @@
         <meta name="viewport" content="width=device-width" />
         <link rel="icon" href="assets/favicon.ico" />
         <title>Core Asset Protocol</title>
+        <style>
+            .hidden {
+                display: none !important;
+            }
+        </style>
     </head>
     <body>
         <div id="header">
@@ -16,18 +21,10 @@
                     <button id="settings_button"><i class="fa-solid fa-gear"></i></button>
                     <div id="settings_dropdown" class="hidden">
                         <label for="sfx_volume_slider" style="grid-column: 1">SFX</label>
-                        <div id="sfx_volume_container" style="grid-column: 2">
-                            <i id="sfx_volume_icon" class="fa-solid fa-volume-low"></i>
-                            <input
-                                type="range"
-                                value="50"
-                                min="0"
-                                max="100"
-                                id="sfx_volume_slider"
-                            />
-                            <span id="sfx_volume_value">50</span>
-                        </div>
-                        <label for="censor" style="grid-column: 1">Censor nipples</label>
+                        <div id="sfx_volume_container" style="grid-column: 2"></div>
+                        <label id="censor_label" for="censor" style="grid-column: 1"
+                            >Censor n<span id="to_be_censored">ipp</span>les</label
+                        >
                         <input type="checkbox" id="censor" style="grid-column: 2" />
                     </div>
                 </div>
@@ -42,6 +39,7 @@
                     <label> <input type="checkbox" id="blood" /> Veia mode</label>
                     <label> <input type="checkbox" id="debug_checkbox" /> Debugging Mode</label>
                 </div>
+                <div class="break"></div>
                 <div>
                     <button id="plus_10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
                     <button id="plus_100">
@@ -53,8 +51,6 @@
                     <button id="plus_10000">
                         +10000&nbsp;<i class="fa-solid fa-austral-sign"></i>
                     </button>
-                </div>
-                <div>
                     <button id="bot"></button>
                 </div>
             </div>

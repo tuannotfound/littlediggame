@@ -1,15 +1,8 @@
-import CircularPlanet from "./pixel_bodies/circular_planet.js";
 import Game from "./game.js";
-import Layer from "./layer.js";
-import LittleGuy from "./little_guy.js";
-import Pixel from "./diggables/pixel.js";
-import Planet from "./pixel_bodies/planet.js";
-import Upgrades from "./upgrades.js";
-import Vector from "./vector.js";
-import Serpent from "./pixel_bodies/serpent.js";
 
 export default class SaveLoad {
-    KEY = "planeteater";
+    static KEY = "planeteater";
+    static SETTINGS_KEY = "planeteater_settings";
 
     static saveDataExists() {
         return !!localStorage.getItem(SaveLoad.KEY);
@@ -37,5 +30,17 @@ export default class SaveLoad {
             return Game.fromJSON(value);
         }
         return value;
+    }
+
+    static saveSettings() {
+        let json = JSON.stringify(window.SETTINGS);
+        localStorage.setItem(SaveLoad.SETTINGS_KEY, json);
+    }
+
+    static loadSettings() {
+        let savedJsonStr = localStorage.getItem(SaveLoad.SETTINGS_KEY);
+        if (savedJsonStr) {
+            window.SETTINGS = JSON.parse(savedJsonStr);
+        }
     }
 }

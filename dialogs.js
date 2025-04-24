@@ -1,5 +1,8 @@
 import StringUtils from "./string_utils.js";
 
+import "./dialogs.css";
+import "./timer_bar.css";
+
 export default class Dialogs {
     static MIN_CALCULATED_DURATION_S = 5;
     static DEFAULT_DURATION_S = 10;

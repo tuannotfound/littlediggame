@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Alexander Douglas
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+
 import LinkerLine from "linkerline";
 import PanZoomWrapper from "./pan_zoom_wrapper.js";
 import Color from "./color.js";

@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Alexander Douglas
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");

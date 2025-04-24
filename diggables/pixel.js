@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Alexander Douglas
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+
 import PixelType from "./pixel_type.js";
 import Color from "../color.js";
 import MathExtras from "../math_extras.js";

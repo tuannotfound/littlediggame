@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Alexander Douglas
+// Licensed under the MIT License.
+// See LICENSE file in the project root for full license information.
+
 import Color from "../color.js";
 
 const DIRT_INITIAL_HEALTH = 100;

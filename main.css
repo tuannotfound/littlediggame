@@ -63,6 +63,11 @@ input[type="checkbox"] {
     margin: 10px 0px 20px 0px;
 }
 
+#footer > span,
+#footer > span > a {
+    font-size: 0.8rem;
+}
+
 #debug {
     display: flow;
 }

@@ -143,6 +143,9 @@ export default class Bot {
     }
 
     shouldSpawn(expectedValue) {
+        if (!this.game.spawningAllowed) {
+            return false;
+        }
         if (this.game.littleGuys.length >= this.game.MAX_LITTLE_GUYS) {
             return false;
         }

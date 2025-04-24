@@ -170,6 +170,10 @@ export default class PixelBody {
     }
 
     removePixels(pixels) {
+        if (pixels.length == 0) {
+            return;
+        }
+
         for (const pixel of pixels) {
             this.removePixel(pixel, false);
         }
@@ -356,6 +360,10 @@ export default class PixelBody {
     }
 
     updateSurface() {
+        if (this.pixels.length == 0) {
+            return;
+        }
+
         this.surfacePixels = this.findSurfacePixels(
             this.pixels,
             this.layer.width,

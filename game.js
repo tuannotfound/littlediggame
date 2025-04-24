@@ -991,14 +991,6 @@ export default class Game {
             return;
         }
         this.spawn(closestSurfacePixel.position, false);
-
-        if (Math.random() < this.upgrades.extraLittleGuyChance) {
-            const randomSurfacePixel = this.activePixelBody.getRandomSurfacePixel();
-            if (!randomSurfacePixel) {
-                return;
-            }
-            this.spawn(randomSurfacePixel.position, true);
-        }
     }
 
     get activePixelBody() {
@@ -1081,6 +1073,13 @@ export default class Game {
             this.aspis -= this.spawnCost;
             if (this.spawnCost > 0) {
                 this.updateAspis();
+            }
+            if (Math.random() < this.upgrades.extraLittleGuyChance) {
+                const randomSurfacePixel = this.activePixelBody.getRandomSurfacePixel();
+                if (!randomSurfacePixel) {
+                    return;
+                }
+                this.spawn(randomSurfacePixel.position, true);
             }
         }
         this.updateSpawnCost();

@@ -55,103 +55,119 @@
                 </div>
             </div>
         </div>
-        <div id="game"></div>
-        <div id="overlay" class="hidden">
-            <div id="info_container">
-                <div>
-                    <span id="health">100.0</span><span>%</span>&nbsp;<i
-                        id="planet_icon"
-                        class="fa-solid fa-globe"
-                    ></i
-                    ><i id="serpent_icon" class="hidden fa-solid fa-worm"></i>
-                </div>
-                <div><span id="aspis">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i></div>
-                <div>
-                    <span id="little_guy_count">0</span>&nbsp;<i
-                        class="fa-solid fa-person-walking"
-                    ></i>
-                </div>
-                <div>
-                    <span>
-                        <span id="spawn_cost">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i
-                        >&nbsp;for next&nbsp;<i class="fa-solid fa-person-walking"></i
-                    ></span>
-                </div>
-                <div id="worker_ev_container" class="hidden">
-                    <span>
-                        <span id="worker_ev">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i
-                        >&nbsp;expected per &nbsp;<i class="fa-solid fa-person-walking"></i
-                    ></span>
-                </div>
-                <div>
-                    <span>
-                        <span id="digs_per_death">2</span>&nbsp;<i
-                            class="fa-solid fa-person-digging"
+        <div id="game">
+            <div id="overlay" class="hidden">
+                <div id="info_container">
+                    <div>
+                        <span id="health">100.0</span><span>%</span>&nbsp;<i
+                            id="planet_icon"
+                            class="fa-solid fa-globe"
                         ></i
-                        >&nbsp;before&nbsp;<i class="fa-solid fa-skull"></i
-                    ></span>
+                        ><i id="serpent_icon" class="hidden fa-solid fa-worm"></i>
+                    </div>
+                    <div>
+                        <span id="aspis">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                    </div>
+                    <div>
+                        <span id="little_guy_count">0</span>&nbsp;<i
+                            class="fa-solid fa-person-walking"
+                        ></i>
+                    </div>
+                    <div>
+                        <span>
+                            <span id="spawn_cost">0</span>&nbsp;<i
+                                class="fa-solid fa-austral-sign"
+                            ></i
+                            >&nbsp;for next&nbsp;<i class="fa-solid fa-person-walking"></i
+                        ></span>
+                    </div>
+                    <div id="worker_ev_container" class="hidden">
+                        <span>
+                            <span id="worker_ev">0</span>&nbsp;<i
+                                class="fa-solid fa-austral-sign"
+                            ></i
+                            >&nbsp;expected per &nbsp;<i class="fa-solid fa-person-walking"></i
+                        ></span>
+                    </div>
+                    <div>
+                        <span>
+                            <span id="digs_per_death">2</span>&nbsp;<i
+                                class="fa-solid fa-person-digging"
+                            ></i
+                            >&nbsp;before&nbsp;<i class="fa-solid fa-skull"></i
+                        ></span>
+                    </div>
+                </div>
+                <button id="show_upgrades">
+                    <i class="fa-solid fa-book-open"></i>
+                    <div id="available_upgrade_count" class="notification hidden" role="status">
+                        0
+                    </div>
+                </button>
+                <button id="shield" class="hidden">
+                    <i class="fa-solid fa-shield-halved"></i>&nbsp;
+                    <div id="shield_cost_container">
+                        <span id="shield_cost">0</span>&nbsp;<i
+                            class="fa-solid fa-austral-sign"
+                        ></i>
+                    </div>
+                </button>
+                <!-- TBD: Generate the legened programmatically -->
+                <div id="legend">
+                    <span class="hidden"
+                        ><span class="dirt">■</span>/<span class="dirt_surface">■</span>: Dirt
+                        (+<span id="aspis_per_DIRT"></span>&nbsp;<i
+                            class="fa-solid fa-austral-sign"
+                        ></i
+                        >)<br
+                    /></span>
+                    <span class="hidden"
+                        ><span class="tombstone">■</span>: Tombstone (+<span
+                            id="aspis_per_TOMBSTONE"
+                        ></span
+                        >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
+                    /></span>
+                    <span class="hidden"
+                        ><span class="gold">■</span>: Gold (+<span id="aspis_per_GOLD"></span
+                        >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
+                    /></span>
+                    <span class="hidden"
+                        ><span class="diamond">■</span>: Diamond (+<span
+                            id="aspis_per_DIAMOND"
+                        ></span
+                        >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
+                    /></span>
+                    <span class="hidden"
+                        ><span class="egg">■</span>: <span id="egg_legend_title">???</span> (+<span
+                            id="aspis_per_EGG"
+                        ></span
+                        >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
+                    /></span>
+                    <span class="hidden"
+                        ><span class="serpent">■</span>:
+                        <span id="serpent_legend_title">???</span> (+<span
+                            id="aspis_per_SERPENT"
+                        ></span
+                        >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
+                    /></span>
+                </div>
+                <div id="pause_scrim" class="hidden">
+                    <i id="pause_scrim_icon" class="fa-solid fa-pause"></i>
                 </div>
             </div>
-            <button id="show_upgrades">
-                <i class="fa-solid fa-book-open"></i>
-                <div id="available_upgrade_count" class="notification hidden" role="status">0</div>
-            </button>
-            <button id="shield" class="hidden">
-                <i class="fa-solid fa-shield-halved"></i>&nbsp;
-                <div id="shield_cost_container">
-                    <span id="shield_cost">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i>
+            <div id="upgrades_container" class="hidden">
+                <div id="upgrades_header">
+                    <div>
+                        <span id="upgrades_aspis">0</span>&nbsp;<i
+                            class="fa-solid fa-austral-sign"
+                        ></i>
+                    </div>
+                    <h1 id="upgrades_title">Research</h1>
+                    <button id="hide_upgrades"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-            </button>
-            <!-- TBD: Generate the legened programmatically -->
-            <div id="legend">
-                <span class="hidden"
-                    ><span class="dirt">■</span>/<span class="dirt_surface">■</span>: Dirt (+<span
-                        id="aspis_per_DIRT"
-                    ></span
-                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
-                /></span>
-                <span class="hidden"
-                    ><span class="tombstone">■</span>: Tombstone (+<span
-                        id="aspis_per_TOMBSTONE"
-                    ></span
-                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
-                /></span>
-                <span class="hidden"
-                    ><span class="gold">■</span>: Gold (+<span id="aspis_per_GOLD"></span>&nbsp;<i
-                        class="fa-solid fa-austral-sign"
-                    ></i
-                    >)<br
-                /></span>
-                <span class="hidden"
-                    ><span class="diamond">■</span>: Diamond (+<span id="aspis_per_DIAMOND"></span
-                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
-                /></span>
-                <span class="hidden"
-                    ><span class="egg">■</span>: <span id="egg_legend_title">???</span> (+<span
-                        id="aspis_per_EGG"
-                    ></span
-                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
-                /></span>
-                <span class="hidden"
-                    ><span class="serpent">■</span>:
-                    <span id="serpent_legend_title">???</span> (+<span id="aspis_per_SERPENT"></span
-                    >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
-                /></span>
-            </div>
-            <div id="pause_scrim" class="hidden">
-                <i id="pause_scrim_icon" class="fa-solid fa-pause"></i>
-            </div>
-        </div>
-        <div id="upgrades_container" class="hidden">
-            <div id="upgrades_header">
-                <div>
-                    <span id="upgrades_aspis">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i>
+                <div id="upgrades_window">
+                    <div id="upgrades"></div>
                 </div>
-                <h1 id="upgrades_title">Research</h1>
-                <button id="hide_upgrades"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="upgrades_window">
-                <div id="upgrades"></div>
             </div>
         </div>
         <div id="footer">

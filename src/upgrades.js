@@ -642,7 +642,11 @@ export default class Upgrades {
         const religion = new Upgrade(
             "religion",
             "In Deo Omnia Possibilia",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `The artifact you discovered belonged to The Founder and, according to your
+                researchers, the reclamation will drive employees to new heights of devotion to The
+                Company.`
+            ),
             ["Unlock the potential of The Artifact"],
             9999,
             () => {

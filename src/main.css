@@ -97,6 +97,47 @@ input[type="checkbox"] {
     z-index: -1;
 }
 
+#pregame_placeholder {
+    position: relative;
+    padding: 10px;
+}
+
+#title_container {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    justify-items: center;
+    transform: translate(-50%, -50%);
+}
+
+#title_container > h1 {
+    cursor: default;
+    color: rgb(24, 24, 24);
+    font-size: 3rem;
+}
+
+.boundFromTop {
+    animation-name: bounceFromTop;
+    animation-duration: 2s;
+}
+
+@keyframes bounceFromTop {
+    from {
+        font-size: 5rem;
+        transform: translateY(-100%);
+        filter: blur(20px);
+        opacity: 0;
+    }
+}
+
+#pregame_placeholder > img {
+    width: 99%;
+    height: 150px;
+    border: 1px solid #000;
+    object-fit: cover;
+}
+
 #game {
     width: fit-content;
     height: fit-content;

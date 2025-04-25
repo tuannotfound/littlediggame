@@ -39,7 +39,7 @@ export default class Magic extends Pixel {
     }
 
     actLikeDirt() {
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             return false;
         }
         const actLikeDirt = this.darkness >= Magic.DARKNESS_HIDE_THRESHOLD;

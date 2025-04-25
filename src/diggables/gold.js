@@ -22,7 +22,7 @@ export default class Gold extends Pixel {
     }
 
     actLikeDirt() {
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             return false;
         }
         if (!this.upgrades.unlockGold) {

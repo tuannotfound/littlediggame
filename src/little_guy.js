@@ -273,7 +273,7 @@ export default class LittleGuy {
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
 
-        if (this._shielded || window.DEBUG) {
+        if (this._shielded || window.DEBUG_MODE) {
             const color = this._shielded
                 ? LittleGuy.SHIELDED_OUTLINE_COLOR
                 : LittleGuy.DEBUG_OUTLINE_COLOR;
@@ -369,7 +369,7 @@ export default class LittleGuy {
                 Vector.add(this.closestSurfacePixel.position, orientation)
             );
             if (testPixel == null) {
-                if (window.DEBUG) {
+                if (window.DEBUG_MODE) {
                     console.info(
                         "Updating orientation from " +
                             this.orientation.toString() +
@@ -386,7 +386,7 @@ export default class LittleGuy {
         // Uh oh, if we're here then somehow the pixel we're standing on is fully surrounded by
         // other pixels (which means it's not really a surface pixel). Uh. Whatever, let's just
         // log it and move on with our lives.
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.error("No valid orientation found");
         }
     }
@@ -715,7 +715,7 @@ export default class LittleGuy {
         // 1. Get the surrounding pixels
         let positionInPixelBodySpace = this.pixelBody.center.copy();
         positionInPixelBodySpace.add(this.position);
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.log(
                 "Current position: " +
                     positionInPixelBodySpace +
@@ -784,7 +784,7 @@ export default class LittleGuy {
                 if (wasPreviousPosition) {
                     continue;
                 }
-                if (window.DEBUG) {
+                if (window.DEBUG_MODE) {
                     console.log(
                         "Candidate @ " +
                             candidate.toString() +
@@ -798,7 +798,7 @@ export default class LittleGuy {
             }
         }
         if (candidates.length == 0) {
-            if (window.DEBUG) {
+            if (window.DEBUG_MODE) {
                 console.log("No candidates");
             }
             this.goToNearestSurfacePixel();
@@ -874,7 +874,7 @@ export default class LittleGuy {
         if (direction < 0) {
             for (let i = 0; i < rotatedCandidates.length; i++) {
                 // Only consider candidates to the left of us, post rotation.
-                if (window.DEBUG) {
+                if (window.DEBUG_MODE) {
                     console.log(
                         "Looking at candidate @ " +
                             rotatedCandidates[i].rotatedPosition.toString() +
@@ -891,7 +891,7 @@ export default class LittleGuy {
                         rotatedCandidates[i].rotatedPosition.x < selected.rotatedPosition.x)
                 ) {
                     selected = rotatedCandidates[i];
-                    if (window.DEBUG) {
+                    if (window.DEBUG_MODE) {
                         console.log(
                             "New best candidate @ " +
                                 selected.original.position.toString() +
@@ -906,7 +906,7 @@ export default class LittleGuy {
             }
         } else {
             for (let i = 0; i < rotatedCandidates.length; i++) {
-                if (window.DEBUG) {
+                if (window.DEBUG_MODE) {
                     console.log(
                         "Looking at candidate @ " +
                             rotatedCandidates[i].rotatedPosition.toString() +
@@ -923,7 +923,7 @@ export default class LittleGuy {
                         rotatedCandidates[i].rotatedPosition.x > selected.rotatedPosition.x)
                 ) {
                     selected = rotatedCandidates[i];
-                    if (window.DEBUG) {
+                    if (window.DEBUG_MODE) {
                         console.log(
                             "New best candidate @ " +
                                 selected.original.position.toString() +
@@ -942,7 +942,7 @@ export default class LittleGuy {
         // 5. Move to that position.
         let newPosition = selectedCandidate.position.copy();
         this.orientation = selectedCandidate.orientation;
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.log(
                 "New position: " +
                     newPosition.toString() +

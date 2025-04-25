@@ -129,7 +129,7 @@ export default class Pixel {
         }
         let pixelIndex = (renderPosition.x + renderPosition.y * imageData.width) * 4;
         let color = this.hasColorOverride() ? this._colorOverride : this.getRenderColor();
-        let darkness = window.DEBUG ? 0 : this.darkness;
+        let darkness = window.DEBUG_MODE ? 0 : this.darkness;
         imageData.data[pixelIndex] = Math.round(color.r * (1 - darkness)); // Red
         imageData.data[pixelIndex + 1] = Math.round(color.g * (1 - darkness)); // Green
         imageData.data[pixelIndex + 2] = Math.round(color.b * (1 - darkness)); // Blue

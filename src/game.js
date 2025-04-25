@@ -130,12 +130,13 @@ export default class Game {
 
         this.lastConceptionTime = 0;
 
-        this.perfStats = new PerfStats();
-        this.perfStats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-        this.perfStats.dom.style.left = "90%";
-        console.log("Appending stats panel");
-        document.body.appendChild(this.perfStats.dom);
-
+        if (window.DEBUG) {
+            this.perfStats = new PerfStats();
+            this.perfStats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+            this.perfStats.dom.style.left = "90%";
+            console.log("Appending stats panel");
+            document.body.appendChild(this.perfStats.dom);
+        }
         this.gameState = GameState.UNINITIALIZED;
         this.lastSaved = -this.MIN_SAVE_INTERVAL_MS;
         this.autoSaveTimeout = null;
@@ -977,7 +978,7 @@ export default class Game {
 
         const gameCoords = new Vector(event.offsetX, event.offsetY);
         const activeBodyCoords = this.gameToActiveBodyCoords(gameCoords);
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.log(
                 "Translating mouse click @ " +
                     gameCoords.toString() +
@@ -1261,7 +1262,9 @@ export default class Game {
         for (const [element, listener] of this.clickListenerMap) {
             element.removeEventListener("click", listener);
         }
-        document.body.removeChild(this.perfStats.dom);
+        if (window.DEBUG) {
+            document.body.removeChild(this.perfStats.dom);
+        }
     }
 
     tick(newtime) {
@@ -1282,12 +1285,16 @@ export default class Game {
         }
         this.then = this.now - (elapsedMs % this.FRAME_INTERVAL_MS);
 
-        this.perfStats.begin();
+        if (window.DEBUG) {
+            this.perfStats.begin();
+        }
         for (let i = 0; i < window.GAME_SPEED; i++) {
             this.runUpdate(elapsedMs);
         }
         this.render();
-        this.perfStats.end();
+        if (window.DEBUG) {
+            this.perfStats.end();
+        }
     }
 
     runUpdate(elapsedMs) {

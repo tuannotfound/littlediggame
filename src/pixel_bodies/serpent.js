@@ -587,7 +587,7 @@ class Segment {
                     );
                     return false;
                 }
-                if (window.DEBUG) {
+                if (window.DEBUG_MODE) {
                     console.log(
                         Serpent.TAG +
                             "Head segment turning. Went from " +
@@ -638,7 +638,7 @@ class Segment {
 
         let delta = Vector.sub(this.renderPosition, this.mostRecentState.renderPosition);
 
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.log(
                 Serpent.TAG +
                     "Head segment @ " +
@@ -718,7 +718,7 @@ class Segment {
         ];
         for (const rot of cw) {
             if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
-                if (!this.foreSegment && window.DEBUG) {
+                if (!this.foreSegment && window.DEBUG_MODE) {
                     console.log(Serpent.TAG + "CW");
                 }
                 return Vector.rotate90CW;
@@ -733,7 +733,7 @@ class Segment {
         ];
         for (const rot of ccw) {
             if (pd.x == rot[0] && pd.y == rot[1] && cd.x == rot[2] && cd.y == rot[3]) {
-                if (!this.foreSegment && window.DEBUG) {
+                if (!this.foreSegment && window.DEBUG_MODE) {
                     console.log(Serpent.TAG + "CCW");
                 }
                 return Vector.rotate90CCW;

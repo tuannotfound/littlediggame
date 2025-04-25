@@ -27,10 +27,12 @@ This game has dependencies on some lovely JS libraries, such as:
 -   [LinkerLine](https://github.com/AhmedAyachi/LinkerLine), used in the research UI
 -   [Panzoom](https://github.com/timmywil/panzoom), also used in the research UI
 -   [Howler](https://github.com/goldfire/howler.js), for audio
+-   [Stats](https://github.com/mrdoob/stats.js), for performance metrics during testing
 
 And also makes use of assets from:
 
 -   [Font Awesome](https://fontawesome.com/), for icons
+-   [cssanimation.io](https://github.com/yesiamrocks/cssanimation.io), for the title blur-in effect
 -   [remaxim](https://opengameart.org/users/remaxim), for sound effects
 -   [Kenney](https://kenney.nl/), also for sound effects
 

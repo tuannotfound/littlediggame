@@ -28,7 +28,7 @@ export default class Egg extends Pixel {
     }
 
     actLikeDirt() {
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             return false;
         }
         return this.darkness >= Egg.DARKNESS_HIDE_THRESHOLD;

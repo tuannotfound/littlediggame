@@ -11,11 +11,15 @@ import "@fortawesome/fontawesome-free/css/all.css";
 
 import Bot from "../testing/bot.js";
 
+// Whether or not the debug search param is present.
 window.DEBUG = false;
+// Whether or not the 'debugging mode' checkbox is checked.
+window.DEBUG_MODE = false;
 window.SETTINGS = {
     censored: false,
     volume: 0.5,
 };
+// For testing only.
 window.GAME_SPEED = 1;
 
 var game = null;
@@ -25,15 +29,16 @@ document.onreadystatechange = function () {
     if (document.readyState == "complete") {
         const paramsString = window.location.search;
         const searchParams = new URLSearchParams(paramsString);
-        initialize(searchParams.has("debug"));
+        window.DEBUG = searchParams.has("debug");
+        initialize();
     }
 };
 
-function initialize(debug) {
+function initialize() {
     initUi();
     initSettings();
 
-    if (debug) {
+    if (window.DEBUG) {
         initDebug();
     }
 }
@@ -53,6 +58,7 @@ function initSettings() {
     window.addEventListener("click", function (event) {
         if (!settingsButton.contains(event.target) && !settingsDropdown.contains(event.target)) {
             settingsDropdown.classList.add("hidden");
+            event.stopPropagation();
         }
     });
 
@@ -128,6 +134,7 @@ function initUi() {
             const pauseBtn = document.getElementById("pause_resume");
             pauseBtn.classList.remove("hidden");
             pauseBtn.removeAttribute("disabled");
+            document.getElementById("pregame_placeholder").classList.add("hidden");
             overlay.classList.remove("hidden");
             document.getElementById("legend").classList.remove("hidden");
             document.getElementById("info_container").classList.remove("dark");
@@ -137,6 +144,7 @@ function initUi() {
             loadGameBtn.classList.remove("hidden");
             saveGameBtn.classList.add("hidden");
             document.getElementById("pause_resume").classList.add("hidden");
+            document.getElementById("pregame_placeholder").classList.remove("hidden");
             overlay.classList.add("hidden");
             upgradesContainer.classList.add("hidden");
         }
@@ -203,17 +211,17 @@ function initDebug() {
     });
 
     const debugCheckbox = document.getElementById("debug_checkbox");
-    window.DEBUG = debugCheckbox.checked;
+    window.DEBUG_MODE = debugCheckbox.checked;
     debugCheckbox.addEventListener("change", () => {
-        if (window.DEBUG == debugCheckbox.checked) {
+        if (window.DEBUG_MODE == debugCheckbox.checked) {
             return;
         }
-        window.DEBUG = debugCheckbox.checked;
+        window.DEBUG_MODE = debugCheckbox.checked;
         if (game && game.activePixelBody) {
             // Really getting into the weeds here. Should probably add a
             // callback for when the checkbox is changed.
             game.activePixelBody.needsUpdate = true;
         }
-        console.log("Debug: " + window.DEBUG);
+        console.log("Debug: " + window.DEBUG_MODE);
     });
 }

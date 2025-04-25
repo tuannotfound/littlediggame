@@ -278,7 +278,7 @@ export default class PixelBody {
     }
 
     findSurfacePixels(pixels, width, height) {
-        if (window.DEBUG) {
+        if (window.DEBUG_MODE) {
             console.log("PixelBody: findSurfacePixels for " + pixels.length + " pixels");
         }
         const pixelPositions = new Map();

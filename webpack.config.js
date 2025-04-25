@@ -8,7 +8,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 //const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = {
-    entry: "./main.js", // The entry point of your application
+    entry: "./src/main.js", // The entry point of your application
     output: {
         path: path.resolve(__dirname, "dist"), // Output directory for bundled files
         filename: "bundle.js", // Name of the bundled JavaScript file
@@ -32,7 +32,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: "./index.html",
+            template: "./src/index.html",
         }),
         //new BundleAnalyzerPlugin(),
         new CopyWebpackPlugin({

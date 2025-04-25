@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import PixelType from "../diggables/pixel_type.js";
-import Vector from "../vector.js";
+import PixelType from "../src/diggables/pixel_type.js";
+import Vector from "../src/vector.js";
 
 export default class Bot {
     TARGET_FPS = 1;

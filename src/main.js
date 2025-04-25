@@ -9,7 +9,7 @@ import VolumeWidget from "./volume_widget.js";
 import "./main.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 
-import Bot from "./testing/bot.js";
+import Bot from "../testing/bot.js";
 
 window.DEBUG = false;
 window.SETTINGS = {

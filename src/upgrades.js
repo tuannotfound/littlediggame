@@ -30,7 +30,7 @@ export default class Upgrades {
         this.aspisPer[PixelType.DIAMOND.name] = 50;
         this.aspisPer[PixelType.MAGIC.name] = 5000;
         this.aspisPer[PixelType.EGG.name] = 333;
-        this.aspisPer[PixelType.SERPENT.name] = 666;
+        this.aspisPer[PixelType.SERPENT.name] = 100;
         this.unlockGold = false;
         this.unlockDiamonds = false;
         this.bloodDiamonds = false;
@@ -1009,7 +1009,7 @@ export default class Upgrades {
                 "New followers are manifested 1.35x more frequently",
                 "Increases the explosion rate to 40%",
             ],
-            91100,
+            49110,
             () => {
                 this.digSpeed *= 1.5;
                 this.conceptionIntervalMs *= 0.74;

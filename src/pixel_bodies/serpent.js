@@ -174,9 +174,11 @@ export default class Serpent extends PixelBody {
         if (now > this.nextKillAllTime) {
             this.nextKillAllTime = Math.round(
                 now +
-                    MathExtras.randomBetween(
-                        Serpent.KILL_ALL_INTERVAL_MIN_MS,
-                        Serpent.KILL_ALL_INTERVAL_MAX_MS
+                    Math.round(
+                        MathExtras.randomBetween(
+                            Serpent.KILL_ALL_INTERVAL_MIN_MS,
+                            Serpent.KILL_ALL_INTERVAL_MAX_MS
+                        ) / window.GAME_SPEED
                     )
             );
             this.killAll();

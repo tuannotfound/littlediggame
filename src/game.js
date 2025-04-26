@@ -366,7 +366,7 @@ export default class Game {
     }
 
     initHandlers() {
-        this.containerElement.addEventListener("click", this.handleMouseEvent.bind(this), {
+        this.layer.canvas.addEventListener("click", this.handleMouseEvent.bind(this), {
             passive: true,
         });
     }

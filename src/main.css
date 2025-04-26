@@ -141,6 +141,36 @@ input[type="checkbox"] {
     object-fit: cover;
 }
 
+@media (max-width: 1100px) {
+    #pregame_placeholder > img {
+        animation: scroll 10s linear alternate-reverse infinite;
+    }
+}
+@media (max-width: 800px) {
+    #pregame_placeholder > img {
+        animation: scroll 15s linear alternate-reverse infinite;
+    }
+}
+@media (max-width: 500px) {
+    #pregame_placeholder > img {
+        animation: scroll 20s linear alternate-reverse infinite;
+    }
+}
+@media (max-width: 200px) {
+    #pregame_placeholder > img {
+        animation: scroll 25s linear alternate-reverse infinite;
+    }
+}
+
+@keyframes scroll {
+    0% {
+        object-position: 100% 0%;
+    }
+    100% {
+        object-position: 0% 0%;
+    }
+}
+
 #game {
     width: fit-content;
     height: fit-content;

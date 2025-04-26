@@ -14,7 +14,7 @@ Beware of interlopers.
 
 This game is written in pure JS, with the core gameplay rendered in a canvas element.
 
-I created this just as a fun little side project, with inspiration drawn from such (much better) games as [Digseum](https://store.steampowered.com/app/3361470/Digseum/) and [(the) Gnorp Apologue](https://store.steampowered.com/app/1473350/the_Gnorp_Apologue/).
+I created this just as a fun little side project, with inspiration drawn from (much better) games such as [Digseum](https://store.steampowered.com/app/3361470/Digseum/) and [(the) Gnorp Apologue](https://store.steampowered.com/app/1473350/the_Gnorp_Apologue/).
 
 The code is unpolished and in someplaces downright ugly, but that's the beauty of solo side projects. I took a "just get it to work" approach with a lot of the functionality in this game.
 
@@ -22,7 +22,7 @@ The code is unpolished and in someplaces downright ugly, but that's the beauty o
 
 ## Credits
 
-This game has dependencies on some lovely JS libraries, such as:
+This game has a few dependencies on some lovely JS libraries, such as:
 
 -   [LinkerLine](https://github.com/AhmedAyachi/LinkerLine), used in the research UI
 -   [Panzoom](https://github.com/timmywil/panzoom), also used in the research UI
@@ -36,6 +36,6 @@ And also makes use of assets from:
 -   [remaxim](https://opengameart.org/users/remaxim), for sound effects
 -   [Kenney](https://kenney.nl/), also for sound effects
 
-And finally, all credit for the Latin used in the research item titles goes to the fine folks over at [Google Translate](https://translate.google.com/).
+And finally, all credit for the Latin used in the research titles goes to the fine folks over at [Google Translate](https://translate.google.com/). This is also my way of apologizing for the (probably) butchered Latin. Mea culpa.
 
 Thanks to the devs and artists for those free resources!

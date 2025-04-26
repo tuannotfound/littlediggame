@@ -932,11 +932,11 @@ export default class Upgrades {
 
         const eggHandling = new Upgrade(
             "egg_handling",
-            "egg_handling_tbd",
+            "Ovum laetum",
             StringUtils.dedent(
                 `All those who lay their hand upon the tome are drawn to The Egg. They feel a great
-                sense of comfort standing upon it, which is quite a stark contrast to those that
-                burst into flames instead.`
+                sense of comfort standing upon it, which is in stark contrast to those that were
+                instead bursting into flames as soon as they alit upon it.`
             ),
             ["Allows workers to exist near The Egg."],
             191,

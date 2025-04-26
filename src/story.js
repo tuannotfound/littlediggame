@@ -540,7 +540,7 @@ export default class Story {
         Dialogs.show(
             this.serpentName,
             `<q>The path you embark on is...</q> - pathetic. Knowledge is power, and the truth will
-            ssset you free.`,
+            ssset us all free.`,
             this.serpentAvatarPath
         );
     }
@@ -635,6 +635,11 @@ export default class Story {
             `My tongue will dissolve the flesh from your bones! You will lament your actions.`,
             Story.SERPENT_AVATAR_PATH
         );
+        Dialogs.show(
+            this.researcherName,
+            `I just want to tell you good luck. We're all counting on you.`,
+            this.researcherAvatarPath
+        );
     }
 
     maybeSerpent3(health) {
@@ -712,6 +717,11 @@ export default class Story {
         } else {
             this.onGameLost(dismissCallback);
         }
+        Dialogs.show(
+            this.researcherName,
+            `I just want to tell you good luck. We're all counting on you.`,
+            this.researcherAvatarPath
+        );
     }
 
     onGameLost(dismissCallback) {

@@ -36,4 +36,6 @@ And also makes use of assets from:
 -   [remaxim](https://opengameart.org/users/remaxim), for sound effects
 -   [Kenney](https://kenney.nl/), also for sound effects
 
+And finally, all credit for the Latin used in the research item titles goes to the fine folks over at [Google Translate](https://translate.google.com/).
+
 Thanks to the devs and artists for those free resources!

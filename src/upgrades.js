@@ -123,7 +123,7 @@ export default class Upgrades {
         // Progress gates
         const progressGate1 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_1,
-            "Dig Progress 1",
+            "Dig progress I",
             Upgrades.PROGRESS_GATE_DESC,
             [],
             -1
@@ -131,7 +131,7 @@ export default class Upgrades {
         this.upgradeTree.set(progressGate1.id, progressGate1);
         const progressGate2 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_2,
-            "Dig Progress 2",
+            "Dig progress II",
             Upgrades.PROGRESS_GATE_DESC,
             [],
             -3
@@ -139,7 +139,7 @@ export default class Upgrades {
         this.upgradeTree.set(progressGate2.id, progressGate2);
         const progressGate3 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_3,
-            "Dig Progress 3",
+            "Dig progress III",
             Upgrades.PROGRESS_GATE_DESC,
             [],
             -8
@@ -147,7 +147,7 @@ export default class Upgrades {
         this.upgradeTree.set(progressGate3.id, progressGate3);
         const progressGate4 = new Upgrade(
             Upgrades.PROGRESS_GATE_ID_4,
-            "Dig Progress 4",
+            "Dig progress IV",
             Upgrades.PROGRESS_GATE_DESC,
             [],
             -10
@@ -157,9 +157,12 @@ export default class Upgrades {
         // Aspis++ tree
         const betterDirt = new Upgrade(
             "better_dirt",
-            "better_dirt_tbd",
-            StringUtils.dedent(`TBD`),
-            ["+100% Aspis extracted from dirt"],
+            "Injuriosum terra",
+            StringUtils.dedent(
+                `Your researchers discover a filtering technique that splits the dirt into two
+                categories that they're calling <q>good dirt</q> and <q>bad dirt</q>.`
+            ),
+            ["+100% Aspis from dirt"],
             5,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
@@ -171,9 +174,13 @@ export default class Upgrades {
 
         const unlockGold = new Upgrade(
             "unlock_gold",
-            "gold_tbd",
-            StringUtils.dedent(`TBD`),
-            ["TBD: Your populous will now recognize and dig up gold"],
+            "Aureum somnium",
+            StringUtils.dedent(
+                `Update the orientation video for new workers to include a segment on how to
+                recognize gold, how to dig it up, how to handle it safely, and how cool it looks to
+                wear it.`
+            ),
+            ["Workers will now recognize and dig up gold"],
             10,
             () => {
                 this.unlockGold = true;
@@ -183,13 +190,13 @@ export default class Upgrades {
 
         const moreAspis1 = new Upgrade(
             "more_aspis_1",
-            "Elementum amicus",
+            "Rex lutum",
             StringUtils.dedent(
-                `Your researchers discover that being kind to the soil, caring for it, reading to it
-                at night, and other displays of love result in more of it revealing itself to you
-                during dig operations.`
+                `Your researchers improve their filtering technology, further splitting the <q>good
+                dirt</q> into <q>fine dirt</q> and <q>great dirt</q>. Additionally, this new
+                filtering process is able to extract trace amounts of gold from the dirt.`
             ),
-            ["+100% Aspis extracted from dirt", "+25% Aspis extracted from gold"],
+            ["+100% Aspis from dirt", "+25% Aspis from gold"],
             30,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
@@ -206,30 +213,51 @@ export default class Upgrades {
 
         const moreAspis2 = new Upgrade(
             "more_aspis_2",
-            "Elementum tormentis",
+            "Mala terra",
             StringUtils.dedent(
-                `Perhaps even more surprisingly, your researchers observe that treating the soil
-                cruelly is even more productive.`
+                `Advances in filtering result in splitting <q>bad dirt</q> into <q>evil dirt</q> and
+                <q>sadly misguided dirt</q>. As it turns out, there's quite a high demand for evil
+                dirt.`
             ),
-            ["+75% more Aspis extracted from dirt", "+60% more Aspis extracted from gold"],
-            675,
+            ["+75% more Aspis from dirt"],
+            300,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 1.75
-                );
-                this.aspisPer[PixelType.GOLD.name] = Math.round(
-                    this.aspisPer[PixelType.GOLD.name] * 1.6
                 );
             }
         );
         moreAspis2.addPrereq(moreAspis1);
         this.upgradeTree.set(moreAspis2.id, moreAspis2);
 
+        const moreAspis2pt5 = new Upgrade(
+            "more_aspis_2.5",
+            "Elementum amicus",
+            StringUtils.dedent(
+                `You make it clear to the workers that they aren't actually allowed to just bring
+                their favorite nuggets of gold home. They have to hand them over to The Company, no
+                matter how hard it is to say good-bye.`
+            ),
+            ["+60% more Aspis from gold"],
+            375,
+            () => {
+                this.aspisPer[PixelType.GOLD.name] = Math.round(
+                    this.aspisPer[PixelType.GOLD.name] * 1.6
+                );
+            }
+        );
+        moreAspis2pt5.addPrereq(moreAspis1);
+        this.upgradeTree.set(moreAspis2pt5.id, moreAspis2pt5);
+
         const moreAspis3 = new Upgrade(
             "more_aspis_4",
-            "Nefas directionis",
-            StringUtils.dedent(`TBD.`),
-            ["+60% more Aspis extracted from dirt", "+75% Aspis extracted from gold"],
+            "Vice versa",
+            StringUtils.dedent(
+                `Your researchers develop catchy jingles and new signage to prevent absent-minded
+                workers from continuing to put dirt in the gold depository and gold in the dirt
+                pile.`
+            ),
+            ["+60% more Aspis from dirt", "+75% Aspis from gold"],
             3000,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
@@ -245,8 +273,12 @@ export default class Upgrades {
 
         const graveDigger1 = new Upgrade(
             "grave_digger_1",
-            "Dens cadaver",
-            StringUtils.dedent(`TBD.`),
+            "Contundito cadaver",
+            StringUtils.dedent(
+                `Tombstones are a nice way to remember those that we lost during this operation.
+                Unfortunately, crushing them up is a <i>great</i> way to produce low-cost gravel
+                that can be sold for a small profit, and you've decided to take the latter route.`
+            ),
             ["Get 2 Aspis from digging up tombstones"],
             5,
             () => {
@@ -259,10 +291,7 @@ export default class Upgrades {
         const graveDigger2 = new Upgrade(
             "grave_digger_2",
             "Sepulchri furem",
-            StringUtils.dedent(
-                `Hey, let's check their pockets while we're at it. Can't believe we didn't think of
-                that first.`
-            ),
+            StringUtils.dedent(`Exhume the body and check its pockets while we're at it.`),
             ["Get 8 Aspis from digging up tombstones"],
             50,
             () => {
@@ -279,9 +308,9 @@ export default class Upgrades {
             StringUtils.dedent(
                 `A researcher with an eye for the finer things notices a bucket of brilliant
                 crystals with exceptional clarity and sparkle being tossed in the garbage at the end
-                of a shift and realizes they could probably be used for something.`
+                of a shift and realizes they could probably be used for something. Spread the word!`
             ),
-            ["Your populous will now recognize and dig up diamonds"],
+            ["Your workers will now recognize and dig up diamonds"],
             250,
             () => {
                 this.unlockDiamonds = true;
@@ -331,8 +360,11 @@ export default class Upgrades {
 
         const moreAspisDirt = new Upgrade(
             "more_aspis_dirt",
-            "more_aspis_dirt_tbd",
-            StringUtils.dedent(`TBD: Dirt propaganda.`),
+            "Venditor scientia",
+            StringUtils.dedent(
+                `Have your researchers invest in compelling marketing materials for the various
+                grades of dirt your crew is procuring.`
+            ),
             ["The value of dirt is increased by 50%"],
             1500,
             () => {
@@ -346,8 +378,11 @@ export default class Upgrades {
 
         const moreAspisGold = new Upgrade(
             "more_aspis_gold",
-            "more_aspis_gold_tbd",
-            StringUtils.dedent(`TBD: Gold propaganda.`),
+            "Ars paciscor",
+            StringUtils.dedent(
+                `Convert a section of the lab into a propaganda center to promote the benefits of
+                gold ownership, driving up demand and The Company's profits.`
+            ),
             ["The value of gold is increased by 80%"],
             1780,
             () => {
@@ -361,10 +396,10 @@ export default class Upgrades {
 
         const graveDigger3 = new Upgrade(
             "grave_digger_3",
-            "grave_digger_3_tbd",
+            "Calor et pressura",
             StringUtils.dedent(
-                `TBD: Invest in a machine that can crush a casket, body and all, into a beautiful,
-                shining diamond. Well, a diamond-looking lump, anyway.`
+                `Your researchers create a machine that can crush a casket, body and all, into a
+                beautiful, shining diamond. Well, a diamond-looking lump, anyway.`
             ),
             ["Tombstones are now worth 25% of the value of diamonds."],
             1925,
@@ -382,16 +417,21 @@ export default class Upgrades {
         const goldSeeker = new Upgrade(
             "gold_seeker",
             "Thesaurum sub pede",
-            "",
+            StringUtils.dedent(
+                `Equip your workers with boots that have metal detectors embedded in the soles.
+                There's no way around it: they're extremely uncomfortable and heavy. On the plus
+                side, the shareholders are thrilled with the results.`
+            ),
             [
                 StringUtils.dedent(
-                    `Your populous are much less likely to walk over something valuable without
+                    `Your workers are much less likely to walk over something valuable without
                     stopping to dig it up`
                 ),
             ],
             275,
             () => {
                 this.goldSeeker = true;
+                this.updateKarma(-10);
             }
         );
         goldSeeker.addPrereq(unlockDiamonds);
@@ -402,7 +442,7 @@ export default class Upgrades {
             "dig_speed_1",
             "Duplex trulla",
             StringUtils.dedent(
-                `Your researchers whisk off the sheet with some elan to reveal the results of weeks
+                `Your researchers whisk off the sheet with a flourish to reveal the results of weeks
                 of experimentation: a double-ended shovel. My god. It is beautiful.`
             ),
             ["Digging is 2x faster"],
@@ -437,7 +477,7 @@ export default class Upgrades {
                 they've gone too far this time, no?`
             ),
             ["Digging is 1.25x faster"],
-            220,
+            520,
             () => {
                 this.digSpeed *= 1.25;
             }
@@ -450,7 +490,7 @@ export default class Upgrades {
             "Nimis longe",
             StringUtils.dedent(`Two words: two shovels.`),
             ["Digging is 2x faster"],
-            900,
+            1700,
             () => {
                 this.digSpeed *= 2;
             }
@@ -461,7 +501,11 @@ export default class Upgrades {
         const digCount1 = new Upgrade(
             "dig_count_1",
             "Salutem et incolumitatem",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `The safety division of the research lab has developed a new type of <q>hardened
+                hat</q> that has been carefully designed to prevent fatal bonks, doinks, and thwacks
+                to the cranium.`
+            ),
             ["Digs before <q>retirement</q> increases by 1"],
             30,
             () => {
@@ -473,7 +517,11 @@ export default class Upgrades {
         const digCount2 = new Upgrade(
             "dig_count_2",
             "Salus et sanitas",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `The wellness division of the research lab trains the workers on a new technique
+                called <q>mindful digging</q> that results in fewer injuries and 4% higher job
+                satisfaction.`
+            ),
             ["Digs before retirement increases by 1"],
             400,
             () => {
@@ -486,7 +534,10 @@ export default class Upgrades {
         const digCount3 = new Upgrade(
             "dig_count_3",
             "Ferro pollicem tabernus",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `Equip your workers with a steel toe-cover for their boots. Toe-related deaths
+                plummet.`
+            ),
             ["Digs before retirement increases by 2"],
             2350,
             () => {
@@ -498,8 +549,12 @@ export default class Upgrades {
 
         const pop1 = new Upgrade(
             "pop_1",
-            "Opus insumptuosus",
-            StringUtils.dedent(`TBD`),
+            "Ens inferius",
+            StringUtils.dedent(
+                `The law researchers successfully lobby the government to allow you to categorize
+                some workers as <q>less-than-sentient</q> beings when your project size is below a
+                certain threshold.`
+            ),
             [
                 "The first 2 workers are now free",
                 "The cost of additional workers scales up more slowly",
@@ -514,8 +569,12 @@ export default class Upgrades {
 
         const pop2 = new Upgrade(
             "pop_2",
-            "pop_2_tbd",
-            StringUtils.dedent(`TBD`),
+            "Iocus tantum erat",
+            StringUtils.dedent(
+                `The Company's ethics commitee proclaims that it is morally acceptable to, like,
+                pick a guy and not pay him just to see if you can get away with it. However, this
+                comes with the caveat that you must say sorry if he notices.`
+            ),
             [
                 "The first 3 workers are now free",
                 "The cost of additional workers scales up more slowly",
@@ -531,8 +590,11 @@ export default class Upgrades {
 
         const pop3 = new Upgrade(
             "pop_3",
-            "pop_3_tbd",
-            StringUtils.dedent(`TBD`),
+            "Effectus geminus",
+            StringUtils.dedent(
+                `A new law is passed that allows you to classify workers that look sufficiently
+                alike as the same entity for the purposes of payroll. Squinting is allowed.`
+            ),
             [
                 "The first 5 workers are now free",
                 "The cost of additional workers scales up more slowly",
@@ -548,8 +610,12 @@ export default class Upgrades {
 
         const pop4 = new Upgrade(
             "pop_4",
-            "pop_4_tbd",
-            StringUtils.dedent(`TBD`),
+            "Participatur mercedes",
+            StringUtils.dedent(
+                `If the workers are so dead-set on getting a <q>bigger share</q> of the profits, how
+                about instead they <i>share</i> the fixed amount of money The Company is willing to
+                pay them?`
+            ),
             ["The cost of additional workers scales up more slowly"],
             3000,
             () => {
@@ -561,11 +627,11 @@ export default class Upgrades {
 
         const workerEv = new Upgrade(
             "worker_ev",
-            "worker_ev_tbd",
+            "Conductio sapiens",
             StringUtils.dedent(
                 `An accountant joins the team to help you make more informed hiring decisions.`
             ),
-            ["Adds the expected value for workers to the info box"],
+            ["Adds the expected value for workers to the UI"],
             5050,
             () => {
                 this.showWorkerEV = true;
@@ -576,7 +642,7 @@ export default class Upgrades {
 
         const deathMoney = new Upgrade(
             "death_money",
-            "death_money_tbd",
+            "Mortis solucionis",
             StringUtils.dedent(
                 `Successfully make the argument that the families of retired workers should pay The
                 Company for the loss in productivity that results from the cessation of their life
@@ -595,7 +661,7 @@ export default class Upgrades {
 
         const extraLittleGuy1 = new Upgrade(
             "extra_little_guy_1",
-            "extra_little_guy_1_tbd",
+            "Amicus laboris",
             StringUtils.dedent(
                 `The Company announces <q>Bring A Worker To Work</q> day, where workers are welcome
                 to bring an extra worker with them to work in exchange for more work.`
@@ -611,7 +677,7 @@ export default class Upgrades {
 
         const extraLittleGuy2 = new Upgrade(
             "extra_little_guy_2",
-            "extra_little_guy_2_tbd",
+            "Cultura laboris",
             StringUtils.dedent(
                 `Participation in <q>Bring A Worker To Work</q> day is actually pretty important to
                 the unique culture here at The Company.`
@@ -628,8 +694,11 @@ export default class Upgrades {
 
         const freeWorkers1 = new Upgrade(
             "free_workers_1",
-            "free_workers_1_tbd",
-            StringUtils.dedent(`TBD`),
+            "Servitus non remunerata",
+            StringUtils.dedent(
+                `Start an intern program that pays workers in experience and <i>exposure</i>.
+                Exposure to what, exactly, is not specified in the contract.`
+            ),
             ["The first 10 workers are now free"],
             6500,
             () => {
@@ -661,7 +730,11 @@ export default class Upgrades {
         const afterlife = new Upgrade(
             "afterlife",
             "Supra Vita",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `Your researchers manage to unlock two new planes of existence that workers can
+                enter after death. The first is a place of eternal bliss, and the other is a little
+                different.`
+            ),
             [
                 "Retirement no longer results in a tombstone being created",
                 "Tombstone Aspis is granted immediately upon retirement",
@@ -676,10 +749,10 @@ export default class Upgrades {
 
         const explosives1 = new Upgrade(
             "explosives_1",
-            "explosives_1_tbd",
+            "Ruptis passionis",
             StringUtils.dedent(
                 `The Company encourages its loyal followers to go out with a <q>bang</q> to
-                demonstrate their dedication to the Leader. Rewards for this dedication can be
+                demonstrate their dedication to The Leader. Rewards for this dedication can be
                 collected in the afterlife.`
             ),
             ["Gives the final dig for employees a 10% chance to result in a small explosion"],
@@ -693,8 +766,8 @@ export default class Upgrades {
 
         const explosives2 = new Upgrade(
             "explosives_2",
-            "explosives_2_tbd",
-            StringUtils.dedent(`TBD.`),
+            "Crebrae eruptiones",
+            StringUtils.dedent(`Passion and loyalty to The Company is infectious.`),
             ["Increases the explosion rate to 25%"],
             7001,
             () => {
@@ -706,7 +779,7 @@ export default class Upgrades {
 
         const explosives3 = new Upgrade(
             "explosives_3",
-            "explosives_3_tbd",
+            "Magnae eruptiones",
             StringUtils.dedent(
                 `Come on, show you really mean it. If you're going to do it, do it right.`
             ),
@@ -722,7 +795,9 @@ export default class Upgrades {
         const spawning1 = new Upgrade(
             "spawning_1",
             "Immaculata Conceptionis",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `The power of The Artifact is such that it can create life from nothing.`
+            ),
             ["New congregants begin to manifest without your intervention"],
             6678,
             () => {
@@ -735,7 +810,10 @@ export default class Upgrades {
         const spawning2 = new Upgrade(
             "spawning_2",
             "Beati Lumbi",
-            StringUtils.dedent(`TBD`),
+            StringUtils.dedent(
+                `Your researchers refine the ritual that creates new life, reducing the time it
+                takes to perform it by half.`
+            ),
             ["New believers are brought into existence twice as often"],
             3122,
             () => {
@@ -747,8 +825,11 @@ export default class Upgrades {
 
         const spawning3 = new Upgrade(
             "spawning_3",
-            "spawning_3_tbd",
-            StringUtils.dedent(`TBD`),
+            "Varia sacrificia",
+            StringUtils.dedent(
+                `Your researchers find that sacrificing a greater variety of creatures results in a
+                significant increase in output of the creation ritual.`
+            ),
             ["You are blessed with thrice as many new members joining your efforts"],
             10323,
             () => {
@@ -760,7 +841,7 @@ export default class Upgrades {
 
         const tithing1 = new Upgrade(
             "tithe_1",
-            "tithe_1_tbd",
+            "Decimae",
             StringUtils.dedent(
                 `The Leader requests some money. You get a sense that this is not the type of
                 request that can be denied.`
@@ -777,10 +858,10 @@ export default class Upgrades {
 
         const tithing2 = new Upgrade(
             "tithe_2",
-            "tithe_2_tbd",
+            "Decimam iterum",
             StringUtils.dedent(
-                `The Leader notices that your coffers are looking quite full. Surely you wouldn't
-                even notice if some of it went to a good cause.`
+                `The Leader notices that your coffers are looking quite full. It's time to give
+                again.`
             ),
             ["That's so kind of you"],
             4000,
@@ -794,9 +875,11 @@ export default class Upgrades {
 
         const tithing3 = new Upgrade(
             "tithe_3",
-            "tithe_3_tbd",
+            "Decimam in perpetuum",
             StringUtils.dedent(
-                `The Company helpfully updates its official policy on offerings: <q>Gimme that.</q>`
+                `The Company helpfully updates its official policy on offerings: <q>Gimme that.</q>
+                <br><br>
+                You feel driven to comply.`
             ),
             ["You were probably going to fritter it away anyway"],
             8000,
@@ -810,7 +893,7 @@ export default class Upgrades {
 
         const digSpeed5 = new Upgrade(
             "dig_speed_5",
-            "dig_speed_5_tbd",
+            "Augmentum conatus",
             StringUtils.dedent(
                 `Love for The Leader is at an all time high, motivating followers to strain mightily
                 against the soil to prove their worthiness.`
@@ -827,10 +910,10 @@ export default class Upgrades {
 
         const serpent = new Upgrade(
             "serpent",
-            "serpent_tbd",
+            "A serpente proditus",
             StringUtils.dedent(
                 `A tome with a cover consisting of a gilded snake twisted around a depiction of The
-                Artifact was discovered conspicously placed on the desk of one of the researchers.
+                Artifact was discovered conspicously placed on the desk of one of your researchers.
                 They claim to have no knowledge of how it arrived there.
                 <br><br>
                 The book almost certainly contains Forbidden Knowledge, which you vaguely remember
@@ -850,8 +933,12 @@ export default class Upgrades {
         const eggHandling = new Upgrade(
             "egg_handling",
             "egg_handling_tbd",
-            StringUtils.dedent(`TBD`),
-            ["Allows workers to exist near the Egg."],
+            StringUtils.dedent(
+                `All those who lay their hand upon the tome are drawn to The Egg. They feel a great
+                sense of comfort standing upon it, which is quite a stark contrast to those that
+                burst into flames instead.`
+            ),
+            ["Allows workers to exist near The Egg."],
             191,
             () => {
                 this.eggHandling = true;

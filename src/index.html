@@ -4,13 +4,24 @@
         <meta name="viewport" content="width=device-width" />
         <link rel="icon" href="assets/favicon.ico" />
         <title>Little Dig Game</title>
-        <style>
-            .hidden {
-                display: none !important;
-            }
-        </style>
+
+        <noscript>
+            <style>
+                body {
+                    visibility: visible !important;
+                }
+                #header,
+                #game {
+                    display: none;
+                }
+            </style>
+        </noscript>
     </head>
-    <body>
+    <body style="visibility: hidden">
+        <!-- Firefox hack for dealing with FOUC -->
+        <script>
+            0;
+        </script>
         <div id="header">
             <div>
                 <button id="new_game">New Game</button>
@@ -59,6 +70,10 @@
             <div id="title_container">
                 <h1 class="boundFromTop">Little Dig Game</h1>
             </div>
+
+            <noscript>
+                <span>My apologies, but you need Javascript enabled to play this game.</span>
+            </noscript>
 
             <img src="assets/banner.png" />
         </div>

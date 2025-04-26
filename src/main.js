@@ -41,6 +41,8 @@ function initialize() {
     if (window.DEBUG) {
         initDebug();
     }
+
+    document.body.style.visibility = "visible";
 }
 
 function initSettings() {

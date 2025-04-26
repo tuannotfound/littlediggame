@@ -11,6 +11,10 @@
     font-size: 1.1rem;
 }
 
+.hidden {
+    display: none !important;
+}
+
 h1 {
     font-size: 1.75rem;
 }
@@ -124,8 +128,7 @@ input[type="checkbox"] {
 
 @keyframes bounceFromTop {
     from {
-        font-size: 5rem;
-        transform: translateY(-100%);
+        transform: scale(200%) translateY(-100%);
         filter: blur(20px);
         opacity: 0;
     }

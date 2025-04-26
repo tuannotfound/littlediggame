@@ -203,7 +203,7 @@ function initDebug() {
             bot.stop();
         } else {
             if (!game) {
-                newGameBtn.click();
+                document.getElementById("new_game").click();
             }
             bot = new Bot(game);
             bot.start();

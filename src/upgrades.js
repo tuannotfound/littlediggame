@@ -231,7 +231,7 @@ export default class Upgrades {
         this.upgradeTree.set(moreAspis2.id, moreAspis2);
 
         const moreAspis2pt5 = new Upgrade(
-            "more_aspis_2.5",
+            "more_aspis_2pt5",
             "Elementum amicus",
             StringUtils.dedent(
                 `You make it clear to the workers that they aren't actually allowed to just bring
@@ -751,9 +751,8 @@ export default class Upgrades {
             "explosives_1",
             "Ruptis passionis",
             StringUtils.dedent(
-                `The Company encourages its loyal followers to go out with a <q>bang</q> to
-                demonstrate their dedication to The Leader. Rewards for this dedication can be
-                collected in the afterlife.`
+                `The Artifact allows The Company's most loyal servents to concentrate and violently
+                disperse their remaining life force during their passage to another plane.`
             ),
             ["Gives the final dig for employees a 10% chance to result in a small explosion"],
             4421,
@@ -781,7 +780,10 @@ export default class Upgrades {
             "explosives_3",
             "Magnae eruptiones",
             StringUtils.dedent(
-                `Come on, show you really mean it. If you're going to do it, do it right.`
+                `A researcher disappears into the artifact for three days. When she returns, she is
+                in a trance-like state, muttering a chant ad infinitum. After some testing, it is
+                discovered that this chant, when performed just prior to death, magnifies the energ
+                of ones crossing.`
             ),
             ["Doubles the size of the explosion."],
             7001,
@@ -794,11 +796,11 @@ export default class Upgrades {
 
         const spawning1 = new Upgrade(
             "spawning_1",
-            "Immaculata Conceptionis",
+            "Immaculata conceptionis",
             StringUtils.dedent(
                 `The power of The Artifact is such that it can create life from nothing.`
             ),
-            ["New congregants begin to manifest without your intervention"],
+            ["New workers begin to manifest without your intervention"],
             6678,
             () => {
                 this.conceptionIntervalMs = 8000;
@@ -809,7 +811,7 @@ export default class Upgrades {
 
         const spawning2 = new Upgrade(
             "spawning_2",
-            "Beati Lumbi",
+            "Beati lumbi",
             StringUtils.dedent(
                 `Your researchers refine the ritual that creates new life, reducing the time it
                 takes to perform it by half.`
@@ -830,7 +832,7 @@ export default class Upgrades {
                 `Your researchers find that sacrificing a greater variety of creatures results in a
                 significant increase in output of the creation ritual.`
             ),
-            ["You are blessed with thrice as many new members joining your efforts"],
+            ["You are blessed with thrice as many new congregants joining your efforts"],
             10323,
             () => {
                 this.conceptionIntervalMs = Math.round(this.conceptionIntervalMs * 0.3);
@@ -843,7 +845,7 @@ export default class Upgrades {
             "tithe_1",
             "Decimae",
             StringUtils.dedent(
-                `The Leader requests some money. You get a sense that this is not the type of
+                `The Leader requests some Aspis. You get a sense that this is not the type of
                 request that can be denied.`
             ),
             ["The feeling of having done something good for the Leader is reward enough, no?"],
@@ -950,7 +952,7 @@ export default class Upgrades {
 
         const digSpeed6 = new Upgrade(
             "dig_speed_6",
-            "dig_speed_6_tbd",
+            "Ritus violentus",
             StringUtils.dedent(
                 `The Book of the Serpent contains a ritual that grants beings an incredible passion
                 for destruction. You integrate it into the morning routine for your team.`
@@ -967,7 +969,7 @@ export default class Upgrades {
 
         const digSpeed7 = new Upgrade(
             "dig_speed_7",
-            "dig_speed_7_tbd",
+            "Suus simplex res",
             StringUtils.dedent(`You also add stretching and a light jog to the morning routine.`),
             ["Digging is 1.1x faster"],
             6,
@@ -981,8 +983,11 @@ export default class Upgrades {
 
         const shields = new Upgrade(
             Upgrades.SHIELDS_ID,
-            "shields_tbd",
-            StringUtils.dedent(`TBD`),
+            "Anguis scutum",
+            StringUtils.dedent(
+                `Your researchers pitch into the war effort by developing a personel shield that
+                can briefly protect workers from The Serpent's wrath.`
+            ),
             ["Unlocks the Shield ability"],
             25000,
             () => {
@@ -994,8 +999,11 @@ export default class Upgrades {
 
         const finalPush = new Upgrade(
             "final_push",
-            "final_push_tbd",
-            StringUtils.dedent(`Throw all you've got at it for the final push.`),
+            "Impetus finalis",
+            StringUtils.dedent(
+                `Throw all you've got at it for the final push to defeat The Serpent and save The
+                Company.`
+            ),
             [
                 "Digging is 1.5x faster",
                 "New followers are manifested 1.35x more frequently",

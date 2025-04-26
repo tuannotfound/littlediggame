@@ -53,12 +53,12 @@ export default class UpgradesUi {
     }
 
     createButtons() {
-        let rootUpgrades = this.getRootUpgrades();
+        const rootUpgrades = this.getRootUpgrades();
         let row = 1;
         for (const upgrade of rootUpgrades) {
             upgrade.unlock();
             this.createButtonsFromRoot(upgrade, row);
-            let column = parseInt(
+            const column = parseInt(
                 this.buttonMap.get(upgrade.id).parentElement.style.gridColumn,
                 10
             );
@@ -88,11 +88,11 @@ export default class UpgradesUi {
                 if (this.buttonMap.has(downstreamUpgrade.id)) {
                     // We've already added this via some other pre-req, but now we need to update
                     // its position to better average out between its pre-reqs.
-                    let rows = this.rowTrackMap.get(downstreamUpgrade.id);
+                    const rows = this.rowTrackMap.get(downstreamUpgrade.id);
                     rows.push(row);
-                    let newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
-                    let button = this.buttonMap.get(downstreamUpgrade.id);
-                    let prevRow = button.parentElement.style.gridRow;
+                    const newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
+                    const button = this.buttonMap.get(downstreamUpgrade.id);
+                    const prevRow = button.parentElement.style.gridRow;
                     console.log(
                         downstreamUpgrade.id +
                             " moving from row " +
@@ -126,7 +126,7 @@ export default class UpgradesUi {
         // We'll move from column to column, left to right, skipping over the first column
         // (no-prereqs).
         // First, map out the columns:
-        let columnMap = new Map();
+        const columnMap = new Map();
         let maxColumn = 0;
         for (const [upgradeId, button] of this.buttonMap.entries()) {
             const column = parseInt(button.parentElement.style.gridColumn, 10) - 1;
@@ -210,10 +210,10 @@ export default class UpgradesUi {
 
     createLines() {
         for (const upgrade of this.upgrades.upgradeTree.values()) {
-            let button = this.buttonMap.get(upgrade.id);
+            const button = this.buttonMap.get(upgrade.id);
             for (const prereqId of upgrade.prereqs.keys()) {
-                let prereqButton = this.buttonMap.get(prereqId);
-                let line = new LinkerLine({
+                const prereqButton = this.buttonMap.get(prereqId);
+                const line = new LinkerLine({
                     parent: this.container,
                     // This allows Panzoom + LinkerLine to co-exist in a weird way, but the
                     // framerate really suffers.
@@ -263,17 +263,17 @@ export default class UpgradesUi {
     onHidden() {}
 
     handleUnlock(upgrade) {
-        let button = this.buttonMap.get(upgrade.id);
+        const button = this.buttonMap.get(upgrade.id);
         if (upgrade.purchasable) {
             button.removeAttribute("disabled");
         }
-        let upgradeDetailsEl = document.querySelector(
+        const upgradeDetailsEl = document.querySelector(
             "button#" + upgrade.id + " > div.upgrade_details"
         );
         // This does not play nicely with Panzoom. Needs to take into account the current scale?
         upgradeDetailsEl.style.height = this.getTotalHeightOfChildren(upgradeDetailsEl) + "px";
         console.log(upgrade.id + " details height: " + upgradeDetailsEl.style.height);
-        let obscuredDetailsEl = document.querySelector(
+        const obscuredDetailsEl = document.querySelector(
             "button#" + upgrade.id + " > div.obscured_details"
         );
         obscuredDetailsEl.style.height = "0px";
@@ -294,7 +294,7 @@ export default class UpgradesUi {
     }
 
     handlePurchase(upgrade) {
-        let button = this.buttonMap.get(upgrade.id);
+        const button = this.buttonMap.get(upgrade.id);
         button.setAttribute("disabled", true);
         button.classList.remove("cannot_afford");
         button.classList.add("purchased");
@@ -303,11 +303,11 @@ export default class UpgradesUi {
     }
 
     handleUpgradeButtonClick(e) {
-        let id = e.currentTarget.id;
+        const id = e.currentTarget.id;
         if (!this.upgrades.upgradeTree.has(id)) {
             return;
         }
-        let upgrade = this.upgrades.upgradeTree.get(id);
+        const upgrade = this.upgrades.upgradeTree.get(id);
         if (upgrade.purchased) {
             console.warn("Attempted to purchase " + upgrade.id + " more than once");
             return;
@@ -321,11 +321,11 @@ export default class UpgradesUi {
         if (upgrade.purchased) {
             // Grey out all of the lines leading up to this upgrade
             for (const preReqId of upgrade.prereqs.keys()) {
-                let line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
+                const line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
                 line.setOptions({ color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(), dash: false });
             }
             for (const downstreamId of upgrade.downstream.keys()) {
-                let line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
+                const line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
                 line.setOptions({
                     color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
                     dash: false,
@@ -333,16 +333,16 @@ export default class UpgradesUi {
             }
         } else if (upgrade.unlocked) {
             // Update all of the lines leading up to this upgrade based on whether it can be afforded
-            let canAfford = this.getCurrentAspisFunc() >= upgrade.cost;
-            let lineColor = canAfford
+            const canAfford = this.getCurrentAspisFunc() >= upgrade.cost;
+            const lineColor = canAfford
                 ? UpgradesUi.LINE_COLOR_CAN_AFFORD.asCssString()
                 : UpgradesUi.LINE_COLOR_CANNOT_AFFORD.asCssString();
             for (const preReqId of upgrade.prereqs.keys()) {
-                let line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
+                const line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
                 line.setOptions({ color: lineColor, dash: false });
             }
             for (const downstreamId of upgrade.downstream.keys()) {
-                let line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
+                const line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
                 line.setOptions({
                     color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
                     dash: true,
@@ -374,7 +374,7 @@ export default class UpgradesUi {
     }
 
     createUpgradeButton(upgrade, row) {
-        let costClass = upgrade.purchasable ? "cost" : "cost hidden";
+        const costClass = upgrade.purchasable ? "cost" : "cost hidden";
         let buttonInnerHtml = `<div class='upgrade_title'>
                                  <strong>${upgrade.title}</strong>
                                  <span class='${costClass}'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
@@ -395,7 +395,7 @@ export default class UpgradesUi {
                               <span>???</span>
                             </div>`;
 
-        let button = document.createElement("button");
+        const button = document.createElement("button");
         button.classList.add("upgrade");
         button.innerHTML = buttonInnerHtml;
         button.id = upgrade.id;
@@ -426,14 +426,14 @@ export default class UpgradesUi {
             this.maybeUpdateLines();
         });
 
-        let column = upgrade.getMaxDepth() + 1;
+        const column = upgrade.getMaxDepth() + 1;
         this.getGridDiv(row, column).appendChild(button);
         this.rowTrackMap.set(upgrade.id, [row]);
         return button;
     }
 
     getGridDiv(row, column) {
-        let gridKey = row + "x" + column;
+        const gridKey = row + "x" + column;
         if (!this.gridMap.has(gridKey)) {
             let gridDiv = document.createElement("div");
             gridDiv.style.gridRow = row;
@@ -445,7 +445,7 @@ export default class UpgradesUi {
     }
 
     maybeUpdateLines() {
-        let now = performance.now();
+        const now = performance.now();
         if (now - this.lastLineUpdate > UpgradesUi.LINE_UPDATE_INTERVAL_MS) {
             this.lastLineUpdate = now;
             LinkerLine.positionAll();

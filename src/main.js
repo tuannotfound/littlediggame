@@ -58,7 +58,6 @@ function initSettings() {
     window.addEventListener("click", function (event) {
         if (!settingsButton.contains(event.target) && !settingsDropdown.contains(event.target)) {
             settingsDropdown.classList.add("hidden");
-            event.stopPropagation();
         }
     });
 

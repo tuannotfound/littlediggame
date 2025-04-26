@@ -69,8 +69,6 @@ export default class Game {
             this.pixelBodies = pixelBodies;
         }
         this.activePixelBodyPosition = new Vector();
-        // Maps elements => listener functions.
-        this.clickListenerMap = new Map();
         // Sets 'this' width, height, zoom, and bounds.
         this.onResize(windowWidth, windowHeight);
 
@@ -259,19 +257,9 @@ export default class Game {
         }, 1000);
     }
 
-    addClickEventListener(element, func) {
-        if (this.clickListenerMap.has(element)) {
-            if (this.clickListenerMap.get(element) == func) {
-                return;
-            }
-        }
-        element.addEventListener("click", func);
-        this.clickListenerMap.set(element, func);
-    }
-
     initUi() {
         let saveGameBtn = document.getElementById("save_game");
-        this.addClickEventListener(saveGameBtn, () => {
+        saveGameBtn.addEventListener("click", () => {
             console.log("Saving...");
             if (this.gameState === GameState.RUNNING) {
                 this.stats.updateRuntime();
@@ -283,7 +271,7 @@ export default class Game {
 
         // ----- START Debug buttons -----
         let nextPixelBodyBtn = document.getElementById("next_pixel_body");
-        this.addClickEventListener(nextPixelBodyBtn, () => {
+        nextPixelBodyBtn.addEventListener("click", () => {
             this.goToNextPixelBody();
         });
         let bloodBtn = document.getElementById("blood");
@@ -292,7 +280,7 @@ export default class Game {
             console.log("Blood: " + bloodBtn.checked);
         });
         let pauseBtn = document.getElementById("pause_resume");
-        this.addClickEventListener(pauseBtn, () => {
+        pauseBtn.addEventListener("click", () => {
             document.getElementById("pause_icon").classList.toggle("hidden");
             document.getElementById("play_icon").classList.toggle("hidden");
             document.getElementById("pause_scrim").classList.toggle("hidden");
@@ -303,7 +291,7 @@ export default class Game {
             let pow = i + 1;
             let val = 10 ** pow;
             let plusBtn = document.getElementById("plus_" + val);
-            this.addClickEventListener(plusBtn, () => {
+            plusBtn.addEventListener("click", () => {
                 this.aspis += val;
                 this.updateAspis();
             });
@@ -312,7 +300,7 @@ export default class Game {
 
         let upgradesContainer = document.getElementById("upgrades_container");
         let showUpgradesBtn = document.getElementById("show_upgrades");
-        this.addClickEventListener(showUpgradesBtn, () => {
+        showUpgradesBtn.addEventListener("click", () => {
             console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
             showUpgradesBtn.classList.add("hidden");
@@ -320,7 +308,7 @@ export default class Game {
             Dialogs.pause();
         });
         let hideUpgradesBtn = document.getElementById("hide_upgrades");
-        this.addClickEventListener(hideUpgradesBtn, () => {
+        hideUpgradesBtn.addEventListener("click", () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
             this.upgradesUi.onHidden();
@@ -341,7 +329,7 @@ export default class Game {
         this.shieldCostElement = document.getElementById("shield_cost");
         this.shieldCostContainerElement = this.shieldCostElement.parentElement;
         const shieldButtonEl = document.getElementById("shield");
-        this.addClickEventListener(shieldButtonEl, () => {
+        shieldButtonEl.addEventListener("click", () => {
             if (GameState.isPaused(this.gameState)) {
                 return;
             }
@@ -378,7 +366,7 @@ export default class Game {
     }
 
     initHandlers() {
-        this.addClickEventListener(this.containerElement, this.handleMouseEvent.bind(this), {
+        this.containerElement.addEventListener("click", this.handleMouseEvent.bind(this), {
             passive: true,
         });
     }
@@ -1246,25 +1234,6 @@ export default class Game {
             this.shieldCooldownButton.pauseCooldown();
         }
         this.maybeSave();
-    }
-
-    destroy() {
-        // No real need for any of this ever since removing the new/load game buttons when the game
-        // is started.
-        this.setPaused(true);
-        Dialogs.clearAll();
-        let hideUpgradesBtn = document.getElementById("hide_upgrades");
-        if (!hideUpgradesBtn.classList.contains("hidden")) {
-            hideUpgradesBtn.click();
-        }
-        this.layer.destroy();
-        this.upgradesUi.destroy();
-        for (const [element, listener] of this.clickListenerMap) {
-            element.removeEventListener("click", listener);
-        }
-        if (window.DEBUG) {
-            document.body.removeChild(this.perfStats.dom);
-        }
     }
 
     tick(newtime) {

@@ -1153,7 +1153,7 @@ export default class Game {
         Story.instance.maybeForemansSonDead();
         if (this.upgrades.afterlife) {
             if (littleGuy.saintly) {
-                this.upgrades.updateKarma(1);
+                this.upgrades.updateKarma(1 / 3);
             } else {
                 this.upgrades.updateKarma(-1);
             }

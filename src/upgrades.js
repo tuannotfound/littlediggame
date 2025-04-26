@@ -217,10 +217,10 @@ export default class Upgrades {
             StringUtils.dedent(
                 `Advances in filtering result in splitting <q>bad dirt</q> into <q>evil dirt</q> and
                 <q>sadly misguided dirt</q>. As it turns out, there's quite a high demand for evil
-                dirt.`
+                dirt for some reason.`
             ),
             ["+75% more Aspis from dirt"],
-            300,
+            195,
             () => {
                 this.aspisPer[PixelType.DIRT.name] = Math.round(
                     this.aspisPer[PixelType.DIRT.name] * 1.75
@@ -293,7 +293,7 @@ export default class Upgrades {
             "Sepulchri furem",
             StringUtils.dedent(`Exhume the body and check its pockets while we're at it.`),
             ["Get 8 Aspis from digging up tombstones"],
-            50,
+            490,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = 8;
                 this.updateKarma(-10);
@@ -599,7 +599,7 @@ export default class Upgrades {
                 "The first 5 workers are now free",
                 "The cost of additional workers scales up more slowly",
             ],
-            1550,
+            1050,
             () => {
                 this.freeWorkerCount = 4;
                 this.populationPowerScale = 1.7;

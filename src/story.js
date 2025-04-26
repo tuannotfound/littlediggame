@@ -70,7 +70,8 @@ export default class Story {
         this.maybeSonDeadCount = 0;
         this.sonDead = false;
         this.researchIntroduced = false;
-        this.halfwayReached = false;
+        this.maybeFirstPlanet1 = false;
+        this.maybeFirstPlanet2 = false;
         this.firstDiamond = false;
         this.foremanDead = false;
         this.magicRevealed = false;
@@ -192,14 +193,40 @@ export default class Story {
         );
     }
 
-    maybeHalfway(health) {
-        if (this.halfwayReached) {
+    maybeFirstPlanet1(health) {
+        if (this.maybeFirstPlanet1) {
+            return;
+        }
+        if (health > 0.68) {
+            return;
+        }
+        this.maybeFirstPlanet1 = true;
+        Dialogs.show(
+            Story.SERPENT_NAME,
+            `Ssssssssssssssssssssssss.`,
+            Story.SERPENT_AVATAR_PATH,
+            0.25,
+            () => {},
+            () => {
+                setTimeout(() => {
+                    Dialogs.show(
+                        Story.FOREMAN_NAME,
+                        `Did you hear that? I didn't think there was anyone else here.`,
+                        this.foremanAvatarPath
+                    );
+                }, 500);
+            }
+        );
+    }
+
+    maybeFirstPlanet2(health) {
+        if (this.maybeFirstPlanet2) {
             return;
         }
         if (health > 0.5) {
             return;
         }
-        this.halfwayReached = true;
+        this.maybeFirstPlanet2 = true;
         Dialogs.show(
             Story.FOREMAN_NAME,
             `The bad news is we've had a 100% workplace mortality rate, but the good news is we're
@@ -268,7 +295,7 @@ export default class Story {
         if (this.foremanDead) {
             return;
         }
-        if (health > 0.15) {
+        if (health > 0.3) {
             return;
         }
         this.foremanDead = true;
@@ -286,7 +313,7 @@ export default class Story {
                         Story.SERPENT_NAME,
                         `Ssssssssssssssssssssssss.`,
                         Story.SERPENT_AVATAR_PATH,
-                        0.5,
+                        0.25,
 
                         () => {},
                         () => {
@@ -436,7 +463,7 @@ export default class Story {
         if (this.eggPlanet2) {
             return;
         }
-        if (health > 0.5) {
+        if (health > 0.6) {
             return;
         }
         this.eggPlanet2 = true;
@@ -453,12 +480,28 @@ export default class Story {
         if (this.eggPlanet3) {
             return;
         }
+        if (health > 0.45) {
+            return;
+        }
+        this.eggPlanet3 = true;
+
+        Dialogs.show(
+            Story.COMPANY_COMMUNICATION_NAME,
+            `Your refusal to follow orders has been escalated. Dig operations must halt.`,
+            Story.COMPANY_COMMUNICATION_AVATAR_PATH
+        );
+    }
+
+    maybeEggPlanet4(health) {
+        if (this.eggPlanet4) {
+            return;
+        }
         if (health > 0.25) {
             return;
         }
         this.serpentName = Story.SERPENT_PARTIAL_DISGUISE_NAME;
         this.serpentAvatarPath = Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH;
-        this.eggPlanet3 = true;
+        this.eggPlanet4 = true;
         Dialogs.show(this.serpentName, `The great conssstriction is nigh.`, this.serpentAvatarPath);
         Dialogs.show(
             this.researcherName,
@@ -468,40 +511,26 @@ export default class Story {
         );
     }
 
-    maybeEggPlanet4(health) {
-        if (this.eggPlanet4) {
-            return;
-        }
-        if (health > 0.35) {
-            return;
-        }
-        this.eggPlanet4 = true;
-
-        Dialogs.show(
-            Story.COMPANY_COMMUNICATION_NAME,
-            `Your refusal to follow orders has been escalated. Dig operations must halt.`,
-            Story.COMPANY_COMMUNICATION_AVATAR_PATH
-        );
-    }
-
-    maybeEggReveal1(reveal) {
+    maybeEggReveal1(reveal, onShownCallback) {
         if (this.eggReveal1) {
-            return false;
+            return;
         }
         if (reveal < 0.3) {
-            return false;
+            return;
         }
         if (!this.eggPlanet2) {
-            return false;
+            return;
         }
         this.eggReveal1 = true;
         Dialogs.show(
             this.serpentName,
             `YES. The crew is vibrating with thirssst for the earth. Dig! Dig faster! More!`,
             Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
-            6
+            6,
+            () => {
+                onShownCallback();
+            }
         );
-        return true;
     }
 
     maybeEggReveal2(reveal) {

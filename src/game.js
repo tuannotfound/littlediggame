@@ -45,7 +45,7 @@ export default class Game {
     FINAL_LEVEL_DURATION_MINUTES = 3;
     MAX_LITTLE_GUYS = 200;
     SHIELD_DURATION_MS = 1000 * 3;
-    SHIELD_COST_PER_LITTLE_GUY = 911;
+    SHIELD_COST_PER_LITTLE_GUY = 302;
 
     constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
         this.width = 0;
@@ -121,6 +121,11 @@ export default class Game {
         this.shieldCostElement = null;
         this.shieldCostContainerElement = null;
         this.shieldCooldownButton = null;
+
+        this.eggRevealCallback = () => {
+            this.sky.setColors(body.altSkyColors, Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2);
+            Audio.instance.playOminousWind();
+        };
 
         this.bloodDiamondEffectShown = false;
 
@@ -613,7 +618,8 @@ export default class Game {
         let body = this.activePixelBody;
         if (body) {
             if (body.className == CircularPlanet.name) {
-                Story.instance.maybeHalfway(body.health);
+                Story.instance.maybeFirstPlanet1(body.health);
+                Story.instance.maybeFirstPlanet2(body.health);
             } else if (body.className == SwissPlanet.name) {
                 Story.instance.maybeSwissPlanet1(body.health);
             } else if (body.className == SpikyPlanet.name) {
@@ -624,13 +630,7 @@ export default class Game {
                 Story.instance.maybeEggPlanet3(body.health);
                 Story.instance.maybeEggPlanet4(body.health);
                 Story.instance.maybeEggPlanet5(body.health);
-                if (Story.instance.maybeEggReveal1(body.eggReveal)) {
-                    this.sky.setColors(
-                        body.altSkyColors,
-                        Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2
-                    );
-                    Audio.instance.playOminousWind();
-                }
+                Story.instance.maybeEggReveal1(body.eggReveal, this.eggRevealCallback);
                 Story.instance.maybeEggReveal2(body.eggReveal);
 
                 if (body.eggReveal > 0 && body.isOnlyEggRemaining()) {
@@ -680,6 +680,9 @@ export default class Game {
         Audio.instance.playShield();
 
         for (const littleGuy of this.littleGuys) {
+            if (!littleGuy.alive || !littleGuy.active) {
+                continue;
+            }
             littleGuy.shielded = true;
         }
 
@@ -781,18 +784,25 @@ export default class Game {
     }
 
     updateHealth() {
-        let body = this.activePixelBody;
-        if (!body) {
+        if (GameState.isOver(this.gameState)) {
             return;
         }
-        if (body.health <= 0) {
-            if (!this.goToNextPixelBody()) {
-                this.endGame(true);
-                return;
-            }
+        let body = this.activePixelBody;
+        let health = 0;
+
+        if (body && body.health <= 0) {
+            // Attempt to go to the next pixel body.
+            this.goToNextPixelBody();
             body = this.activePixelBody;
         }
-        this.healthElement.innerHTML = (100 * body.health).toFixed(1);
+
+        if (body) {
+            health = body.health;
+        } else {
+            this.endGame(true);
+        }
+
+        this.healthElement.innerHTML = (100 * health).toFixed(1);
     }
 
     goToNextPixelBody() {
@@ -833,6 +843,7 @@ export default class Game {
             // Hide the legend
             document.getElementById("legend").classList.add("hidden");
             document.getElementById("info_container").classList.add("dark");
+            Audio.instance.playOminousSting();
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.
@@ -1061,7 +1072,8 @@ export default class Game {
 
         // Piggy back on this to also update the shield cost.
         if (this.upgrades.shieldsUnlocked) {
-            this.shieldCost = this.littleGuys.length * this.SHIELD_COST_PER_LITTLE_GUY;
+            const aliveCount = this.littleGuys.filter((lg) => lg.active && lg.alive).length;
+            this.shieldCost = aliveCount * this.SHIELD_COST_PER_LITTLE_GUY;
             if (this.shieldCost == 0) {
                 this.shieldCooldownButton.buttonEl.disabled = true;
             } else if (!this.shieldCooldownButton.isCooldownInProgress) {

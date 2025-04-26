@@ -60,9 +60,11 @@ export default class Audio {
         });
         this.ominousWindSfx = new Howl({
             src: [Audio.SFX_PREFIX + "wind.wav"],
+            volume: 1.0,
         });
         this.ominousStingSfx = new Howl({
             src: [Audio.SFX_PREFIX + "horror.wav"],
+            volume: 1.0,
         });
         this.shieldSfx = new Howl({
             src: [Audio.SFX_PREFIX + "shield.ogg"],

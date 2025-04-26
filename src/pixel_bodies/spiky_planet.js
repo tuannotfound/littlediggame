@@ -34,7 +34,7 @@ export default class SpikyPlanet extends CircularPlanet {
 
     emplaceMagic() {
         // Put a single magic pixel near the center of the planet.
-        let magicRadius = Math.round(this.radius * 0.25);
+        let magicRadius = Math.round(this.radius * 0.35);
         let magicTheta = Math.random() * 2 * Math.PI;
         const coords = new Vector(
             magicRadius * Math.cos(magicTheta),

@@ -782,7 +782,7 @@ export default class Upgrades {
             StringUtils.dedent(
                 `A researcher disappears into the artifact for three days. When she returns, she is
                 in a trance-like state, muttering a chant ad infinitum. After some testing, it is
-                discovered that this chant, when performed just prior to death, magnifies the energ
+                discovered that this chant, when performed just prior to death, magnifies the energy
                 of ones crossing.`
             ),
             ["Doubles the size of the explosion."],

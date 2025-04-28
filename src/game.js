@@ -125,6 +125,10 @@ export default class Game {
         this.shieldCooldownButton = null;
 
         this.eggRevealCallback = () => {
+            const body = this.activePixelBody;
+            if (!body) {
+                return;
+            }
             this.sky.setColors(body.altSkyColors, Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2);
             Audio.instance.playOminousWind();
         };

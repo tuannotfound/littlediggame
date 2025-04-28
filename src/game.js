@@ -36,6 +36,7 @@ export default class Game {
     MAX_WIDTH = 1200;
     MIN_HEIGHT = 300;
     MAX_HEIGHT = 900;
+    WINDOW_SIZE_BUFFER = new Vector(30, 40);
     MIN_SAVE_INTERVAL_MS = 5000;
     AUTO_SAVE_INTERVAL_MS = 30000;
     TARGET_FPS = 60;
@@ -412,9 +413,13 @@ export default class Game {
         let styles = window.getComputedStyle(header);
         let headerMargin = parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
         let headerHeight = header.offsetHeight + headerMargin;
-        let newWidth = MathExtras.clamp(windowWidth - 30, this.MIN_WIDTH, this.MAX_WIDTH);
+        let newWidth = MathExtras.clamp(
+            windowWidth - this.WINDOW_SIZE_BUFFER.x,
+            this.MIN_WIDTH,
+            this.MAX_WIDTH
+        );
         let newHeight = MathExtras.clamp(
-            windowHeight - headerHeight - 30,
+            windowHeight - headerHeight - this.WINDOW_SIZE_BUFFER.y,
             this.MIN_HEIGHT,
             this.MAX_HEIGHT
         );

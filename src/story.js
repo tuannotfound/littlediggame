@@ -70,8 +70,8 @@ export default class Story {
         this.maybeSonDeadCount = 0;
         this.sonDead = false;
         this.researchIntroduced = false;
-        this.maybeFirstPlanet1 = false;
-        this.maybeFirstPlanet2 = false;
+        this.firstPlanet1 = false;
+        this.firstPlanet2 = false;
         this.firstDiamond = false;
         this.foremanDead = false;
         this.magicRevealed = false;
@@ -194,13 +194,13 @@ export default class Story {
     }
 
     maybeFirstPlanet1(health) {
-        if (this.maybeFirstPlanet1) {
+        if (this.firstPlanet1) {
             return;
         }
         if (health > 0.68) {
             return;
         }
-        this.maybeFirstPlanet1 = true;
+        this.firstPlanet1 = true;
         Dialogs.show(
             Story.SERPENT_NAME,
             `Ssssssssssssssssssssssss.`,
@@ -220,13 +220,13 @@ export default class Story {
     }
 
     maybeFirstPlanet2(health) {
-        if (this.maybeFirstPlanet2) {
+        if (this.firstPlanet2) {
             return;
         }
         if (health > 0.5) {
             return;
         }
-        this.maybeFirstPlanet2 = true;
+        this.firstPlanet2 = true;
         Dialogs.show(
             Story.FOREMAN_NAME,
             `The bad news is we've had a 100% workplace mortality rate, but the good news is we're

@@ -185,7 +185,7 @@ input[type="checkbox"] {
     z-index: 1;
     display: grid;
     grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
 }
 
 #info_container {
@@ -229,7 +229,7 @@ input[type="checkbox"] {
 
 #shield {
     grid-row: 2;
-    grid-column: 3;
+    grid-column: 2;
     justify-self: right;
     align-self: end;
     cursor: pointer;

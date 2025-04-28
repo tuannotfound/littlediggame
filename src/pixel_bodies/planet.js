@@ -8,6 +8,7 @@ import Color from "../color.js";
 export default class Planet extends PixelBody {
     static SKY_TOP = new Color(237, 253, 255).immutableCopy();
     static SKY_BOTTOM = new Color(185, 230, 250).immutableCopy();
+    static MIN_DARKNESS_UPDATE_INTERVAL_MS = 500;
 
     constructor(width, height) {
         if (new.target === Planet) {
@@ -18,6 +19,8 @@ export default class Planet extends PixelBody {
         // For optimizations
         this.oneOverRadius = 1 / this.radius;
         this.oneOverRadiusSquared = this.oneOverRadius * this.oneOverRadius;
+
+        this.lastDarknessUpdate = 0;
     }
 
     toJSON() {
@@ -34,21 +37,22 @@ export default class Planet extends PixelBody {
     }
 
     updateSurface() {
-        let surfacePixelCountBefore = this.surfacePixels.length;
         super.updateSurface();
-        if (surfacePixelCountBefore != this.surfacePixels.length) {
+        const now = performance.now();
+        if (now - this.lastDarknessUpdate > Planet.MIN_DARKNESS_UPDATE_INTERVAL_MS) {
+            this.lastDarknessUpdate = now;
             this.updateDarkness();
         }
     }
 
     updateDarkness() {
         for (const pixel of this.pixels) {
-            let nearestSurfacePixel = this.getClosestSurfacePixel(pixel.position);
+            const nearestSurfacePixel = this.getClosestSurfacePixel(pixel.position);
             if (!nearestSurfacePixel) {
                 pixel.darkness = 0;
                 continue;
             }
-            let distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
+            const distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
             // Original calculation:
             // pixel.darkness = 1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2;
             // Optimized to use pre-computed values and reduce division:

@@ -24,7 +24,7 @@ export default class UpgradesUi {
         this.rowTrackMap = new Map();
         this.linesMap = new Map();
         this.lastLineUpdate = 0;
-        this.layoutComplete = false;
+        this.showing = false;
         this.onPurchaseAttemptFunc = null;
         this.upgradeListener = {
             onPurchased: (upgrade) => {
@@ -246,7 +246,7 @@ export default class UpgradesUi {
     }
 
     onShown() {
-        //if (!this.layoutComplete) {
+        this.showing = true;
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             if (upgrade.unlocked) {
                 this.handleUnlock(upgrade);
@@ -256,11 +256,11 @@ export default class UpgradesUi {
             }
         }
         LinkerLine.positionAll();
-        this.layoutComplete = true;
-        //}
     }
 
-    onHidden() {}
+    onHidden() {
+        this.showing = false;
+    }
 
     handleUnlock(upgrade) {
         const button = this.buttonMap.get(upgrade.id);
@@ -278,7 +278,7 @@ export default class UpgradesUi {
         );
         obscuredDetailsEl.style.height = "0px";
         LinkerLine.positionAll();
-        this.updateLines(upgrade);
+        this.updateLineStyles(upgrade);
     }
 
     getTotalHeightOfChildren(el) {
@@ -299,7 +299,7 @@ export default class UpgradesUi {
         button.classList.remove("cannot_afford");
         button.classList.add("purchased");
         LinkerLine.positionAll();
-        this.updateLines(upgrade);
+        this.updateLineStyles(upgrade);
     }
 
     handleUpgradeButtonClick(e) {
@@ -317,15 +317,21 @@ export default class UpgradesUi {
         }
     }
 
-    updateLines(upgrade) {
+    updateLineStyles(upgrade) {
         if (upgrade.purchased) {
             // Grey out all of the lines leading up to this upgrade
             for (const preReqId of upgrade.prereqs.keys()) {
                 const line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
                 line.setOptions({ color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(), dash: false });
             }
+            // Testing: don't do this - the downstream upgrades will update these lines
             for (const downstreamId of upgrade.downstream.keys()) {
+                if (this.upgrades.upgradeTree.get(downstreamId).unlocked) {
+                    // Unlocked upgrades will update their own lines below.
+                    continue;
+                }
                 const line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
+                // This is expensive - it causes the browser to recalculate the style.
                 line.setOptions({
                     color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
                     dash: false,
@@ -352,11 +358,14 @@ export default class UpgradesUi {
     }
 
     onAspisChanged(aspis) {
+        if (!this.showing) {
+            return;
+        }
         for (const [id, button] of this.buttonMap) {
             if (!this.upgrades.upgradeTree.has(id)) {
                 continue;
             }
-            let upgrade = this.upgrades.upgradeTree.get(id);
+            const upgrade = this.upgrades.upgradeTree.get(id);
             if (!upgrade.unlocked) {
                 continue;
             }
@@ -364,7 +373,7 @@ export default class UpgradesUi {
                 button.classList.remove("cannot_afford");
                 continue;
             }
-            this.updateLines(upgrade);
+            this.updateLineStyles(upgrade);
             if (upgrade.cost > aspis) {
                 button.classList.add("cannot_afford");
             } else {
@@ -412,18 +421,18 @@ export default class UpgradesUi {
                 if (!transitionActive) {
                     return;
                 }
-                this.maybeUpdateLines();
+                this.maybeUpdateLinePositions();
                 requestAnimationFrame(animate.bind(this));
             }
             requestAnimationFrame(animate.bind(this));
         });
         button.addEventListener("transitionend", () => {
             transitionActive = false;
-            this.maybeUpdateLines();
+            this.maybeUpdateLinePositions();
         });
         button.addEventListener("transitioncancel", () => {
             transitionActive = false;
-            this.maybeUpdateLines();
+            this.maybeUpdateLinePositions();
         });
 
         const column = upgrade.getMaxDepth() + 1;
@@ -444,7 +453,7 @@ export default class UpgradesUi {
         return this.gridMap.get(gridKey);
     }
 
-    maybeUpdateLines() {
+    maybeUpdateLinePositions() {
         const now = performance.now();
         if (now - this.lastLineUpdate > UpgradesUi.LINE_UPDATE_INTERVAL_MS) {
             this.lastLineUpdate = now;

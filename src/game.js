@@ -110,6 +110,7 @@ export default class Game {
         this.knowsEggDeath = false;
         this.knowsDirt = false;
         this.aspis = 0;
+        this.aspisNeedsUpdate = true;
         this.aspisElement = null;
         this.upgradesAspisElement = null;
         this.healthElement = null;
@@ -299,7 +300,7 @@ export default class Game {
             let plusBtn = document.getElementById("plus_" + val);
             plusBtn.addEventListener("click", () => {
                 this.aspis += val;
-                this.updateAspis();
+                this.aspisNeedsUpdate = true;
             });
         }
         // ----- END Debug buttons -----
@@ -327,7 +328,7 @@ export default class Game {
 
         this.aspisElement = document.getElementById("aspis");
         this.upgradesAspisElement = document.getElementById("upgrades_aspis");
-        this.updateAspis();
+        this.aspisNeedsUpdate = true;
 
         this.healthElement = document.getElementById("health");
         this.updateHealth();
@@ -591,7 +592,7 @@ export default class Game {
 
         this.aspis += totalValue;
         if (totalValue > 0) {
-            this.updateAspis();
+            this.aspisNeedsUpdate = true;
         }
         const avgPosition = positionsSum.div(pixels.length);
         avgPosition.round();
@@ -680,7 +681,7 @@ export default class Game {
         }
         this.stopNotEnoughAspisAnimation([this.shieldCostContainerElement]);
         this.aspis -= this.shieldCost;
-        this.updateAspis();
+        this.aspisNeedsUpdate = true;
         this.shieldActive = true;
         Audio.instance.playShield();
 
@@ -722,7 +723,7 @@ export default class Game {
         upgrade.purchase();
         this.aspis -= upgrade.cost;
         if (upgrade.cost > 0) {
-            this.updateAspis();
+            this.aspisNeedsUpdate = true;
         }
         this.updateSpawnCost();
         this.updateDigsPerDeath();
@@ -1053,7 +1054,7 @@ export default class Game {
         if (!immaculate) {
             this.aspis -= this.spawnCost;
             if (this.spawnCost > 0) {
-                this.updateAspis();
+                this.aspisNeedsUpdate = true;
             }
             if (Math.random() < this.upgrades.extraLittleGuyChance) {
                 const randomSurfacePixel = this.activePixelBody.getRandomSurfacePixel();
@@ -1175,11 +1176,11 @@ export default class Game {
                 this.upgrades.updateKarma(-1);
             }
             this.aspis += this.upgrades.aspisPer[PixelType.TOMBSTONE.name];
-            this.updateAspis();
+            this.aspisNeedsUpdate = true;
         }
         if (this.upgrades.aspisOnDeathAsEvRate > 0) {
             this.aspis += Math.round(this.workerEv * this.upgrades.aspisOnDeathAsEvRate);
-            this.updateAspis();
+            this.aspisNeedsUpdate = true;
         }
         if (littleGuy.deathByEgg) {
             this.knowsEggDeath = true;
@@ -1304,6 +1305,14 @@ export default class Game {
             this.notifyResize();
             this.updateActivePixelBodyPosition();
         }
+
+        // Only update the aspis once per frame at most, otherwise it gets too expensive.
+        // Multiple aspis changes can happen in a single frame (e.g. death + dig).
+        if (this.aspisNeedsUpdate) {
+            this.updateAspis();
+            this.aspisNeedsUpdate = false;
+        }
+
         this.maybeAutoSpawn();
 
         this.sky.update();

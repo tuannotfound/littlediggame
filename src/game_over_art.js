@@ -13,7 +13,7 @@ export default class GameOverArt {
 
     constructor() {
         this.artPath = null;
-        this.layer = new Layer(GameOverArt.name, GameOverArt.SIZE_PX, GameOverArt.SIZE_PX);
+        this.layer = new Layer(GameOverArt.name);
         this.opacity = 0;
         this.initialized = false;
         this.image = new Image();
@@ -23,7 +23,7 @@ export default class GameOverArt {
     initialize(won, initializedCallback) {
         this.won = won;
         this.artPath = won ? GameOverArt.WON_PATH : GameOverArt.LOST_PATH;
-        this.layer.initOffscreen();
+        this.layer.initOffscreen(GameOverArt.SIZE_PX, GameOverArt.SIZE_PX);
         this.layer.getContext().globalAlpha = this.opacity;
         this.image.src = this.artPath;
         this.image.onload = () => {

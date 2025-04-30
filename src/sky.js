@@ -12,7 +12,7 @@ export default class Sky {
 
     constructor() {
         this.size = new Vector();
-        this.layer = new Layer(this.constructor.name, this.width, this.height);
+        this.layer = new Layer(this.constructor.name);
         this.colors = null;
         this.prevColors = null;
         this.bandCount = 0;
@@ -34,7 +34,7 @@ export default class Sky {
     }
 
     init() {
-        this.layer.initOffscreen();
+        this.layer.initOffscreen(this.size.x, this.size.y);
         this.updateRenderData();
     }
 

@@ -9,7 +9,7 @@ import CircularPlanet from "./pixel_bodies/circular_planet.js";
 import SwissPlanet from "./pixel_bodies/swiss_planet.js";
 import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
 import EggPlanet from "./pixel_bodies/egg_planet.js";
-import LittleGuy from "./little_guy.js";
+import LittleGuys from "./little_guys.js";
 import Upgrades from "./upgrades.js";
 import MathExtras from "./math_extras.js";
 import SaveLoad from "./save_load.js";
@@ -48,7 +48,7 @@ export default class Game {
     SHIELD_DURATION_MS = 1000 * 3;
     SHIELD_COST_PER_LITTLE_GUY = 302;
 
-    constructor(windowWidth, windowHeight, pixelBodies, upgrades) {
+    constructor(pixelBodies, upgrades, littleGuys) {
         this.width = 0;
         this.height = 0;
         this.zoomLevel = 1;
@@ -58,7 +58,7 @@ export default class Game {
         this.bounds = new Vector();
         this.layer = null;
         this.sky = new Sky();
-        this.upgrades = upgrades ? upgrades : new Upgrades();
+        this.upgrades = upgrades ?? new Upgrades();
         if (pixelBodies == null) {
             this.pixelBodies = [];
             this.pixelBodies.push(new CircularPlanet(7));
@@ -70,8 +70,6 @@ export default class Game {
             this.pixelBodies = pixelBodies;
         }
         this.activePixelBodyPosition = new Vector();
-        // Sets 'this' width, height, zoom, and bounds.
-        this.onResize(windowWidth, windowHeight);
 
         // Unset or derived from ctor args
         this.now = 0;
@@ -83,10 +81,10 @@ export default class Game {
         // Created during init()
         this.containerElement = null;
 
-        this.littleGuys = [];
-        this.littleGuyListener = {
+        this.littleGuys = littleGuys ?? new LittleGuys();
+        this.littleGuys.addListener({
             onDigsComplete: (pixels) => {
-                this.onDigsComplete(pixels);
+                this.handleDigsComplete(pixels);
             },
             onDeath: (littleGuy) => {
                 this.handleDeath(littleGuy);
@@ -94,13 +92,10 @@ export default class Game {
             onInactive: (littleGuy) => {
                 this.handleInactive(littleGuy);
             },
-        };
+        });
         this.spawningAllowed = true;
 
-        this.particles = new Particles(
-            this.layer.width / this.zoomLevel,
-            this.layer.height / this.zoomLevel
-        );
+        this.particles = new Particles();
         this.hourglass = new Hourglass(27, 70, this.FINAL_LEVEL_DURATION_MINUTES * 60);
         this.hourglassPosition = new Vector();
 
@@ -191,26 +186,13 @@ export default class Game {
                 console.error("Unknown pixel body type: " + pixelBodyJson.className);
             }
         }
-        let game = new Game(window.innerWidth, window.innerHeight, pixelBodies, upgrades);
+        const littleGuys = LittleGuys.fromJSON(
+            json.littleGuys,
+            pixelBodies.length > 0 ? pixelBodies[0] : null,
+            upgrades
+        );
+        const game = new Game(pixelBodies, upgrades, littleGuys);
 
-        if (game.activePixelBody) {
-            for (let littleGuyJson of json.littleGuys) {
-                let pixelBeingDug = null;
-                if (littleGuyJson.pixelBeingDug) {
-                    let pixelBeingDugPosition = Vector.fromJSON(
-                        littleGuyJson.pixelBeingDug.position
-                    );
-                    pixelBeingDug = game.activePixelBody.getPixel(pixelBeingDugPosition);
-                }
-                let littleGuy = LittleGuy.fromJSON(
-                    littleGuyJson,
-                    game.activePixelBody,
-                    upgrades,
-                    pixelBeingDug
-                );
-                game.littleGuys.push(littleGuy);
-            }
-        }
         game.spawningAllowed = json.spawningAllowed;
         game.aspis = json.aspis;
         game.knowsDeath = json.knowsDeath;
@@ -225,10 +207,9 @@ export default class Game {
         return game;
     }
 
-    init(containerElement) {
+    init(windowWidth, windowHeight, containerElement) {
         console.log("Initializing game");
         this.containerElement = containerElement;
-        this.layer.initOnscreen(containerElement);
         this.upgradesUi.init(
             document.getElementById("upgrades"),
             this.upgrades,
@@ -238,26 +219,21 @@ export default class Game {
             },
             () => this.aspis
         );
-        this.notifyResize();
         this.updateActivePixelBodyPosition();
         if (this.activePixelBody) {
             this.activePixelBody.init(this.upgrades);
             this.sky.setColors(this.activePixelBody.skyColors);
         }
         this.sky.init();
+        this.onResize(windowWidth, windowHeight, containerElement);
         console.log(
             "Main canvas bounds: " + new Vector(this.layer.width, this.layer.height).toString()
         );
 
-        for (const littleGuy of this.littleGuys) {
-            littleGuy.init();
-            littleGuy.addListener(this.littleGuyListener);
-        }
-
-        this.particles.init();
+        this.littleGuys.init(this.layer.width / this.zoomLevel, this.layer.height / this.zoomLevel);
+        this.particles.init(this.layer.width / this.zoomLevel, this.layer.height / this.zoomLevel);
 
         this.initUi();
-        this.initMainClickHandler();
 
         this.gameState = GameState.PAUSED;
         this.setPaused(false);
@@ -389,11 +365,11 @@ export default class Game {
         let objectBufferPct = 0;
         let minZoomLevel = 5;
         let roundingFunc = Math.round;
-        if (pixelBody) {
+        if (pixelBody?.layer.initialized) {
             objectWidth = pixelBody.layer.width;
             objectHeight = pixelBody.layer.height;
             objectBufferPct = pixelBody.renderBufferPct;
-        } else if (this.gameOverArt.initialized) {
+        } else if (this.gameOverArt?.initialized) {
             objectWidth = GameOverArt.SIZE_PX;
             objectHeight = GameOverArt.SIZE_PX;
             objectBufferPct = 0;
@@ -413,11 +389,11 @@ export default class Game {
         return newZoomLevel;
     }
 
-    onResize(windowWidth, windowHeight) {
-        let header = document.getElementById("header");
-        let styles = window.getComputedStyle(header);
-        let headerMargin = parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
-        let headerHeight = header.offsetHeight + headerMargin;
+    onResize(windowWidth, windowHeight, containerElement) {
+        const header = document.getElementById("header");
+        const styles = window.getComputedStyle(header);
+        const headerMargin = parseFloat(styles["marginTop"]) + parseFloat(styles["marginBottom"]);
+        const headerHeight = header.offsetHeight + headerMargin;
         let newWidth = MathExtras.clamp(
             windowWidth - this.WINDOW_SIZE_BUFFER.x,
             this.MIN_WIDTH,
@@ -428,7 +404,7 @@ export default class Game {
             this.MIN_HEIGHT,
             this.MAX_HEIGHT
         );
-        let newZoomLevel = this.calculateZoomLevel(newWidth, newHeight);
+        const newZoomLevel = this.calculateZoomLevel(newWidth, newHeight);
         // Round down to the nearest zoom level to ensure the canvas is always a multiple of the
         // zoom level and thus the pixels are always square.
         newWidth = MathExtras.floorToNearest(newZoomLevel, newWidth);
@@ -455,17 +431,14 @@ export default class Game {
         this.zoomLevelDst = newZoomLevel;
 
         // Create a new layer because resizing a canvas makes it blurry.
-        let oldLayer = this.layer;
-        this.layer = new Layer("game", this.width, this.height);
-        if (oldLayer) {
-            if (oldLayer.container) {
-                this.layer.initOnscreen(oldLayer.container);
-                // Make sure we add the click handler back to the game layer, otherwise... the game
-                // is completely broken after the first resize.
-                this.initMainClickHandler();
-            }
-            oldLayer.destroy();
+        if (this.layer) {
+            this.layer.destroy();
         }
+        this.layer = new Layer("game");
+        this.layer.initOnscreen(this.width, this.height, containerElement);
+        // Make sure we add the click handler back to the game layer, otherwise... the game
+        // is completely broken after the first resize.
+        this.initMainClickHandler();
         this.notifyResize();
         this.updateActivePixelBodyPosition();
         if (GameState.isPaused(this.gameState) || GameState.isOver(this.gameState)) {
@@ -514,7 +487,7 @@ export default class Game {
 
     updateActivePixelBodyPosition() {
         let activePixelBody = this.activePixelBody;
-        if (!activePixelBody) {
+        if (!activePixelBody || !activePixelBody.layer.initialized) {
             return;
         }
         this.activePixelBodyPosition.set(
@@ -561,7 +534,7 @@ export default class Game {
         }
     }
 
-    onDigsComplete(pixels) {
+    handleDigsComplete(pixels) {
         if (pixels.length == 0) {
             return;
         }
@@ -692,12 +665,7 @@ export default class Game {
         this.shieldActive = true;
         Audio.instance.playShield();
 
-        for (const littleGuy of this.littleGuys) {
-            if (!littleGuy.alive || !littleGuy.active) {
-                continue;
-            }
-            littleGuy.shielded = true;
-        }
+        this.littleGuys.onShieldActivated();
 
         this.shieldCooldownButton.startCooldown();
     }
@@ -708,9 +676,7 @@ export default class Game {
         }
         this.shieldActive = false;
 
-        for (const littleGuy of this.littleGuys) {
-            littleGuy.shielded = false;
-        }
+        this.littleGuys.onShieldDeactivated();
     }
 
     onUpgradePurchased(upgrade, button) {
@@ -748,8 +714,10 @@ export default class Game {
         if (this.upgrades.bloodDiamonds && !this.bloodDiamondEffectShown) {
             this.bloodDiamondEffectShown = true;
             if (this.littleGuys.length > 0) {
-                const victim = this.littleGuys[0];
-                victim.die();
+                const victim = this.littleGuys.get(0);
+                if (victim) {
+                    victim.die();
+                }
                 this.bloodyAround(this.pixelBodyToParticleSpace(victim.positionInPixelBodySpace));
             } else if (this.activePixelBody) {
                 const surfacePixel = this.activePixelBody.getRandomSurfacePixel();
@@ -823,17 +791,7 @@ export default class Game {
         if (previousPixelBody) {
             previousPixelBody.destroy();
         }
-        for (const littleGuy of [...this.littleGuys]) {
-            littleGuy.setInactive();
-        }
-        if (this.littleGuys.length > 0) {
-            console.error(
-                "Somehow there are still little guys after the pixel body has been destroyed."
-            );
-            this.stats.recordDeaths(this.littleGuys.length);
-            // Hopefully this won't cause problems...
-            this.littleGuys = [];
-        }
+        this.littleGuys.clear();
         if (this.pixelBodies.length == 0 || this.activePixelBody == null) {
             return false;
         }
@@ -905,9 +863,7 @@ export default class Game {
         this.spawningAllowed = false;
         // Kill all little guys
         this.blood = true;
-        for (const littleGuy of this.littleGuys) {
-            setTimeout(() => littleGuy.die(), MathExtras.randomBetween(0, 2000));
-        }
+        this.littleGuys.killAll(2000);
     }
 
     onSerpentLoose() {
@@ -917,14 +873,15 @@ export default class Game {
     }
 
     endGame(won) {
+        this.spawningAllowed = false;
         this.stats.updateRuntime();
         Story.instance.onGameOver(won, () => {
-            let showUpgradesBtn = document.getElementById("show_upgrades");
+            const showUpgradesBtn = document.getElementById("show_upgrades");
             showUpgradesBtn.classList.add("hidden");
-            let infoContainer = document.getElementById("info_container");
+            const infoContainer = document.getElementById("info_container");
             infoContainer.classList.add("hidden");
             this.shieldCooldownButton.buttonEl.classList.add("hidden");
-            let pauseBtn = document.getElementById("pause_resume");
+            const pauseBtn = document.getElementById("pause_resume");
             pauseBtn.setAttribute("disabled", "");
             this.showGameOverScreen(won);
         });
@@ -1051,10 +1008,12 @@ export default class Game {
         if (!this.activePixelBody) {
             return;
         }
-        let littleGuy = new LittleGuy(this.activePixelBody, position, this.upgrades, immaculate);
-        littleGuy.addListener(this.littleGuyListener);
-        littleGuy.init();
-        this.littleGuys.push(littleGuy);
+        const littleGuy = this.littleGuys.spawn(
+            this.activePixelBody,
+            position,
+            this.upgrades,
+            immaculate
+        );
         if (this.shieldActive) {
             littleGuy.shielded = true;
         }
@@ -1076,17 +1035,17 @@ export default class Game {
     }
 
     updateSpawnCost() {
-        // Maculate is the opposite of immaculate. Everybody knows this.
-        let maculateCount = this.littleGuys.filter((lg) => !lg.immaculate).length;
-        maculateCount = Math.max(0, maculateCount + 1 - this.upgrades.freeWorkerCount);
-        this.spawnCost = Math.floor(maculateCount ** this.upgrades.populationPowerScale);
+        const paidForCount = Math.max(
+            0,
+            this.littleGuys.maculateCount + 1 - this.upgrades.freeWorkerCount
+        );
+        this.spawnCost = Math.floor(paidForCount ** this.upgrades.populationPowerScale);
         this.spawnCostElement.innerHTML = this.spawnCost;
         this.littleGuyCountElement.innerHTML = this.littleGuys.length;
 
         // Piggy back on this to also update the shield cost.
         if (this.upgrades.shieldsUnlocked) {
-            const aliveCount = this.littleGuys.filter((lg) => lg.active && lg.alive).length;
-            this.shieldCost = aliveCount * this.SHIELD_COST_PER_LITTLE_GUY;
+            this.shieldCost = this.littleGuys.aliveCount * this.SHIELD_COST_PER_LITTLE_GUY;
             if (this.shieldCost == 0) {
                 this.shieldCooldownButton.buttonEl.disabled = true;
             } else if (!this.shieldCooldownButton.isCooldownInProgress) {
@@ -1210,9 +1169,8 @@ export default class Game {
         }
     }
 
-    handleInactive(littleGuy) {
+    handleInactive() {
         this.stats.recordDeath();
-        this.littleGuys.splice(this.littleGuys.indexOf(littleGuy), 1);
         this.updateSpawnCost();
     }
 
@@ -1332,9 +1290,7 @@ export default class Game {
             this.activePixelBody.update(elapsedMs);
         }
 
-        for (const littleGuy of this.littleGuys) {
-            littleGuy.update();
-        }
+        this.littleGuys.update();
 
         if (this.gameOverArt.initialized) {
             this.gameOverArt.update();
@@ -1395,26 +1351,50 @@ export default class Game {
                 pixelBody.layer.height * this.zoomLevel // destination height
             );
         }
-        for (const littleGuy of this.littleGuys) {
-            if (!littleGuy.active || !littleGuy.layer?.initialized) {
-                continue;
-            }
+        if (this.littleGuys.initialized) {
+            // WIP: Trying to figure this out.
+            let foo = this.activePixelBodyPosition.copy();
+            foo.set(
+                MathExtras.floorToNearest(this.zoomLevel, foo.x),
+                MathExtras.floorToNearest(this.zoomLevel, foo.y)
+            );
+            foo.div(this.zoomLevel);
+            foo.sub(1);
+            this.littleGuys.updateRenderData(foo);
             this.layer.getContext().drawImage(
-                littleGuy.layer.canvas,
+                this.littleGuys.layer.canvas,
                 0, // source x
                 0, // source y
-                littleGuy.layer.width, // source width
-                littleGuy.layer.height, // source height
-                this.activePixelBodyPosition.x +
-                    (Math.round(littleGuy.positionInPixelBodySpace.x) - littleGuy.center.x) *
-                        this.zoomLevel, // destination x
-                this.activePixelBodyPosition.y +
-                    (Math.round(littleGuy.positionInPixelBodySpace.y) - littleGuy.center.y) *
-                        this.zoomLevel, // destination y
-                littleGuy.layer.width * this.zoomLevel, // destination width
-                littleGuy.layer.height * this.zoomLevel // destination height
+                this.littleGuys.layer.width, // source width
+                this.littleGuys.layer.height, // source height
+                // The littleGuys layer shares the same size as the main canvas, so no need to
+                // translate.
+                0, // destination x
+                0, // destination y
+                this.littleGuys.layer.width * this.zoomLevel, // destination width
+                this.littleGuys.layer.height * this.zoomLevel // destination height
             );
         }
+        // for (const littleGuy of this.littleGuys) {
+        //     if (!littleGuy.active || !littleGuy.layer?.initialized) {
+        //         continue;
+        //     }
+        //     this.layer.getContext().drawImage(
+        //         littleGuy.layer.canvas,
+        //         0, // source x
+        //         0, // source y
+        //         littleGuy.layer.width, // source width
+        //         littleGuy.layer.height, // source height
+        //         this.activePixelBodyPosition.x +
+        //             (Math.round(littleGuy.positionInPixelBodySpace.x) - littleGuy.center.x) *
+        //                 this.zoomLevel, // destination x
+        //         this.activePixelBodyPosition.y +
+        //             (Math.round(littleGuy.positionInPixelBodySpace.y) - littleGuy.center.y) *
+        //                 this.zoomLevel, // destination y
+        //         littleGuy.layer.width * this.zoomLevel, // destination width
+        //         littleGuy.layer.height * this.zoomLevel // destination height
+        //     );
+        // }
         if (this.gameOverArt.layer?.initialized) {
             this.layer.getContext().drawImage(
                 this.gameOverArt.layer.canvas,

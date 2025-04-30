@@ -11,20 +11,16 @@ import MathExtras from "./math_extras.js";
 import { default as PixelConstants } from "./diggables/constants.js";
 
 export default class Particles {
-    constructor(width, height) {
-        this.width = width;
-        this.height = height;
+    constructor() {
         this.particles = [];
-        this.layer = new Layer("particles", this.width, this.height);
+        this.layer = new Layer("particles");
     }
 
-    init() {
-        this.layer.initOffscreen();
+    init(width, height) {
+        this.layer.initOffscreen(width, height);
     }
 
     onResize(newSize) {
-        this.width = newSize.width;
-        this.height = newSize.height;
         this.layer.onResize(newSize);
     }
 

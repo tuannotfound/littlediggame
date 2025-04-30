@@ -19,9 +19,8 @@ export default class PixelBody {
         this.width = width;
         this.height = height;
         this.allowOverlap = allowOverlap;
-        this.layer = new Layer(this.className, width, height);
-        console.log("PixelBody layer size: " + this.layer.width + "x" + this.layer.height + "px");
-        this.center = new Vector(this.layer.width / 2, this.layer.height / 2);
+        this.layer = new Layer(this.className);
+        this.center = new Vector(this.width / 2, this.height / 2);
         this.pixels = [];
         // Pixel.position.toString() -> [Pixel]
         // Will only contain a single pixel in the array if overlap is not allowed.
@@ -43,11 +42,8 @@ export default class PixelBody {
     }
 
     init(upgrades) {
-        console.log(
-            this.className + " init - size = " + this.layer.width + "x" + this.layer.height + "px"
-        );
         this.upgrades = upgrades;
-        this.layer.initOffscreen();
+        this.layer.initOffscreen(this.width, this.height);
 
         Pixel.setDirtType(this.dirtVariant);
         if (this.pixels.length == 0) {

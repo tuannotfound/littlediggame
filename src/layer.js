@@ -3,30 +3,28 @@
 // See LICENSE file in the project root for full license information.
 
 export default class Layer {
-    constructor(name, width, height) {
+    constructor(name) {
         this.name = name;
         this.container = null;
-        this.width = width;
-        this.height = height;
         this.canvas = null;
         this.initialized = false;
     }
 
-    initCommon() {
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+    initCommon(width, height) {
+        this.canvas.width = width;
+        this.canvas.height = height;
         this.canvas.getContext("2d").imageSmoothingEnabled = false;
     }
 
-    initOffscreen() {
-        this.canvas = new OffscreenCanvas(this.width, this.height);
-        this.initCommon();
+    initOffscreen(width, height) {
+        this.canvas = new OffscreenCanvas(width, height);
+        this.initCommon(width, height);
         this.initialized = true;
     }
 
-    initOnscreen(container) {
+    initOnscreen(width, height, container) {
         this.canvas = document.createElement("canvas");
-        this.initCommon();
+        this.initCommon(width, height);
         this.canvas.id = "layer_" + this.name;
 
         this.canvas.onselectstart = function () {
@@ -38,15 +36,13 @@ export default class Layer {
         this.initialized = true;
     }
 
-    onResize(newBounds) {
+    onResize(newSize) {
         this.destroy();
-        this.width = newBounds.x;
-        this.height = newBounds.y;
         if (this.initialized) {
             if (this.container) {
-                this.initOnscreen(this.container);
+                this.initOnscreen(newSize.x, newSize.y, this.container);
             } else {
-                this.initOffscreen();
+                this.initOffscreen(newSize.x, newSize.y);
             }
         }
     }
@@ -60,5 +56,13 @@ export default class Layer {
             this.container.removeChild(this.canvas);
         }
         this.canvas = null;
+    }
+
+    get width() {
+        return this.canvas.width;
+    }
+
+    get height() {
+        return this.canvas.height;
     }
 }

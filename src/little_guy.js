@@ -60,7 +60,7 @@ export default class LittleGuy {
         let headColorIndex = Math.floor(Math.random() * LittleGuy.HEAD_COLORS.length);
         this.headColor = Color.wiggle(LittleGuy.HEAD_COLORS[headColorIndex], 5);
 
-        this.layer = new Layer("little_guy", 3, 3);
+        this.layer = new Layer("little_guy");
         this.center = new Vector(1, 1);
         this.previousPositions = [];
         this.previousDirection = 0;
@@ -146,7 +146,7 @@ export default class LittleGuy {
     }
 
     init() {
-        this.layer.initOffscreen();
+        this.layer.initOffscreen(3, 3);
 
         this.addPreviousPosition(this.positionInPixelBodySpace);
 
@@ -247,9 +247,12 @@ export default class LittleGuy {
         return LittleGuy.DEFAULT_BODY_COLOR;
     }
 
+    get shielded() {
+        return this.#shielded;
+    }
+
     set shielded(value) {
         this.#shielded = value;
-        this.updateRenderData();
     }
 
     shouldRenderDigPose() {
@@ -265,50 +268,6 @@ export default class LittleGuy {
 
     getAscensionAlpha() {
         return ((100 - this.ascentionProgressPct) * 255) / 100;
-    }
-
-    updateRenderData() {
-        if (!this.layer.initialized) {
-            return;
-        }
-        const imageData = this.layer
-            .getContext()
-            .createImageData(this.layer.width, this.layer.height);
-
-        if (this.#shielded || window.DEBUG_MODE) {
-            const color = this.#shielded
-                ? LittleGuy.SHIELDED_OUTLINE_COLOR
-                : LittleGuy.DEBUG_OUTLINE_COLOR;
-            for (let x = 0; x < this.layer.width; x++) {
-                for (let y = 0; y < this.layer.height; y++) {
-                    const i = (x + y * imageData.width) * 4;
-                    imageData.data[i] = color.r; // Red
-                    imageData.data[i + 1] = color.g; // Green
-                    imageData.data[i + 2] = color.b; // Blue
-                    imageData.data[i + 3] = color.a; // Alpha
-                }
-            }
-        }
-
-        const bodyPosition = new Vector(1, 1);
-        const bodyIndex = (bodyPosition.x + bodyPosition.y * imageData.width) * 4;
-        const bodyColor = this.getBodyColor();
-        imageData.data[bodyIndex] = bodyColor.r; // Red
-        imageData.data[bodyIndex + 1] = bodyColor.g; // Green
-        imageData.data[bodyIndex + 2] = bodyColor.b; // Blue
-        imageData.data[bodyIndex + 3] = bodyColor.a; // Alpha
-
-        const headPosition = bodyPosition.copy();
-        headPosition.add(this.orientation);
-        const headIndex = (headPosition.x + headPosition.y * imageData.width) * 4;
-        const headColor = this.getHeadColor();
-        if (headColor) {
-            imageData.data[headIndex] = headColor.r; // Red
-            imageData.data[headIndex + 1] = headColor.g; // Green
-            imageData.data[headIndex + 2] = headColor.b; // Blue
-            imageData.data[headIndex + 3] = headColor.a; // Alpha
-        }
-        this.layer.getContext().putImageData(imageData, 0, 0);
     }
 
     angleToOrientation(angle) {
@@ -381,7 +340,6 @@ export default class LittleGuy {
                 }
                 // Found a valid orientation, no need to keep looking.
                 this.orientation = orientation;
-                this.updateRenderData();
                 return;
             }
         }
@@ -413,7 +371,6 @@ export default class LittleGuy {
             } else {
                 this.bury();
             }
-            this.updateRenderData();
             return;
         }
         this.framesSinceLastMove++;
@@ -446,20 +403,12 @@ export default class LittleGuy {
         }
 
         // Update our position to match the pixel we're standing on, in case it moved.
-        let prevOrientation = this.orientation.copy();
-        let prevPosition = this.position.copy();
         this.updateOrientation();
         this.positionInPixelBodySpace = Vector.add(
             this.closestSurfacePixel.position,
             this.orientation
         );
         this.position = this.toLocalSpace(this.positionInPixelBodySpace);
-        if (
-            !Vector.equals(prevOrientation, this.orientation) ||
-            !Vector.equals(prevPosition, this.position)
-        ) {
-            this.updateRenderData();
-        }
 
         let forcedToDig = false;
         if (this.upgrades.goldSeeker) {
@@ -551,7 +500,6 @@ export default class LittleGuy {
             this.digging = false;
             return;
         }
-        this.updateRenderData();
     }
 
     finishDigging() {
@@ -574,7 +522,6 @@ export default class LittleGuy {
         if (this.digsRemaining <= 0) {
             this.die();
         }
-        this.updateRenderData();
     }
 
     die() {
@@ -630,7 +577,6 @@ export default class LittleGuy {
         // Reset our movement history since we just made some kind of leap.
         this.framesSinceLastMove = 0;
         this.previousPositions = [];
-        this.updateRenderData();
     }
 
     dig() {
@@ -646,7 +592,6 @@ export default class LittleGuy {
             if (this.pixelBeingDug == null) {
                 // Just give up. Who cares? Whatever. Not me.
                 this.digging = false;
-                this.updateRenderData();
                 return;
             }
         }
@@ -655,11 +600,7 @@ export default class LittleGuy {
             this.pixelBeingDug.damage(this.upgrades.digSpeed * LittleGuy.ASSUMED_FPS);
             didDamage = true;
         }
-        let wasRenderingDigPose = this.shouldRenderDigPose();
         this.diggingFrames++;
-        if (wasRenderingDigPose != this.shouldRenderDigPose()) {
-            this.updateRenderData();
-        }
 
         if (this.pixelBeingDug.getHealth() <= 0) {
             this.finishDigging();
@@ -959,7 +900,6 @@ export default class LittleGuy {
         this.addPreviousPosition(this.positionInPixelBodySpace);
         this.closestSurfacePixel = this.findPixelToStandOn();
         this.updateOrientation();
-        this.updateRenderData();
         this.framesSinceLastMove = 0;
         Audio.instance.playWalk();
     }

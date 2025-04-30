@@ -123,7 +123,7 @@ export default class Hourglass {
         this.size.round(); // Just in case.
         this.durationSeconds = durationSeconds;
         this.elapsedSeconds = elapsedSeconds;
-        this.layer = new Layer("hourglass", width, height);
+        this.layer = new Layer("hourglass");
 
         this.center = new Vector(width / 2, height / 2);
         this.center.floor();
@@ -155,7 +155,7 @@ export default class Hourglass {
     }
 
     init(timesUpCallback) {
-        this.layer.initOffscreen();
+        this.layer.initOffscreen(this.size.x, this.size.y);
         this.generateDecoration();
         this.generateGlass();
         this.generateSand();

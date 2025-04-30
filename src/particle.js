@@ -15,7 +15,7 @@ export default class Particle {
 
         this.lastUpdateTimeMs = 0;
 
-        let velocity = initialVelocity ? initialVelocity : new Vector(0, 0);
+        let velocity = initialVelocity ?? new Vector(0, 0);
         this.oldPosition = position.copy();
         this.oldPosition.sub(velocity);
         this.oldRenderPosition = this.renderPosition.copy();
@@ -27,7 +27,7 @@ export default class Particle {
 
         this.renderCount = 0;
 
-        this.gravity = gravity ? gravity : new Vector(0, 1);
+        this.gravity = gravity ?? new Vector(0, 1);
 
         this.listeners = [];
 

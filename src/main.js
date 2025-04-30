@@ -97,11 +97,12 @@ function initSettings() {
 }
 
 function initUi() {
+    const gameContainer = document.getElementById("game");
     const newGameBtn = document.getElementById("new_game");
     newGameBtn.addEventListener("click", () => {
         console.log("Starting new game");
-        game = new Game(window.innerWidth, window.innerHeight);
-        game.init(document.getElementById("game"));
+        game = new Game();
+        game.init(window.innerWidth, window.innerHeight, gameContainer);
         updateUiVisibility();
         updateUiSizes();
     });
@@ -109,7 +110,7 @@ function initUi() {
     loadGameBtn.addEventListener("click", () => {
         console.log("Loading game");
         game = SaveLoad.load();
-        game.init(document.getElementById("game"));
+        game.init(window.innerWidth, window.innerHeight, gameContainer);
         updateUiVisibility();
         updateUiSizes();
     });
@@ -172,7 +173,7 @@ function initUi() {
             return;
         }
         console.log("Resize: " + window.innerWidth + " x " + window.innerHeight);
-        game.onResize(window.innerWidth, window.innerHeight);
+        game.onResize(window.innerWidth, window.innerHeight, gameContainer);
         updateUiSizes();
     }
     var doResizeTimeout;

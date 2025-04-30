@@ -6,7 +6,7 @@ import Dialogs from "./dialogs.js";
 import AnagramRevealer from "./anagram_revealer.js";
 
 export default class Story {
-    static _instance;
+    static #instance;
 
     static FOREMAN_NAME = "Foreman";
     static FOREMAN_AVATAR_PATH = "assets/foreman_avatar.png";
@@ -53,10 +53,10 @@ export default class Story {
     ];
 
     constructor() {
-        if (Story._instance) {
-            return Story._instance;
+        if (Story.#instance) {
+            return Story.#instance;
         }
-        Story._instance = this;
+        Story.#instance = this;
 
         this.serpentName = Story.SERPENT_DISGUISE_NAME;
         this.serpentAvatarPath = Story.SERPENT_DISGUISE_AVATAR_PATH;
@@ -103,7 +103,7 @@ export default class Story {
     }
 
     static get instance() {
-        return Story._instance || new Story();
+        return Story.#instance || new Story();
     }
 
     get leaderAvatarPath() {

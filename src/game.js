@@ -257,7 +257,7 @@ export default class Game {
         this.particles.init();
 
         this.initUi();
-        this.initHandlers();
+        this.initMainClickHandler();
 
         this.gameState = GameState.PAUSED;
         this.setPaused(false);
@@ -376,7 +376,7 @@ export default class Game {
         this.updateLegend();
     }
 
-    initHandlers() {
+    initMainClickHandler() {
         this.layer.canvas.addEventListener("click", this.handleMouseEvent.bind(this), {
             passive: true,
         });
@@ -460,6 +460,9 @@ export default class Game {
         if (oldLayer) {
             if (oldLayer.container) {
                 this.layer.initOnscreen(oldLayer.container);
+                // Make sure we add the click handler back to the game layer, otherwise... the game
+                // is completely broken after the first resize.
+                this.initMainClickHandler();
             }
             oldLayer.destroy();
         }

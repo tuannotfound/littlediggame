@@ -6,13 +6,13 @@ import { Howl, Howler } from "howler";
 
 export default class Audio {
     static SFX_PREFIX = "assets/sfx/";
-    static _instance;
+    static #instance;
 
     constructor() {
-        if (Audio._instance) {
-            return Audio._instance;
+        if (Audio.#instance) {
+            return Audio.#instance;
         }
-        Audio._instance = this;
+        Audio.#instance = this;
 
         this.playCountMap = new Map();
 
@@ -72,7 +72,7 @@ export default class Audio {
     }
 
     static get instance() {
-        return Audio._instance || new Audio();
+        return Audio.#instance || new Audio();
     }
 
     playDirtDamage() {

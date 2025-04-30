@@ -17,8 +17,10 @@ export default class Upgrades {
 
     static SHIELDS_ID = "shields";
 
+    #karma;
+
     constructor() {
-        this.karma_ = 100;
+        this.#karma = 100;
 
         // Base
         this.digSpeed = 0.5;
@@ -108,11 +110,11 @@ export default class Upgrades {
     }
 
     updateKarma(dk) {
-        this.karma_ += dk;
+        this.#karma += dk;
     }
 
     get karma() {
-        return this.karma_;
+        return this.#karma;
     }
 
     getUpgrade(id) {

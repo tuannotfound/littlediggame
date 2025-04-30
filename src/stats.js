@@ -3,12 +3,18 @@
 // See LICENSE file in the project root for full license information.
 
 export default class Stats {
+    #runtimeMs;
+    #lastRuntimeUpdate;
+    #clickCount;
+    #digCount;
+    #deathCount;
+
     constructor() {
-        this.runtimeMs_ = 0;
-        this.lastRuntimeUpdate_ = performance.now();
-        this.clickCount_ = 0;
-        this.digCount_ = 0;
-        this.deathCount_ = 0;
+        this.#runtimeMs = 0;
+        this.#lastRuntimeUpdate = performance.now();
+        this.#clickCount = 0;
+        this.#digCount = 0;
+        this.#deathCount = 0;
     }
 
     static fromJSON(json) {
@@ -20,18 +26,18 @@ export default class Stats {
 
     updateRuntime() {
         const now = performance.now();
-        this.runtimeMs_ += now - this.lastRuntimeUpdate_;
-        this.lastRuntimeUpdate_ = now;
+        this.#runtimeMs += now - this.#lastRuntimeUpdate;
+        this.#lastRuntimeUpdate = now;
     }
 
     resetLastUpdateTime() {
-        this.lastRuntimeUpdate_ = performance.now();
+        this.#lastRuntimeUpdate = performance.now();
     }
 
     get runtimeAsHMS() {
-        let seconds = Math.floor((this.runtimeMs_ / 1000) % 60);
-        let minutes = Math.floor((this.runtimeMs_ / (1000 * 60)) % 60);
-        let hours = Math.floor((this.runtimeMs_ / (1000 * 60 * 60)) % 24);
+        let seconds = Math.floor((this.#runtimeMs / 1000) % 60);
+        let minutes = Math.floor((this.#runtimeMs / (1000 * 60)) % 60);
+        let hours = Math.floor((this.#runtimeMs / (1000 * 60 * 60)) % 24);
 
         if (hours > 0) {
             return `${hours}h ${minutes}m ${seconds}s`;
@@ -42,11 +48,11 @@ export default class Stats {
     }
 
     recordClick() {
-        this.clickCount_++;
+        this.#clickCount++;
     }
 
     get clickCount() {
-        return this.clickCount_;
+        return this.#clickCount;
     }
 
     recordDeath() {
@@ -54,22 +60,22 @@ export default class Stats {
     }
 
     recordDeaths(count) {
-        this.deathCount_ += count;
+        this.#deathCount += count;
     }
 
     get deathCount() {
-        return this.deathCount_;
+        return this.#deathCount;
     }
 
     recordDig() {
-        this.digCount_++;
+        this.#digCount++;
     }
 
     recordDigs(count) {
-        this.digCount_ += count;
+        this.#digCount += count;
     }
 
     get digCount() {
-        return this.digCount_;
+        return this.#digCount;
     }
 }

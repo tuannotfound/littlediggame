@@ -20,31 +20,31 @@ export default class PanZoomWrapper {
             cursor: "grab",
             disableZoom: true,
         });
-        this.element.parentElement.addEventListener("pointerdown", this._startDrag.bind(this));
+        this.element.parentElement.addEventListener("pointerdown", this.#startDrag.bind(this));
         // Couldn't quite get this working with the upgrades UI :(
         //this.element.parentElement.addEventListener("wheel", this.panzoom.zoomWithWheel);
 
-        //this.element.addEventListener("panzoomchange", this._onPanZoomChange.bind(this));
-        this.element.addEventListener("panzoomend", this._onPanZoomEnd.bind(this));
+        //this.element.addEventListener("panzoomchange", this.#onPanZoomChange.bind(this));
+        this.element.addEventListener("panzoomend", this.#onPanZoomEnd.bind(this));
     }
 
-    _startDrag(e) {
+    #startDrag(e) {
         e.preventDefault();
         this.element.parentElement.style.cursor = "grabbing";
-        document.addEventListener("pointerup", this._stopDrag.bind(this));
+        document.addEventListener("pointerup", this.#stopDrag.bind(this));
     }
 
-    _stopDrag() {
+    #stopDrag() {
         this.element.parentElement.style.cursor = "grab";
-        document.removeEventListener("pointerup", this._stopDrag);
+        document.removeEventListener("pointerup", this.#stopDrag);
     }
 
-    // _onPanZoomChange() {
+    // #onPanZoomChange() {
     //     // This makes for very choppy panning
     //     LinkerLine.positionAll();
     // }
 
-    _onPanZoomEnd() {
+    #onPanZoomEnd() {
         // Prevent the user from panning too far away from the content.
         const parentRect = this.element.parentElement.getBoundingClientRect();
 
@@ -75,6 +75,6 @@ export default class PanZoomWrapper {
 
     destroy() {
         this.panzoom.destroy();
-        this.element.parentElement.removeEventListener("mousedown", this._startDrag);
+        this.element.parentElement.removeEventListener("mousedown", this.#startDrag);
     }
 }

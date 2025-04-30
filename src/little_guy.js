@@ -43,6 +43,8 @@ export default class LittleGuy {
     static DIRECTION_PERSISTENCE_FACTOR = 0.9;
     static DEATH_BY_EGG_FRAMES_BEFORE_INACTIVE = 40;
 
+    #shielded;
+
     constructor(pixelBody, positionInPixelBodySpace, upgrades, immaculate) {
         this.pixelBody = pixelBody;
         this.positionInPixelBodySpace = positionInPixelBodySpace;
@@ -67,7 +69,7 @@ export default class LittleGuy {
         this.diggingFrames = 0;
         this.pixelBeingDug = null;
         this.framesSinceLastMove = 0;
-        this._shielded = false;
+        this.#shielded = false;
         // Whether we're dead or alive.
         this.alive = true;
         this.ascentionProgressPct = 0;
@@ -103,7 +105,7 @@ export default class LittleGuy {
             digging: this.digging,
             pixelBeingDug: this.pixelBeingDug,
             digProcessPct: this.digProcessPct,
-            shielded: this._shielded,
+            shielded: this.#shielded,
             alive: this.alive,
             ascentionProgressPct: this.ascentionProgressPct,
             active: this.active,
@@ -131,7 +133,7 @@ export default class LittleGuy {
         littleGuy.digging = json.digging;
         littleGuy.pixelBeingDug = pixelBeingDug;
         littleGuy.digProcessPct = json.digProcessPct;
-        littleGuy._shielded = json.shielded;
+        littleGuy.#shielded = json.shielded;
         littleGuy.alive = json.alive;
         littleGuy.ascentionProgressPct = json.ascentionProgressPct;
         littleGuy.active = json.active;
@@ -246,7 +248,7 @@ export default class LittleGuy {
     }
 
     set shielded(value) {
-        this._shielded = value;
+        this.#shielded = value;
         this.updateRenderData();
     }
 
@@ -273,8 +275,8 @@ export default class LittleGuy {
             .getContext()
             .createImageData(this.layer.width, this.layer.height);
 
-        if (this._shielded || window.DEBUG_MODE) {
-            const color = this._shielded
+        if (this.#shielded || window.DEBUG_MODE) {
+            const color = this.#shielded
                 ? LittleGuy.SHIELDED_OUTLINE_COLOR
                 : LittleGuy.DEBUG_OUTLINE_COLOR;
             for (let x = 0; x < this.layer.width; x++) {
@@ -436,7 +438,7 @@ export default class LittleGuy {
         ) {
             // Kind of a roundabout way to know that this guy needs to die. Why should LittleGuy
             // have to know about the inner workings of Serpent.js? 'Cause I'm lazy, that's why.
-            if (!this._shielded) {
+            if (!this.#shielded) {
                 this.deathBySerpent = true;
                 this.die();
                 return;

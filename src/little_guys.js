@@ -4,6 +4,7 @@
 
 import Layer from "./layer.js";
 import LittleGuy from "./little_guy.js";
+import MathExtras from "./math_extras.js";
 import Vector from "./vector.js";
 
 export default class LittleGuys {
@@ -91,13 +92,17 @@ export default class LittleGuys {
         }
     }
 
+    onResize(newSize) {
+        this.layer.onResize(newSize);
+    }
+
     update() {
         for (const littleGuy of this.#littleGuys) {
             littleGuy.update();
         }
     }
 
-    updateRenderData(pixelBodyPosition) {
+    updateRenderData(pixelBodyPosition, zoomLevel) {
         if (!this.layer.initialized) {
             return;
         }
@@ -105,20 +110,22 @@ export default class LittleGuys {
             .getContext()
             .createImageData(this.#layer.width, this.#layer.height);
 
+        const adjustedPosition = new Vector(
+            MathExtras.floorToNearest(zoomLevel, pixelBodyPosition.x),
+            MathExtras.floorToNearest(zoomLevel, pixelBodyPosition.y)
+        );
+        adjustedPosition.div(zoomLevel);
+        adjustedPosition.sub(1);
         for (const littleGuy of this.#littleGuys) {
             if (!littleGuy.active) {
                 continue;
             }
-            this.render(littleGuy, pixelBodyPosition, imageData);
+            this.render(littleGuy, adjustedPosition, imageData);
         }
         this.layer.getContext().putImageData(imageData, 0, 0);
     }
 
     render(littleGuy, pixelBodyPosition, imageData) {
-        //const p = Vector.sub(pixelBodyPosition, littleGuy.positionInPixelBodySpace);
-        //p.add(this.#layer.width / 2, this.#layer.height / 2);
-        //const p = Vector.sub(littleGuy.positionInPixelBodySpace, 1);
-        //const p = littleGuy.positionInPixelBodySpace.copy();
         const p = Vector.add(pixelBodyPosition, littleGuy.positionInPixelBodySpace);
         // Each little guy is 3x3 pixels.
         if (littleGuy.shielded || window.DEBUG_MODE) {
@@ -161,6 +168,7 @@ export default class LittleGuys {
         littleGuy.addListener(this.#listener);
         littleGuy.init();
         this.#littleGuys.push(littleGuy);
+        return littleGuy;
     }
 
     killAll(durationMs = 0) {

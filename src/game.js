@@ -167,8 +167,8 @@ export default class Game {
     }
 
     static fromJSON(json) {
-        let upgrades = Upgrades.fromJSON(json.upgrades);
-        let pixelBodies = [];
+        const upgrades = Upgrades.fromJSON(json.upgrades);
+        const pixelBodies = [];
         for (let pixelBodyJson of json.pixelBodies) {
             if (pixelBodyJson.className == CircularPlanet.name) {
                 // Covers both plain circular planets and egg planets (who both have the same dirt
@@ -245,7 +245,7 @@ export default class Game {
     }
 
     initUi() {
-        let saveGameBtn = document.getElementById("save_game");
+        const saveGameBtn = document.getElementById("save_game");
         saveGameBtn.addEventListener("click", () => {
             console.log("Saving...");
             if (this.gameState === GameState.RUNNING) {
@@ -256,37 +256,37 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
-        // ----- START Debug buttons -----
-        let nextPixelBodyBtn = document.getElementById("next_pixel_body");
-        nextPixelBodyBtn.addEventListener("click", () => {
-            this.goToNextPixelBody();
-        });
-        let bloodBtn = document.getElementById("blood");
-        bloodBtn.addEventListener("change", () => {
-            this.blood = bloodBtn.checked;
-            console.log("Blood: " + bloodBtn.checked);
-        });
-        let pauseBtn = document.getElementById("pause_resume");
-        pauseBtn.addEventListener("click", () => {
-            document.getElementById("pause_icon").classList.toggle("hidden");
-            document.getElementById("play_icon").classList.toggle("hidden");
-            document.getElementById("pause_scrim").classList.toggle("hidden");
-            this.setPaused(!GameState.isPaused(this.gameState));
-        });
-
-        for (let i = 0; i < 4; i++) {
-            let pow = i + 1;
-            let val = 10 ** pow;
-            let plusBtn = document.getElementById("plus_" + val);
-            plusBtn.addEventListener("click", () => {
-                this.aspis += val;
-                this.aspisNeedsUpdate = true;
+        if (window.DEBUG) {
+            const nextPixelBodyBtn = document.getElementById("next_pixel_body");
+            nextPixelBodyBtn.addEventListener("click", () => {
+                this.goToNextPixelBody();
             });
-        }
-        // ----- END Debug buttons -----
+            const bloodBtn = document.getElementById("blood");
+            bloodBtn.addEventListener("change", () => {
+                this.blood = bloodBtn.checked;
+                console.log("Blood: " + bloodBtn.checked);
+            });
+            const pauseBtn = document.getElementById("pause_resume");
+            pauseBtn.addEventListener("click", () => {
+                document.getElementById("pause_icon").classList.toggle("hidden");
+                document.getElementById("play_icon").classList.toggle("hidden");
+                document.getElementById("pause_scrim").classList.toggle("hidden");
+                this.setPaused(!GameState.isPaused(this.gameState));
+            });
 
-        let upgradesContainer = document.getElementById("upgrades_container");
-        let showUpgradesBtn = document.getElementById("show_upgrades");
+            for (let i = 0; i < 4; i++) {
+                const pow = i + 1;
+                const val = 10 ** pow;
+                const plusBtn = document.getElementById("plus_" + val);
+                plusBtn.addEventListener("click", () => {
+                    this.aspis += val;
+                    this.aspisNeedsUpdate = true;
+                });
+            }
+        }
+
+        const upgradesContainer = document.getElementById("upgrades_container");
+        const showUpgradesBtn = document.getElementById("show_upgrades");
         showUpgradesBtn.addEventListener("click", () => {
             console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
@@ -294,7 +294,7 @@ export default class Game {
             this.upgradesUi.onShown();
             Dialogs.pause();
         });
-        let hideUpgradesBtn = document.getElementById("hide_upgrades");
+        const hideUpgradesBtn = document.getElementById("hide_upgrades");
         hideUpgradesBtn.addEventListener("click", () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
@@ -359,7 +359,7 @@ export default class Game {
     }
 
     calculateZoomLevel(width, height) {
-        let pixelBody = this.activePixelBody;
+        const pixelBody = this.activePixelBody;
         let objectWidth = 0;
         let objectHeight = 0;
         let objectBufferPct = 0;
@@ -380,8 +380,8 @@ export default class Game {
         }
 
         // Add some buffer around the object to ensure we don't cut off the edges.
-        let widthMaxZoom = ((1 - objectBufferPct) * width) / objectWidth;
-        let heightMaxZoom = ((1 - objectBufferPct) * height) / objectHeight;
+        const widthMaxZoom = ((1 - objectBufferPct) * width) / objectWidth;
+        const heightMaxZoom = ((1 - objectBufferPct) * height) / objectHeight;
         // Limit ourselves by the smallest max zoom.
         let newZoomLevel = roundingFunc(Math.min(widthMaxZoom, heightMaxZoom));
         newZoomLevel = Math.max(newZoomLevel, minZoomLevel);
@@ -447,11 +447,15 @@ export default class Game {
     }
 
     notifyResize() {
-        let newSize = new Vector(this.width / this.zoomLevel, this.height / this.zoomLevel).round();
+        const newSize = new Vector(
+            this.width / this.zoomLevel,
+            this.height / this.zoomLevel
+        ).round();
         if (this.particles) {
             this.particles.onResize(newSize);
         }
         this.sky.onResize(newSize);
+        this.littleGuys.onResize(newSize);
         for (const pixelBody of this.pixelBodies) {
             pixelBody.onResize(newSize);
         }
@@ -465,7 +469,7 @@ export default class Game {
             // Don't save if we're on the final level or the game is over
             return;
         }
-        let now = performance.now();
+        const now = performance.now();
         if (now - this.lastSaved > this.MIN_SAVE_INTERVAL_MS) {
             if (this.gameState === GameState.RUNNING) {
                 this.stats.updateRuntime();
@@ -475,7 +479,7 @@ export default class Game {
             clearTimeout(this.autoSaveTimeout);
             this.autoSaveTimeout = null;
         } else {
-            let remainingTime = this.MIN_SAVE_INTERVAL_MS - (now - this.lastSaved);
+            const remainingTime = this.MIN_SAVE_INTERVAL_MS - (now - this.lastSaved);
             clearTimeout(this.autoSaveTimeout);
             this.autoSaveTimeout = setTimeout(() => this.maybeSave(), remainingTime);
             return;
@@ -486,7 +490,7 @@ export default class Game {
     }
 
     updateActivePixelBodyPosition() {
-        let activePixelBody = this.activePixelBody;
+        const activePixelBody = this.activePixelBody;
         if (!activePixelBody || !activePixelBody.layer.initialized) {
             return;
         }
@@ -508,29 +512,17 @@ export default class Game {
             this.hourglassPosition.div(2);
             this.hourglassPosition.round();
         }
-
         if (this.zoomLevel == this.zoomLevelDst) {
             // Only round once we've reached the target zoom level, otherwise the zoom is very
             // jittery as the center position gets shifted around a handful of pixels.
-            this.activePixelBodyPosition.x = MathExtras.floorToNearest(
-                this.zoomLevel,
-                this.activePixelBodyPosition.x
+            this.activePixelBodyPosition.set(
+                MathExtras.roundToNearest(this.zoomLevel, this.activePixelBodyPosition.x),
+                MathExtras.roundToNearest(this.zoomLevel, this.activePixelBodyPosition.y)
             );
-            this.activePixelBodyPosition.y = MathExtras.floorToNearest(
-                this.zoomLevel,
-                this.activePixelBodyPosition.y
+            this.hourglassPosition.set(
+                MathExtras.roundToNearest(this.zoomLevel, this.hourglassPosition.x),
+                MathExtras.roundToNearest(this.zoomLevel, this.hourglassPosition.y)
             );
-
-            if (this.hourglass && this.hourglass.initialized) {
-                this.hourglassPosition.x = MathExtras.floorToNearest(
-                    this.zoomLevel,
-                    this.hourglassPosition.x
-                );
-                this.hourglassPosition.y = MathExtras.floorToNearest(
-                    this.zoomLevel,
-                    this.hourglassPosition.y
-                );
-            }
         }
     }
 
@@ -547,7 +539,7 @@ export default class Game {
         let totalValue = 0;
         let includedDiamond = false;
         let includedMagic = false;
-        let positionsSum = new Vector();
+        const positionsSum = new Vector();
         for (const pixel of pixels) {
             let value = this.upgrades.aspisPer[pixel.type.name];
             if (
@@ -576,9 +568,9 @@ export default class Game {
         }
         const avgPosition = positionsSum.div(pixels.length);
         avgPosition.round();
-        let positionInParticlesSpace = this.pixelBodyToParticleSpace(avgPosition);
+        const positionInParticlesSpace = this.pixelBodyToParticleSpace(avgPosition);
 
-        let color = new Color(pixels[0].getRenderColor());
+        const color = new Color(pixels[0].getRenderColor());
         // The pixel itself will likely be invisible post-dig, so make sure we reset the alpha.
         color.a = 255;
         this.particles.digEffect(positionInParticlesSpace, color, this.upgrades.digSpeed);
@@ -601,7 +593,7 @@ export default class Game {
             });
         }
 
-        let body = this.activePixelBody;
+        const body = this.activePixelBody;
         if (body) {
             if (body.className == CircularPlanet.name) {
                 Story.instance.maybeFirstPlanet1(body.health);
@@ -639,8 +631,8 @@ export default class Game {
         if (!this.activePixelBody) {
             return new Vector();
         }
-        let activePixelBody = this.activePixelBody;
-        let particleCoords = new Vector(
+        const activePixelBody = this.activePixelBody;
+        const particleCoords = new Vector(
             this.particles.layer.width / 2 - activePixelBody.layer.width / 2,
             this.particles.layer.height / 2 - activePixelBody.layer.height / 2
         );
@@ -680,7 +672,7 @@ export default class Game {
     }
 
     onUpgradePurchased(upgrade, button) {
-        let buttonCostEl = document.querySelector(
+        const buttonCostEl = document.querySelector(
             "button#" + button.id + " > div.upgrade_title > span.cost"
         );
         if (upgrade.cost > this.aspis) {
@@ -739,7 +731,7 @@ export default class Game {
 
     updateAvailableUpgradeCount() {
         let availableUpgradeCount = 0;
-        let availableUpgrades = [];
+        const availableUpgrades = [];
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             if (upgrade.purchased) {
                 continue;
@@ -787,7 +779,7 @@ export default class Game {
     }
 
     goToNextPixelBody() {
-        let previousPixelBody = this.pixelBodies.shift();
+        const previousPixelBody = this.pixelBodies.shift();
         if (previousPixelBody) {
             previousPixelBody.destroy();
         }
@@ -809,7 +801,7 @@ export default class Game {
             Audio.instance.playOminousSting();
             // Save once and then prevent further saving.
             this.maybeSave();
-            let saveGameBtn = document.getElementById("save_game");
+            const saveGameBtn = document.getElementById("save_game");
             saveGameBtn.setAttribute("disabled", "");
             // Hide the legend
             document.getElementById("legend").classList.add("hidden");
@@ -911,8 +903,8 @@ export default class Game {
                 this.upgrades.aspisPer[pixelType.name];
         }
 
-        let updateHidden = function (type, show) {
-            let element = document.querySelector("span." + type.name.toLowerCase()).parentElement;
+        const updateHidden = function (type, show) {
+            const element = document.querySelector("span." + type.name.toLowerCase()).parentElement;
             if (show) {
                 element.classList.remove("hidden");
             } else {
@@ -925,7 +917,7 @@ export default class Game {
         updateHidden(PixelType.DIAMOND, this.upgrades.unlockDiamonds);
         updateHidden(PixelType.EGG, this.knowsEggDeath || this.upgrades.eggHandling);
 
-        let eggSpan = document.querySelector(
+        const eggSpan = document.querySelector(
             "span#" + PixelType.EGG.name.toLowerCase() + "_legend_title"
         );
         if (this.upgrades.eggHandling) {
@@ -971,7 +963,7 @@ export default class Game {
     }
 
     startNotEnoughAspisAnimation(others) {
-        let animated = [this.aspisElement.parentElement];
+        const animated = [this.aspisElement.parentElement];
         if (others) {
             animated.push(...others);
         }
@@ -979,7 +971,7 @@ export default class Game {
     }
 
     stopNotEnoughAspisAnimation(others) {
-        let animated = [this.aspisElement.parentElement];
+        const animated = [this.aspisElement.parentElement];
         if (others) {
             animated.push(...others);
         }
@@ -1087,7 +1079,7 @@ export default class Game {
         }
         let totalValue = 0;
         for (let i = 0; i < surface.length; i++) {
-            let surfacePixel = surface[i];
+            const surfacePixel = surface[i];
             if (!surfacePixel) {
                 continue;
             }
@@ -1175,7 +1167,7 @@ export default class Game {
     }
 
     maybeAutoSpawn() {
-        let activePixelBody = this.activePixelBody;
+        const activePixelBody = this.activePixelBody;
         if (!activePixelBody) {
             return;
         }
@@ -1184,11 +1176,11 @@ export default class Game {
             this.now - this.lastConceptionTime > this.upgrades.conceptionIntervalMs
         ) {
             console.log("Immaculate conception occurred");
-            let pixelBodyCoords = new Vector(
+            const pixelBodyCoords = new Vector(
                 Math.random() * activePixelBody.layer.width,
                 Math.random() * activePixelBody.layer.height
             );
-            let closestSurfacePixel = activePixelBody.getClosestSurfacePixel(pixelBodyCoords);
+            const closestSurfacePixel = activePixelBody.getClosestSurfacePixel(pixelBodyCoords);
             if (closestSurfacePixel) {
                 this.spawn(closestSurfacePixel.position, true);
             }
@@ -1230,7 +1222,7 @@ export default class Game {
 
         requestAnimationFrame(this.tick.bind(this));
         this.now = newtime;
-        let elapsedMs = this.now - this.then;
+        const elapsedMs = this.now - this.then;
 
         if (elapsedMs <= this.FRAME_INTERVAL_MS) {
             return;
@@ -1243,34 +1235,13 @@ export default class Game {
         for (let i = 0; i < window.GAME_SPEED; i++) {
             this.runUpdate(elapsedMs);
         }
-        this.render();
+        this.render(elapsedMs);
         if (window.DEBUG) {
             this.perfStats.end();
         }
     }
 
     runUpdate(elapsedMs) {
-        if (
-            Math.abs(this.zoomLevel - this.zoomLevelDst) < 0.01 ||
-            this.zoomLevelDst == this.zoomLevelSrc
-        ) {
-            // Zoom complete
-            this.zoomLevel = this.zoomLevelDst;
-        } else {
-            this.zoomElapsedMs += elapsedMs;
-            const durationMs = this.gameOverArt.initialized
-                ? this.GAME_OVER_ZOOM_DURATION_MS
-                : this.ZOOM_DURATION_MS;
-            let zoomProgress = this.zoomElapsedMs / durationMs;
-            this.zoomLevel = MathExtras.easeOutCubic(
-                this.zoomLevelSrc,
-                this.zoomLevelDst,
-                zoomProgress
-            );
-            this.notifyResize();
-            this.updateActivePixelBodyPosition();
-        }
-
         // Only update the aspis once per frame at most, otherwise it gets too expensive.
         // Multiple aspis changes can happen in a single frame (e.g. death + dig).
         if (this.aspisNeedsUpdate) {
@@ -1305,7 +1276,33 @@ export default class Game {
         }
     }
 
-    render() {
+    render(elapsedMs) {
+        // Handle zoom updates first
+        if (this.zoomLevelSrc >= 0) {
+            if (
+                Math.abs(this.zoomLevel - this.zoomLevelDst) < 0.01 ||
+                this.zoomLevelDst == this.zoomLevelSrc
+            ) {
+                // Zoom complete
+                this.zoomLevel = this.zoomLevelDst;
+                this.updateActivePixelBodyPosition();
+                this.zoomLevelSrc = -1;
+            } else {
+                this.zoomElapsedMs += elapsedMs;
+                const durationMs = this.gameOverArt.initialized
+                    ? this.GAME_OVER_ZOOM_DURATION_MS
+                    : this.ZOOM_DURATION_MS;
+                const zoomProgress = this.zoomElapsedMs / durationMs;
+                this.zoomLevel = MathExtras.easeOutCubic(
+                    this.zoomLevelSrc,
+                    this.zoomLevelDst,
+                    zoomProgress
+                );
+                this.notifyResize();
+                this.updateActivePixelBodyPosition();
+            }
+        }
+
         this.layer.getContext().fillStyle = "white";
         this.layer.getContext().fillRect(0, 0, this.width, this.height);
 
@@ -1337,7 +1334,7 @@ export default class Game {
                 this.hourglass.layer.height * this.zoomLevel // destination height
             );
         }
-        let pixelBody = this.activePixelBody;
+        const pixelBody = this.activePixelBody;
         if (pixelBody && pixelBody.layer?.initialized) {
             this.layer.getContext().drawImage(
                 pixelBody.layer.canvas,
@@ -1352,15 +1349,7 @@ export default class Game {
             );
         }
         if (this.littleGuys.initialized) {
-            // WIP: Trying to figure this out.
-            let foo = this.activePixelBodyPosition.copy();
-            foo.set(
-                MathExtras.floorToNearest(this.zoomLevel, foo.x),
-                MathExtras.floorToNearest(this.zoomLevel, foo.y)
-            );
-            foo.div(this.zoomLevel);
-            foo.sub(1);
-            this.littleGuys.updateRenderData(foo);
+            this.littleGuys.updateRenderData(this.activePixelBodyPosition, this.zoomLevel);
             this.layer.getContext().drawImage(
                 this.littleGuys.layer.canvas,
                 0, // source x

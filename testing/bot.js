@@ -186,8 +186,8 @@ export default class Bot {
     }
 
     recordState() {
-        let manualLittleGuyCount = this.game.littleGuys.filter((lg) => !lg.immaculate).length;
-        let autoLittleGuyCount = this.game.littleGuys.length - manualLittleGuyCount;
+        let manualLittleGuyCount = this.game.littleGuys.maculateCount;
+        let autoLittleGuyCount = this.game.littleGuys.immaculateCount;
         let timeSinceLastUpgradeMs =
             (performance.now() - this.lastUpgradeTimestamp) * this.GAME_SPEED;
         let event = new Event(

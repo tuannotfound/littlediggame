@@ -172,8 +172,7 @@ export default class Story {
             Story.FOREMAN_NAME + " (mildly bereaved)",
             `That was my son.<br><br>
             He served The Company well.`,
-            this.foremanAvatarPath,
-            8
+            this.foremanAvatarPath
         );
     }
 
@@ -440,8 +439,6 @@ export default class Story {
             This has been deemed a Forbidden Planet. Please collect your tools and valuables and
             move on to your next assignment. Do not panic.`,
             Story.COMPANY_COMMUNICATION_AVATAR_PATH,
-            20,
-
             () => {},
             () => {
                 setTimeout(() => {
@@ -523,7 +520,6 @@ export default class Story {
             this.serpentName,
             `YES. The crew is vibrating with thirssst for the earth. Dig! Dig faster! More!`,
             Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
-            6,
             () => {
                 onShownCallback();
             }
@@ -544,8 +540,7 @@ export default class Story {
         Dialogs.show(
             this.serpentName,
             `You ssssee it now, do you? Your purpose. Proceed with abandon.`,
-            Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
-            10
+            Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH
         );
     }
 
@@ -582,14 +577,12 @@ export default class Story {
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,
             `Cease all digging operations immediately.`,
-            this.leaderAvatarPath,
-            7
+            this.leaderAvatarPath
         );
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,
             `We will all suffer for your actions.`,
-            this.leaderAvatarPath,
-            7
+            this.leaderAvatarPath
         );
     }
 
@@ -600,7 +593,7 @@ export default class Story {
             <br><br>
             I must consume.`,
             Story.SERPENT_AVATAR_PATH,
-            15,
+            -1,
             (dialog) => {
                 // Swap out the title with an anagram revealer.
                 const anagramRevealer = new AnagramRevealer(
@@ -679,8 +672,7 @@ export default class Story {
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,
             `You've nearly done it. Strike the final blows! Do not let up now!`,
-            this.leaderAvatarPath,
-            8
+            this.leaderAvatarPath
         );
     }
 
@@ -718,8 +710,7 @@ export default class Story {
             `Ssssssssss... it'ssss... all... sss... over...
             <br><br>
             ...sss.`,
-            Story.SERPENT_DEATH_AVATAR_PATH,
-            12
+            Story.SERPENT_DEATH_AVATAR_PATH
         );
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,

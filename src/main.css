@@ -414,6 +414,16 @@ li:before {
     justify-self: end;
 }
 
+#dialog_durations {
+    display: flex;
+    justify-content: end;
+}
+
+#dialog_durations input[type="radio"] {
+    position: relative;
+    top: -2px;
+}
+
 #sfx_volume_container {
     display: flex;
     align-items: center;

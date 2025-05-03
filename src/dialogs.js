@@ -10,7 +10,7 @@ import "./timer_bar.css";
 export default class Dialogs {
     static MIN_CALCULATED_DURATION_S = 5;
     static DEFAULT_DURATION_S = 10;
-    static WORDS_PER_SECOND = 1.7;
+    static WORDS_PER_SECOND = 3;
     static SECONDS_PER_BREAK = 1;
     static sDialogQueue = [];
     static sPaused = false;
@@ -145,7 +145,8 @@ class Dialog {
 
         this.shownCallback = builder.shownCallback;
 
-        this.durationS = builder.durationS / window.GAME_SPEED;
+        this.durationS =
+            (builder.durationS * window.SETTINGS.dialogDurationModifier) / window.GAME_SPEED;
         this.dismissCallback = builder.dismissCallback;
         this.dismissed = false;
 

@@ -18,6 +18,7 @@ window.DEBUG_MODE = false;
 window.SETTINGS = {
     censored: false,
     volume: 0.5,
+    dialogDurationModifier: 1,
 };
 // For testing only.
 window.GAME_SPEED = 1;
@@ -94,6 +95,26 @@ function initSettings() {
         toBeCensored.classList.toggle("blurry_text");
         SaveLoad.saveSettings();
     });
+
+    const dialogDurationInputs = document.querySelectorAll("#dialog_durations input");
+    const dialogDurationListener = (event) => {
+        window.SETTINGS.dialogDurationModifier = event.target.value;
+        SaveLoad.saveSettings();
+    };
+    let foundInitialValueMatch = false;
+    for (const dialogDurationInput of dialogDurationInputs) {
+        if (dialogDurationInput.value == window.SETTINGS.dialogDurationModifier) {
+            dialogDurationInput.checked = true;
+            foundInitialValueMatch = true;
+        } else {
+            dialogDurationInput.checked = false;
+        }
+        dialogDurationInput.addEventListener("change", dialogDurationListener);
+    }
+    if (!foundInitialValueMatch) {
+        dialogDurationInputs[Math.floor(dialogDurationInputs.length / 2)].checked = true;
+        dialogDurationListener({ target: dialogDurationInputs[0] });
+    }
 }
 
 function initUi() {

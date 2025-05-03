@@ -6,6 +6,8 @@ import LinkerLine from "linkerline";
 import PanZoomWrapper from "./pan_zoom_wrapper.js";
 import Color from "./color.js";
 
+import "./upgrades_ui.css";
+
 export default class UpgradesUi {
     static LINE_UPDATE_INTERVAL_MS = 60 / 1000;
     static LINE_COLOR_LOCKED = new Color(200, 200, 200).immutableCopy();

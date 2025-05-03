@@ -89,9 +89,6 @@ export default class Story {
         this.serpent1 = false;
         this.serpent2 = false;
         this.serpent3 = false;
-        this.serpent4 = false;
-        this.serpent5 = false;
-        this.serpent6 = false;
     }
 
     static fromJSON(json) {
@@ -637,27 +634,10 @@ export default class Story {
         if (this.serpent1) {
             return;
         }
-        if (health > 0.95) {
+        if (health > 0.75) {
             return;
         }
         this.serpent1 = true;
-        // [D]ABDA
-        Dialogs.show(
-            Story.SERPENT_NAME,
-            `What? What is this? What are you doing? You can't be trying to stop me. You can't be so
-            naive.`,
-            Story.SERPENT_AVATAR_PATH
-        );
-    }
-
-    maybeSerpent2(health) {
-        if (this.serpent2) {
-            return;
-        }
-        if (health > 0.85) {
-            return;
-        }
-        this.serpent2 = true;
         // D[A]BDA
         Dialogs.show(
             Story.SERPENT_NAME,
@@ -671,14 +651,14 @@ export default class Story {
         );
     }
 
-    maybeSerpent3(health) {
-        if (this.serpent3) {
+    maybeSerpent2(health) {
+        if (this.serpent2) {
             return;
         }
-        if (health > 0.75) {
+        if (health > 0.4) {
             return;
         }
-        this.serpent3 = true;
+        this.serpent2 = true;
         // DA[B]DA
         Dialogs.show(
             Story.SERPENT_NAME,
@@ -688,50 +668,14 @@ export default class Story {
         );
     }
 
-    maybeSerpent4(health) {
-        if (this.serpent4) {
+    maybeSerpent3(health) {
+        if (this.serpent3) {
             return;
         }
-        if (health > 0.45) {
+        if (health > 0.15) {
             return;
         }
-        this.serpent4 = true;
-        // DAB[D]A
-        Dialogs.show(
-            Story.SERPENT_NAME,
-            `This sucks. This is just really no good at all.`,
-            Story.SERPENT_AVATAR_PATH,
-            8
-        );
-    }
-
-    maybeSerpent5(health) {
-        if (this.serpent5) {
-            return;
-        }
-        if (health > 0.1) {
-            return;
-        }
-        this.serpent5 = true;
-        // DABD[A]
-        Dialogs.show(
-            Story.SERPENT_NAME,
-            `Things could have gone differently. They really could have. But you can't say I didn't
-            try my best.
-            <br><br>
-            Sure woulda been fun to devour the universe though. Dang.`,
-            Story.SERPENT_AVATAR_PATH
-        );
-    }
-
-    maybeSerpent6(health) {
-        if (this.serpent6) {
-            return;
-        }
-        if (health > 0.05) {
-            return;
-        }
-        this.serpent6 = true;
+        this.serpent3 = true;
         Dialogs.show(
             Story.COMPANY_LEADER_NAME,
             `You've nearly done it. Strike the final blows! Do not let up now!`,
@@ -762,7 +706,7 @@ export default class Story {
             Story.SERPENT_AVATAR_PATH,
             -1
         );
-        let path = window.SETTINGS.censor
+        const path = window.SETTINGS.censor
             ? Story.COMPANY_LEADER_CENSORED_DEATH_AVATAR_PATH
             : Story.COMPANY_LEADER_DEATH_AVATAR_PATH;
         Dialogs.show(Story.COMPANY_LEADER_NAME, `Aaaaauuuugh!`, path, 8, dismissCallback);

@@ -618,9 +618,6 @@ export default class Game {
                 Story.instance.maybeSerpent1(body.health);
                 Story.instance.maybeSerpent2(body.health);
                 Story.instance.maybeSerpent3(body.health);
-                Story.instance.maybeSerpent4(body.health);
-                Story.instance.maybeSerpent5(body.health);
-                Story.instance.maybeSerpent6(body.health);
             }
         }
 

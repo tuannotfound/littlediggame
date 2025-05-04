@@ -9,7 +9,7 @@ import Color from "./color.js";
 import "./upgrades_ui.css";
 
 export default class UpgradesUi {
-    static LINE_UPDATE_INTERVAL_MS = 60 / 1000;
+    static LINE_UPDATE_INTERVAL_MS = 30 / 1000;
     static LINE_COLOR_LOCKED = new Color(200, 200, 200).immutableCopy();
     static LINE_COLOR_CAN_AFFORD = new Color(95, 214, 105).immutableCopy();
     static LINE_COLOR_CANNOT_AFFORD = new Color(226, 79, 79).immutableCopy();

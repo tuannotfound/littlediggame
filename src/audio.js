@@ -20,44 +20,43 @@ export default class Audio {
             Audio.SFX_PREFIX + "dirt_dmg_0.ogg",
             Audio.SFX_PREFIX + "dirt_dmg_1.ogg",
         ]);
-        this.playCountMap.set(this.dirtDamageSfx, 0);
-        this.dirtDamageSfx.on("end", () => {
-            this.onEndCallback(this.dirtDamageSfx);
-        });
+        this.initRateLimited(this.dirtDamageSfx);
 
         this.dirtDigSfx = new MultiAudioWrapper([
             Audio.SFX_PREFIX + "dirt_dig_0.ogg",
             Audio.SFX_PREFIX + "dirt_dig_1.ogg",
         ]);
+        this.initRateLimited(this.dirtDigSfx);
+
         this.oreDamageSfx = new MultiAudioWrapper([
             Audio.SFX_PREFIX + "ore_dmg_0.ogg",
             Audio.SFX_PREFIX + "ore_dmg_1.ogg",
         ]);
-        this.playCountMap.set(this.oreDamageSfx, 0);
-        this.oreDamageSfx.on("end", () => {
-            this.onEndCallback(this.oreDamageSfx);
-        });
+        this.initRateLimited(this.oreDamageSfx);
 
         this.oreDigSfx = new Howl({
             src: [Audio.SFX_PREFIX + "ore_dig_0.ogg"],
         });
+        this.initRateLimited(this.oreDigSfx);
+
         this.walkSfx = new MultiAudioWrapper(
             [Audio.SFX_PREFIX + "walk_0.ogg", Audio.SFX_PREFIX + "walk_1.ogg"],
-            0.2,
+            0.5,
             false
         );
-        this.playCountMap.set(this.walkSfx, 0);
-        this.walkSfx.on("end", () => {
-            this.onEndCallback(this.walkSfx);
-        });
+        this.initRateLimited(this.walkSfx);
 
         this.deathSfx = new MultiAudioWrapper([
             Audio.SFX_PREFIX + "death_tombstone_0.ogg",
             Audio.SFX_PREFIX + "death_tombstone_1.ogg",
         ]);
+        this.initRateLimited(this.deathSfx);
+
         this.deathAscentSfx = new Howl({
             src: [Audio.SFX_PREFIX + "death_ascent.ogg"],
         });
+        this.initRateLimited(this.deathAscentSfx);
+
         this.ominousWindSfx = new Howl({
             src: [Audio.SFX_PREFIX + "wind.wav"],
             volume: 1.0,
@@ -71,45 +70,43 @@ export default class Audio {
         });
     }
 
+    initRateLimited(sfx) {
+        this.playCountMap.set(sfx, 0);
+        sfx.on("end", () => {
+            this.onEndCallback(sfx);
+        });
+    }
+
     static get instance() {
         return Audio.#instance || new Audio();
     }
 
     playDirtDamage() {
-        if (this.shouldRateLimit(this.dirtDamageSfx)) {
-            return;
-        }
-        this.dirtDamageSfx.play();
+        this.playRateLimited(this.dirtDamageSfx);
     }
 
     playDirtDig() {
-        this.dirtDigSfx.play();
+        this.playRateLimited(this.dirtDigSfx);
     }
 
     playOreDamage() {
-        if (this.shouldRateLimit(this.oreDamageSfx)) {
-            return;
-        }
-        this.oreDamageSfx.play();
+        this.playRateLimited(this.oreDamageSfx);
     }
 
     playOreDig() {
-        this.oreDigSfx.play();
+        this.playRateLimited(this.oreDigSfx);
     }
 
     playWalk() {
-        if (this.shouldRateLimit(this.walkSfx)) {
-            return;
-        }
-        this.walkSfx.play();
+        this.playRateLimited(this.walkSfx);
     }
 
     playDeath() {
-        this.deathSfx.play();
+        this.playRateLimited(this.deathSfx);
     }
 
     playDeathAscent() {
-        this.deathAscentSfx.play();
+        this.playRateLimited(this.deathAscentSfx);
     }
 
     playOminousWind() {
@@ -122,6 +119,13 @@ export default class Audio {
 
     playShield() {
         this.shieldSfx.play();
+    }
+
+    playRateLimited(sfx) {
+        if (this.shouldRateLimit(sfx)) {
+            return;
+        }
+        sfx.play();
     }
 
     shouldRateLimit(sound) {

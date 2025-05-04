@@ -174,6 +174,10 @@ export default class Vector {
         return dx * dx + dy * dy;
     }
 
+    angle() {
+        return Math.atan2(this.y, this.x);
+    }
+
     static rotate90CW(v, height) {
         return new Vector(height - 1 - v.y, v.x);
     }

@@ -2,9 +2,10 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
+import Color from "./color.js";
 import LinkerLine from "linkerline";
 import PanZoomWrapper from "./pan_zoom_wrapper.js";
-import Color from "./color.js";
+import Vector from "./vector.js";
 
 import "./upgrades_ui.css";
 
@@ -17,6 +18,7 @@ export default class UpgradesUi {
     constructor() {
         this.graph = null;
         this.container = null;
+        this.hintsContainer = null;
         this.panZoom = null;
         this.upgrades = null;
         this.getCurrentAspisFunc = null;
@@ -36,13 +38,27 @@ export default class UpgradesUi {
                 this.handleUnlock(upgrade);
             },
         };
+        this.animatingButtons = false;
+        this.purchasableUpgradeButtons = [];
+        this.hintsMap = new Map();
+        this.hintContainerRect = null;
+        this.hintContainerIntersectionRect = null;
     }
 
-    init(container, upgrades, onPurchaseAttemptFunc, getCurrentAspisFunc) {
+    init(container, hintsContainer, upgrades, onPurchaseAttemptFunc, getCurrentAspisFunc) {
         this.container = container;
+        this.hintsContainer = hintsContainer;
         this.upgrades = upgrades;
         this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
         this.getCurrentAspisFunc = getCurrentAspisFunc;
+
+        for (const upgradeId of this.upgrades.upgradeTree.keys()) {
+            const hint = document.createElement("div");
+            hint.classList.add("upgrade_hint", "fa-solid", "fa-circle-right", "hidden");
+            hint.id = upgradeId + "_hint";
+            this.hintsContainer.appendChild(hint);
+            this.hintsMap.set(upgradeId, hint);
+        }
 
         this.panZoom = new PanZoomWrapper(this.container);
 
@@ -247,7 +263,14 @@ export default class UpgradesUi {
         }
     }
 
-    onShown() {
+    onResize() {
+        if (!this.showing) {
+            return;
+        }
+        this.updateHintContainerRects();
+    }
+
+    onShown(aspis) {
         this.showing = true;
         for (const upgrade of this.upgrades.upgradeTree.values()) {
             if (upgrade.unlocked) {
@@ -258,10 +281,27 @@ export default class UpgradesUi {
             }
         }
         LinkerLine.positionAll();
+
+        this.onAspisChanged(aspis);
+
+        this.updateHintContainerRects();
+        requestAnimationFrame(this.animate.bind(this));
     }
 
     onHidden() {
         this.showing = false;
+    }
+
+    updateHintContainerRects() {
+        this.hintContainerRect = this.container.parentElement.getBoundingClientRect();
+        this.hintContainerIntersectionRect = JSON.parse(JSON.stringify(this.hintContainerRect));
+        // Shrink the intersection rect by one rem plus a little buffer to pull in the right/bottom
+        // by the size of the font icons used for arrows.
+        const oneRem = parseFloat(getComputedStyle(document.documentElement).fontSize) + 2;
+        this.hintContainerIntersectionRect.height -= oneRem;
+        this.hintContainerIntersectionRect.width -= oneRem;
+        this.hintContainerIntersectionRect.right -= oneRem;
+        this.hintContainerIntersectionRect.bottom -= oneRem;
     }
 
     handleUnlock(upgrade) {
@@ -363,6 +403,7 @@ export default class UpgradesUi {
         if (!this.showing) {
             return;
         }
+        this.purchasableUpgradeButtons = [];
         for (const [id, button] of this.buttonMap) {
             if (!this.upgrades.upgradeTree.has(id)) {
                 continue;
@@ -378,8 +419,13 @@ export default class UpgradesUi {
             this.updateLineStyles(upgrade);
             if (upgrade.cost > aspis) {
                 button.classList.add("cannot_afford");
+                const hint = this.hintsMap.get(upgrade.id);
+                hint.classList.add("hidden");
             } else {
                 button.classList.remove("cannot_afford");
+                if (upgrade.cost > 0) {
+                    this.purchasableUpgradeButtons.push(button);
+                }
             }
         }
     }
@@ -416,24 +462,15 @@ export default class UpgradesUi {
         upgrade.addListener(this.upgradeListener);
         button.addEventListener("click", this.handleUpgradeButtonClick.bind(this));
         this.buttonMap.set(upgrade.id, button);
-        let transitionActive = false;
         button.addEventListener("transitionstart", () => {
-            transitionActive = true;
-            function animate() {
-                if (!transitionActive) {
-                    return;
-                }
-                this.maybeUpdateLinePositions();
-                requestAnimationFrame(animate.bind(this));
-            }
-            requestAnimationFrame(animate.bind(this));
+            this.animatingButtons = true;
         });
         button.addEventListener("transitionend", () => {
-            transitionActive = false;
+            this.animatingButtons = false;
             this.maybeUpdateLinePositions();
         });
         button.addEventListener("transitioncancel", () => {
-            transitionActive = false;
+            this.animatingButtons = false;
             this.maybeUpdateLinePositions();
         });
 
@@ -441,6 +478,140 @@ export default class UpgradesUi {
         this.getGridDiv(row, column).appendChild(button);
         this.rowTrackMap.set(upgrade.id, [row]);
         return button;
+    }
+
+    animate() {
+        if (this.animatingButtons) {
+            this.maybeUpdateLinePositions();
+        }
+
+        if (this.purchasableUpgradeButtons.length > 0) {
+            for (const button of this.purchasableUpgradeButtons) {
+                const buttonRect = button.getBoundingClientRect();
+                const hint = this.hintsMap.get(button.id);
+                if (this.isRectVisible(buttonRect, this.hintContainerRect, 20)) {
+                    hint.classList.add("hidden");
+                    continue;
+                }
+                const direction = new Vector(
+                    buttonRect.left + buttonRect.width / 2,
+                    buttonRect.top + buttonRect.height / 2
+                );
+                direction.sub(
+                    this.hintContainerRect.left + this.hintContainerRect.width / 2,
+                    this.hintContainerRect.top + this.hintContainerRect.height / 2
+                );
+                const intersection = this.findRectEdgeIntersection(
+                    this.hintContainerIntersectionRect,
+                    direction
+                );
+                if (intersection) {
+                    intersection.add(
+                        this.container.parentElement.offsetLeft,
+                        this.container.parentElement.offsetTop
+                    );
+                    hint.style.left = intersection.x + "px";
+                    hint.style.top = intersection.y + "px";
+                    hint.style.transform = `rotate(${direction.angle()}rad)`;
+                    hint.classList.remove("hidden");
+                } else {
+                    hint.classList.add("hidden");
+                }
+            }
+        }
+
+        if (this.showing) {
+            requestAnimationFrame(this.animate.bind(this));
+        }
+    }
+
+    isRectVisible(rect, containerRect, buffer) {
+        if (
+            rect.left + buffer > containerRect.left + containerRect.width ||
+            rect.right - buffer < containerRect.left
+        ) {
+            return false;
+        }
+        if (
+            rect.top + buffer > containerRect.top + containerRect.height ||
+            rect.bottom - buffer < containerRect.top
+        ) {
+            return false;
+        }
+        return true;
+    }
+
+    findRectEdgeIntersection(rect, dir) {
+        if (rect.width <= 0 || rect.height <= 0) {
+            console.error("Rectangle width and height must be positive.");
+            return null; // Invalid rectangle dimensions
+        }
+
+        const center = new Vector(rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+        // Handle the case of a zero direction vector - it points to the center itself.
+        if (dir.x === 0 && dir.y === 0) {
+            return center;
+        }
+
+        // Calculate the minimum positive t values to intersect the vertical and horizontal edge lines.
+        // t = distance / speed, where distance is distance from center to edge line,
+        // and speed is the component of the direction vector along that axis.
+
+        let tMin = Infinity;
+
+        // Check intersection with vertical edges (left and right)
+        if (dir.x !== 0) {
+            // Time to hit the left edge
+            const tLeft = (rect.left - center.x) / dir.x;
+            // Time to hit the right edge
+            const tRight = (rect.right - center.x) / dir.x;
+
+            // We only care about intersections in the direction of the vector.
+            if (dir.x > 0) {
+                // Moving right
+                if (tRight > 0) tMin = Math.min(tMin, tRight);
+            } else {
+                // Moving left (dir.x < 0)
+                if (tLeft > 0) tMin = Math.min(tMin, tLeft);
+            }
+        }
+
+        // Check intersection with horizontal edges (top and bottom)
+        if (dir.y !== 0) {
+            // Time to hit the top edge
+            const tTop = (rect.top - center.y) / dir.y;
+            // Time to hit the bottom edge
+            const tBottom = (rect.bottom - center.y) / dir.y;
+
+            // We only care about intersections in the direction of the vector.
+            if (dir.y > 0) {
+                // Moving down
+                if (tBottom > 0) tMin = Math.min(tMin, tBottom);
+            } else {
+                // Moving up (dir.y < 0)
+                if (tTop > 0) tMin = Math.min(tMin, tTop);
+            }
+        }
+
+        // If tMin is still Infinity, something is wrong (shouldn't happen with valid input)
+        // but we can return the center as a fallback.
+        if (tMin === Infinity) {
+            console.warn("Could not find a valid intersection.");
+            return null;
+        }
+
+        // Calculate the intersection point using the smallest positive t
+        const intersect = new Vector(center.x + tMin * dir.x, center.y + tMin * dir.y);
+
+        // Due to potential floating point inaccuracies, clamp the result to the rectangle bounds
+        // This ensures the point lies exactly *on* the edge, not slightly outside/inside.
+        const clamped = new Vector(
+            Math.max(rect.left, Math.min(intersect.x, rect.right)) - rect.left,
+            Math.max(rect.top, Math.min(intersect.y, rect.bottom)) - rect.top
+        );
+
+        return clamped;
     }
 
     getGridDiv(row, column) {

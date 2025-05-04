@@ -121,6 +121,25 @@ export default class Upgrades {
         return this.upgradeTree.get(id);
     }
 
+    getPurchasableUpgradeIds(aspis) {
+        const purchasable = [];
+        for (const upgrade of this.upgradeTree.values()) {
+            if (upgrade.purchased) {
+                continue;
+            }
+            if (!upgrade.unlocked) {
+                continue;
+            }
+            if (!upgrade.purchasable) {
+                continue;
+            }
+            if (upgrade.cost <= aspis) {
+                purchasable.push(upgrade.id);
+            }
+        }
+        return purchasable;
+    }
+
     initUpgradeTree() {
         // Progress gates
         const progressGate1 = new Upgrade(

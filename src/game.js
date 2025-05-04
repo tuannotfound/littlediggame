@@ -112,7 +112,7 @@ export default class Game {
         this.spawnCost = 0;
         this.spawnCostElement = null;
         this.digsPerDeathElement = null;
-        this.availableUpgradeCount = 0;
+        this.purchasableUpgradeCountEl = 0;
         this.shieldActive = false;
         this.shieldCost = 0;
         this.shieldCostElement = null;
@@ -212,6 +212,7 @@ export default class Game {
         this.containerElement = containerElement;
         this.upgradesUi.init(
             document.getElementById("upgrades"),
+            document.getElementById("upgrades_hints"),
             this.upgrades,
             // onPurchase callback
             (upgrade, button) => {
@@ -291,7 +292,7 @@ export default class Game {
             console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
             showUpgradesBtn.classList.add("hidden");
-            this.upgradesUi.onShown();
+            this.upgradesUi.onShown(this.aspis);
             Dialogs.pause();
         });
         const hideUpgradesBtn = document.getElementById("hide_upgrades");
@@ -304,7 +305,7 @@ export default class Game {
             }
             this.maybeBloodDiamondEffect();
         });
-        this.availableUpgradeCount = document.getElementById("available_upgrade_count");
+        this.purchasableUpgradeCountEl = document.getElementById("purchasable_upgrade_count");
 
         this.aspisElement = document.getElementById("aspis");
         this.upgradesAspisElement = document.getElementById("upgrades_aspis");
@@ -451,6 +452,7 @@ export default class Game {
             this.width / this.zoomLevel,
             this.height / this.zoomLevel
         ).round();
+        this.upgradesUi.onResize();
         if (this.particles) {
             this.particles.onResize(newSize);
         }
@@ -721,35 +723,19 @@ export default class Game {
         this.aspisElement.innerHTML = this.aspis;
         this.upgradesAspisElement.innerHTML = this.aspis;
         this.upgradesUi.onAspisChanged(this.aspis);
-        this.updateAvailableUpgradeCount();
+        this.updatePurchasableUpgradeCount();
 
         this.maybeSave();
     }
 
-    updateAvailableUpgradeCount() {
-        let availableUpgradeCount = 0;
-        const availableUpgrades = [];
-        for (const upgrade of this.upgrades.upgradeTree.values()) {
-            if (upgrade.purchased) {
-                continue;
-            }
-            if (!upgrade.unlocked) {
-                continue;
-            }
-            if (!upgrade.purchasable) {
-                continue;
-            }
-            if (upgrade.cost <= this.aspis) {
-                availableUpgradeCount++;
-                availableUpgrades.push(upgrade.id);
-            }
-        }
-        if (availableUpgradeCount > 0) {
-            this.availableUpgradeCount.classList.remove("hidden");
-            this.availableUpgradeCount.innerHTML = availableUpgradeCount;
+    updatePurchasableUpgradeCount() {
+        const purchasableUpgrades = this.upgrades.getPurchasableUpgradeIds(this.aspis);
+        if (purchasableUpgrades.length > 0) {
+            this.purchasableUpgradeCountEl.classList.remove("hidden");
+            this.purchasableUpgradeCountEl.innerHTML = purchasableUpgrades.length;
             Story.instance.maybeIntroduceResearch();
         } else {
-            this.availableUpgradeCount.classList.add("hidden");
+            this.purchasableUpgradeCountEl.classList.add("hidden");
         }
     }
 
@@ -1054,9 +1040,7 @@ export default class Game {
             return;
         }
         const evContainer = document.getElementById("worker_ev_container");
-        if (evContainer.classList.contains("hidden")) {
-            evContainer.classList.remove("hidden");
-        }
+        evContainer.classList.remove("hidden");
         const evSpan = document.getElementById("worker_ev");
         this.workerEv = Math.round(this.calculateExpectedValue());
         evSpan.innerHTML = this.workerEv;

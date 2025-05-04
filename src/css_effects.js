@@ -11,9 +11,6 @@ export default class CssEffects {
     static startAnimation(elements, name, durationMs) {
         console.log("Starting " + name + " animation");
         for (const element of elements) {
-            if (element.classList.contains(name)) {
-                continue;
-            }
             element.classList.add(name);
         }
         setTimeout(() => {

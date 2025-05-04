@@ -96,3 +96,9 @@ li:before {
     content: "";
     margin-left: -0.4rem;
 }
+
+.upgrade_hint {
+    color: rgba(75, 167, 83, 0.644);
+    position: absolute;
+    z-index: 10;
+}

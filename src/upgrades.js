@@ -422,7 +422,7 @@ export default class Upgrades {
                 `Your researchers create a machine that can crush a casket, body and all, into a
                 beautiful, shining diamond. Well, a diamond-looking lump, anyway.`
             ),
-            ["Tombstones are now worth 25% of the value of diamonds."],
+            ["Tombstones are now worth 25% of the value of diamonds"],
             1925,
             () => {
                 this.aspisPer[PixelType.TOMBSTONE.name] = Math.round(
@@ -806,7 +806,7 @@ export default class Upgrades {
                 discovered that this chant, when performed just prior to death, magnifies the energy
                 of ones crossing.`
             ),
-            ["Doubles the size of the explosion."],
+            ["Doubles the size of the explosion"],
             7001,
             () => {
                 this.explosionRadius *= 2;
@@ -961,7 +961,7 @@ export default class Upgrades {
                 sense of comfort standing upon it, which is in stark contrast to those that were
                 instead bursting into flames as soon as they alit upon it.`
             ),
-            ["Allows workers to exist near The Egg."],
+            ["Allows workers to exist near The Egg"],
             191,
             () => {
                 this.eggHandling = true;

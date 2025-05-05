@@ -301,7 +301,6 @@ export default class Story {
             come, for us. Biiiiiig things.`,
             this.foremanAvatarPath,
             -1,
-
             () => {},
             () => {
                 setTimeout(() => {
@@ -310,7 +309,6 @@ export default class Story {
                         `Ssssssssssssssssssssssss.`,
                         Story.SERPENT_AVATAR_PATH,
                         0.25,
-
                         () => {},
                         () => {
                             setTimeout(() => {
@@ -439,6 +437,7 @@ export default class Story {
             This has been deemed a Forbidden Planet. Please collect your tools and valuables and
             move on to your next assignment. Do not panic.`,
             Story.COMPANY_COMMUNICATION_AVATAR_PATH,
+            -1,
             () => {},
             () => {
                 setTimeout(() => {
@@ -520,6 +519,7 @@ export default class Story {
             this.serpentName,
             `YES. The crew is vibrating with thirssst for the earth. Dig! Dig faster! More!`,
             Story.SERPENT_PARTIAL_DISGUISE_AVATAR_PATH,
+            -1,
             () => {
                 onShownCallback();
             }

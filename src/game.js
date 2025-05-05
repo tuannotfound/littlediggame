@@ -518,12 +518,12 @@ export default class Game {
             // Only round once we've reached the target zoom level, otherwise the zoom is very
             // jittery as the center position gets shifted around a handful of pixels.
             this.activePixelBodyPosition.set(
-                MathExtras.roundToNearest(this.zoomLevel, this.activePixelBodyPosition.x),
-                MathExtras.roundToNearest(this.zoomLevel, this.activePixelBodyPosition.y)
+                MathExtras.floorToNearest(this.zoomLevel, this.activePixelBodyPosition.x),
+                MathExtras.floorToNearest(this.zoomLevel, this.activePixelBodyPosition.y)
             );
             this.hourglassPosition.set(
-                MathExtras.roundToNearest(this.zoomLevel, this.hourglassPosition.x),
-                MathExtras.roundToNearest(this.zoomLevel, this.hourglassPosition.y)
+                MathExtras.floorToNearest(this.zoomLevel, this.hourglassPosition.x),
+                MathExtras.floorToNearest(this.zoomLevel, this.hourglassPosition.y)
             );
         }
     }

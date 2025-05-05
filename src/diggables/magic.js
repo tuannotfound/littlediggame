@@ -21,7 +21,7 @@ export default class Magic extends Pixel {
         Color.PINK,
     ];
 
-    static HEALTH = 6000;
+    static HEALTH = 12345;
 
     static DARKNESS_HIDE_THRESHOLD = 0.25;
 

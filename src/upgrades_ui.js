@@ -111,16 +111,18 @@ export default class UpgradesUi {
                     const newRow = Math.floor(rows.reduce((a, b) => a + b) / rows.length) + 1;
                     const button = this.buttonMap.get(downstreamUpgrade.id);
                     const prevRow = button.parentElement.style.gridRow;
-                    console.log(
-                        downstreamUpgrade.id +
-                            " moving from row " +
-                            prevRow +
-                            " to " +
-                            newRow +
-                            " (avg of " +
-                            rows.toString() +
-                            ")"
-                    );
+                    if (window.DEBUG_MODE) {
+                        console.log(
+                            downstreamUpgrade.id +
+                                " moving from row " +
+                                prevRow +
+                                " to " +
+                                newRow +
+                                " (avg of " +
+                                rows.toString() +
+                                ")"
+                        );
+                    }
                     const column = button.parentElement.style.gridColumn;
                     button.parentElement.removeChild(button);
                     this.getGridDiv(newRow, column).appendChild(button);
@@ -314,7 +316,6 @@ export default class UpgradesUi {
         );
         // This does not play nicely with Panzoom. Needs to take into account the current scale?
         upgradeDetailsEl.style.height = this.getTotalHeightOfChildren(upgradeDetailsEl) + "px";
-        console.log(upgrade.id + " details height: " + upgradeDetailsEl.style.height);
         const obscuredDetailsEl = document.querySelector(
             "button#" + upgrade.id + " > div.obscured-details"
         );

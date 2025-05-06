@@ -25,29 +25,29 @@
         </script>
         <div id="header">
             <div>
-                <button id="new_game">New Game</button>
-                <button id="load_game" disabled>Load Game</button>
-                <button id="save_game" disabled class="hidden">Save Game</button>
+                <button id="new-game">New Game</button>
+                <button id="load-game" disabled>Load Game</button>
+                <button id="save-game" disabled class="hidden">Save Game</button>
 
-                <button id="pause_resume">
-                    <i id="pause_icon" class="fa-solid fa-pause"></i>
-                    <i id="play_icon" class="fa-solid fa-play hidden"></i>
+                <button id="pause-resume">
+                    <i id="pause-icon" class="fa-solid fa-pause"></i>
+                    <i id="play-icon" class="fa-solid fa-play hidden"></i>
                 </button>
-                <div id="settings_container">
-                    <button id="settings_button"><i class="fa-solid fa-gear"></i></button>
-                    <div id="settings_dropdown" class="hidden">
-                        <label for="sfx_volume_slider" style="grid-column: 1">SFX</label>
-                        <div id="sfx_volume_container" style="grid-column: 2"></div>
-                        <label id="censor_label" for="censor" style="grid-column: 1"
-                            >Censor n<span id="to_be_censored">ipp</span>les</label
+                <div id="settings-container">
+                    <button id="settings-button"><i class="fa-solid fa-gear"></i></button>
+                    <div id="settings-dropdown" class="hidden">
+                        <label for="sfx-volume-slider" style="grid-column: 1">SFX</label>
+                        <div id="sfx-volume-container" style="grid-column: 2"></div>
+                        <label id="censor-label" for="censor" style="grid-column: 1"
+                            >Censor n<span id="to-be-censored">ipp</span>les</label
                         >
                         <input type="checkbox" id="censor" style="grid-column: 2" />
-                        <label for="dialog_durations" style="grid-column: 1">Dialog duration</label>
-                        <div id="dialog_durations" style="grid-column: 2">
+                        <label for="dialog-durations" style="grid-column: 1">Dialog duration</label>
+                        <div id="dialog-durations" style="grid-column: 2">
                             <label>
                                 <input
                                     type="radio"
-                                    id="short_dialogs"
+                                    id="short-dialogs"
                                     name="drone"
                                     value="0.5"
                                 />Short</label
@@ -55,7 +55,7 @@
                             <label>
                                 <input
                                     type="radio"
-                                    id="medium_dialogs"
+                                    id="medium-dialogs"
                                     name="drone"
                                     value="1"
                                     checked
@@ -64,7 +64,7 @@
                             <label>
                                 <input
                                     type="radio"
-                                    id="long_dialogs"
+                                    id="long-dialogs"
                                     name="drone"
                                     value="1.5"
                                 />Long
@@ -75,29 +75,29 @@
             </div>
             <div id="debug" class="hidden">
                 <div>
-                    <button id="next_pixel_body">Next Pixel Body (dbg)</button>
+                    <button id="next-pixel-body">Next Pixel Body (dbg)</button>
                     <label> <input type="checkbox" id="blood" /> Veia mode</label>
-                    <label> <input type="checkbox" id="debug_checkbox" /> Debugging Mode</label>
+                    <label> <input type="checkbox" id="debug-checkbox" /> Debugging Mode</label>
                 </div>
                 <div class="break"></div>
                 <div>
-                    <button id="plus_10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
-                    <button id="plus_100">
+                    <button id="plus-10">+10&nbsp;<i class="fa-solid fa-austral-sign"></i></button>
+                    <button id="plus-100">
                         +100&nbsp;<i class="fa-solid fa-austral-sign"></i>
                     </button>
-                    <button id="plus_1000">
+                    <button id="plus-1000">
                         +1000&nbsp;<i class="fa-solid fa-austral-sign"></i>
                     </button>
-                    <button id="plus_10000">
+                    <button id="plus-10000">
                         +10000&nbsp;<i class="fa-solid fa-austral-sign"></i>
                     </button>
                     <button id="bot"></button>
                 </div>
             </div>
         </div>
-        <div id="pregame_placeholder">
-            <div id="title_container">
-                <h1 class="blur_in_from_top">Little Dig Game</h1>
+        <div id="pregame-placeholder">
+            <div id="title-container">
+                <h1 class="blur-in-from-top">Little Dig Game</h1>
             </div>
 
             <noscript>
@@ -108,33 +108,33 @@
         </div>
         <div id="game">
             <div id="overlay" class="hidden">
-                <div id="info_container">
+                <div id="info-container">
                     <div>
                         <span id="health">100.0</span><span>%</span>&nbsp;<i
-                            id="planet_icon"
+                            id="planet-icon"
                             class="fa-solid fa-globe"
                         ></i
-                        ><i id="serpent_icon" class="hidden fa-solid fa-worm"></i>
+                        ><i id="serpent-icon" class="hidden fa-solid fa-worm"></i>
                     </div>
                     <div>
                         <span id="aspis">0</span>&nbsp;<i class="fa-solid fa-austral-sign"></i>
                     </div>
                     <div>
-                        <span id="little_guy_count">0</span>&nbsp;<i
+                        <span id="little-guy-count">0</span>&nbsp;<i
                             class="fa-solid fa-person-walking"
                         ></i>
                     </div>
                     <div>
                         <span>
-                            <span id="spawn_cost">0</span>&nbsp;<i
+                            <span id="spawn-cost">0</span>&nbsp;<i
                                 class="fa-solid fa-austral-sign"
                             ></i
                             >&nbsp;for next&nbsp;<i class="fa-solid fa-person-walking"></i
                         ></span>
                     </div>
-                    <div id="worker_ev_container" class="hidden">
+                    <div id="worker-ev-container" class="hidden">
                         <span>
-                            <span id="worker_ev">0</span>&nbsp;<i
+                            <span id="worker-ev">0</span>&nbsp;<i
                                 class="fa-solid fa-austral-sign"
                             ></i
                             >&nbsp;expected per &nbsp;<i class="fa-solid fa-person-walking"></i
@@ -142,23 +142,23 @@
                     </div>
                     <div>
                         <span>
-                            <span id="digs_per_death">2</span>&nbsp;<i
+                            <span id="digs-per-death">2</span>&nbsp;<i
                                 class="fa-solid fa-person-digging"
                             ></i
                             >&nbsp;before&nbsp;<i class="fa-solid fa-skull"></i
                         ></span>
                     </div>
                 </div>
-                <button id="show_upgrades">
+                <button id="show-upgrades">
                     <i class="fa-solid fa-book-open"></i>
-                    <div id="purchasable_upgrade_count" class="notification hidden" role="status">
+                    <div id="purchasable-upgrade-count" class="notification hidden" role="status">
                         0
                     </div>
                 </button>
                 <button id="shield" class="hidden">
                     <i class="fa-solid fa-shield-halved"></i>&nbsp;
-                    <div id="shield_cost_container">
-                        <span id="shield_cost">0</span>&nbsp;<i
+                    <div id="shield-cost-container">
+                        <span id="shield-cost">0</span>&nbsp;<i
                             class="fa-solid fa-austral-sign"
                         ></i>
                     </div>
@@ -166,58 +166,58 @@
                 <!-- TBD: Generate the legened programmatically -->
                 <div id="legend">
                     <span class="hidden"
-                        ><span class="dirt">■</span>/<span class="dirt_surface">■</span>: Dirt
-                        (+<span id="aspis_per_DIRT"></span>&nbsp;<i
+                        ><span class="dirt">■</span>/<span class="dirt-surface">■</span>: Dirt
+                        (+<span id="aspis-per-DIRT"></span>&nbsp;<i
                             class="fa-solid fa-austral-sign"
                         ></i
                         >)<br
                     /></span>
                     <span class="hidden"
                         ><span class="tombstone">■</span>: Tombstone (+<span
-                            id="aspis_per_TOMBSTONE"
+                            id="aspis-per-TOMBSTONE"
                         ></span
                         >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                     /></span>
                     <span class="hidden"
-                        ><span class="gold">■</span>: Gold (+<span id="aspis_per_GOLD"></span
+                        ><span class="gold">■</span>: Gold (+<span id="aspis-per-GOLD"></span
                         >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                     /></span>
                     <span class="hidden"
                         ><span class="diamond">■</span>: Diamond (+<span
-                            id="aspis_per_DIAMOND"
+                            id="aspis-per-DIAMOND"
                         ></span
                         >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                     /></span>
                     <span class="hidden"
-                        ><span class="egg">■</span>: <span id="egg_legend_title">???</span> (+<span
-                            id="aspis_per_EGG"
+                        ><span class="egg">■</span>: <span id="egg-legend-title">???</span> (+<span
+                            id="aspis-per-EGG"
                         ></span
                         >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                     /></span>
                     <span class="hidden"
                         ><span class="serpent">■</span>:
-                        <span id="serpent_legend_title">???</span> (+<span
-                            id="aspis_per_SERPENT"
+                        <span id="serpent-legend-title">???</span> (+<span
+                            id="aspis-per-SERPENT"
                         ></span
                         >&nbsp;<i class="fa-solid fa-austral-sign"></i>)<br
                     /></span>
                 </div>
-                <div id="pause_scrim" class="hidden">
-                    <i id="pause_scrim_icon" class="fa-solid fa-pause"></i>
+                <div id="pause-scrim" class="hidden">
+                    <i id="pause-scrim-icon" class="fa-solid fa-pause"></i>
                 </div>
             </div>
-            <div id="upgrades_container" class="hidden">
-                <div id="upgrades_header">
+            <div id="upgrades-container" class="hidden">
+                <div id="upgrades-header">
                     <div>
-                        <span id="upgrades_aspis">0</span>&nbsp;<i
+                        <span id="upgrades-aspis">0</span>&nbsp;<i
                             class="fa-solid fa-austral-sign"
                         ></i>
                     </div>
-                    <h1 id="upgrades_title">Research</h1>
-                    <button id="hide_upgrades"><i class="fa-solid fa-xmark"></i></button>
+                    <h1 id="upgrades-title">Research</h1>
+                    <button id="hide-upgrades"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div id="upgrades_window">
-                    <div id="upgrades_hints"></div>
+                <div id="upgrades-window">
+                    <div id="upgrades-hints"></div>
                     <div id="upgrades"></div>
                 </div>
             </div>

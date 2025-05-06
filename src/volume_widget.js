@@ -25,13 +25,13 @@ export default class VolumeWidget {
 
     static STEP = 5;
 
-    constructor(container, id_prefix, initialVolume = 0.5) {
+    constructor(container, idPrefix, initialVolume = 0.5) {
         this.volume = initialVolume;
 
         this.volumeIcon = document.createElement("i");
-        this.volumeIcon.id = id_prefix + "_volume_icon";
+        this.volumeIcon.id = idPrefix + "-volume-icon";
         this.volumeIcon.classList.add("fa-solid");
-        this.volumeIcon.classList.add("volume_icon");
+        this.volumeIcon.classList.add("volume-icon");
         this.updateIcon();
         container.appendChild(this.volumeIcon);
 
@@ -41,13 +41,13 @@ export default class VolumeWidget {
         this.slider.min = 0;
         this.slider.step = VolumeWidget.STEP;
         this.slider.max = 100;
-        this.slider.id = id_prefix + "_volume_slider";
-        this.slider.classList.add("volume_slider");
+        this.slider.id = idPrefix + "-volume-slider";
+        this.slider.classList.add("volume-slider");
         container.appendChild(this.slider);
 
         this.value = document.createElement("span");
-        this.value.id = id_prefix + "_volume_value";
-        this.value.classList.add("volume_value");
+        this.value.id = idPrefix + "-volume-value";
+        this.value.classList.add("volume-value");
         this.updateValue();
         container.appendChild(this.value);
 

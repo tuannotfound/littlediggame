@@ -1,4 +1,4 @@
-#upgrades_container {
+#upgrades-container {
     touch-action: none;
     display: grid;
     position: absolute;
@@ -7,7 +7,7 @@
     border: black 1px solid;
 }
 
-#upgrades_header {
+#upgrades-header {
     display: grid;
     align-items: center;
     grid-template-columns: 1fr 1fr 1fr;
@@ -15,7 +15,7 @@
     border-bottom: #a1a1a1 1px solid;
 }
 
-div:has(> #upgrades_aspis) {
+div:has(> #upgrades-aspis) {
     padding: 2px;
     grid-column: 1;
     justify-self: left;
@@ -25,12 +25,12 @@ div:has(> #upgrades_aspis) {
     text-wrap-mode: nowrap;
 }
 
-#upgrades_title {
+#upgrades-title {
     grid-column: 2;
     justify-self: center;
 }
 
-#hide_upgrades {
+#hide-upgrades {
     grid-column: 3;
     justify-self: right;
     cursor: pointer;
@@ -39,7 +39,7 @@ div:has(> #upgrades_aspis) {
     margin: 15px;
 }
 
-#upgrades_window {
+#upgrades-window {
     overflow: hidden;
 }
 
@@ -62,17 +62,17 @@ button.upgrade:disabled {
     cursor: inherit;
 }
 
-.upgrade_desc_container {
+.upgrade-desc-container {
     overflow: hidden;
     transition: height 0.1s ease-in-out;
 }
 
-.obscured_details {
+.obscured-details {
     overflow: hidden;
     transition: height 0.1s ease-in-out;
 }
 
-button.upgrade.cannot_afford:enabled > div.upgrade_title {
+button.upgrade.cannot-afford:enabled > div.upgrade-title {
     color: rgb(226, 79, 79);
 }
 
@@ -80,13 +80,13 @@ button.upgrade.purchased {
     background-color: rgb(188, 214, 188);
 }
 
-button.upgrade > div.upgrade_details {
+button.upgrade > div.upgrade-details {
     overflow: hidden;
     transition: height 0.1s ease-in-out;
     text-align: left;
 }
 
-button.upgrade > div.upgrade_details > ul {
+button.upgrade > div.upgrade-details > ul {
     margin-block-start: 0px;
     margin-inline-start: 0.5em;
     padding-inline-start: 1em;
@@ -97,7 +97,7 @@ li:before {
     margin-left: -0.4rem;
 }
 
-.upgrade_hint {
+.upgrade-hint {
     color: rgba(75, 167, 83, 0.644);
     position: absolute;
     z-index: 10;

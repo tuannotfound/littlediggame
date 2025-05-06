@@ -54,8 +54,8 @@ export default class UpgradesUi {
 
         for (const upgradeId of this.upgrades.upgradeTree.keys()) {
             const hint = document.createElement("div");
-            hint.classList.add("upgrade_hint", "fa-solid", "fa-circle-right", "hidden");
-            hint.id = upgradeId + "_hint";
+            hint.classList.add("upgrade-hint", "fa-solid", "fa-circle-right", "hidden");
+            hint.id = upgradeId + "-hint";
             this.hintsContainer.appendChild(hint);
             this.hintsMap.set(upgradeId, hint);
         }
@@ -235,7 +235,7 @@ export default class UpgradesUi {
                     parent: this.container,
                     // This allows Panzoom + LinkerLine to co-exist in a weird way, but the
                     // framerate really suffers.
-                    // parent: document.getElementById("lines_container"),
+                    // parent: document.getElementById("lines-container"),
                     start: prereqButton,
                     end: button,
                 });
@@ -310,13 +310,13 @@ export default class UpgradesUi {
             button.removeAttribute("disabled");
         }
         const upgradeDetailsEl = document.querySelector(
-            "button#" + upgrade.id + " > div.upgrade_details"
+            "button#" + upgrade.id + " > div.upgrade-details"
         );
         // This does not play nicely with Panzoom. Needs to take into account the current scale?
         upgradeDetailsEl.style.height = this.getTotalHeightOfChildren(upgradeDetailsEl) + "px";
         console.log(upgrade.id + " details height: " + upgradeDetailsEl.style.height);
         const obscuredDetailsEl = document.querySelector(
-            "button#" + upgrade.id + " > div.obscured_details"
+            "button#" + upgrade.id + " > div.obscured-details"
         );
         obscuredDetailsEl.style.height = "0px";
         LinkerLine.positionAll();
@@ -338,7 +338,7 @@ export default class UpgradesUi {
     handlePurchase(upgrade) {
         const button = this.buttonMap.get(upgrade.id);
         button.setAttribute("disabled", true);
-        button.classList.remove("cannot_afford");
+        button.classList.remove("cannot-afford");
         button.classList.add("purchased");
         LinkerLine.positionAll();
         this.updateLineStyles(upgrade);
@@ -413,16 +413,16 @@ export default class UpgradesUi {
                 continue;
             }
             if (upgrade.purchased) {
-                button.classList.remove("cannot_afford");
+                button.classList.remove("cannot-afford");
                 continue;
             }
             this.updateLineStyles(upgrade);
             if (upgrade.cost > aspis) {
-                button.classList.add("cannot_afford");
+                button.classList.add("cannot-afford");
                 const hint = this.hintsMap.get(upgrade.id);
                 hint.classList.add("hidden");
             } else {
-                button.classList.remove("cannot_afford");
+                button.classList.remove("cannot-afford");
                 if (upgrade.cost > 0) {
                     this.purchasableUpgradeButtons.push(button);
                 }
@@ -432,13 +432,13 @@ export default class UpgradesUi {
 
     createUpgradeButton(upgrade, row) {
         const costClass = upgrade.purchasable ? "cost" : "cost hidden";
-        let buttonInnerHtml = `<div class='upgrade_title'>
+        let buttonInnerHtml = `<div class='upgrade-title'>
                                  <strong>${upgrade.title}</strong>
                                  <span class='${costClass}'> (${upgrade.cost}&nbsp;<i class="fa-solid fa-austral-sign"></i>)</span>
                                </div>
-                               <div class='upgrade_details' style='height: 0px;'>
-                                 <div class='upgrade_desc_container'>
-                                   <p class='upgrade_desc'>${upgrade.desc}</p>
+                               <div class='upgrade-details' style='height: 0px;'>
+                                 <div class='upgrade-desc-container'>
+                                   <p class='upgrade-desc'>${upgrade.desc}</p>
                                  </div>`;
         if (upgrade.bulletPts.length > 0) {
             buttonInnerHtml += `<ul>`;
@@ -448,7 +448,7 @@ export default class UpgradesUi {
             buttonInnerHtml += `  </ul>`;
         }
         buttonInnerHtml += `</div>
-                            <div class='obscured_details'>
+                            <div class='obscured-details'>
                               <span>???</span>
                             </div>`;
 

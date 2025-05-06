@@ -33,7 +33,7 @@ export default class LittleGuys {
                 }
             },
         };
-        this.#layer = new Layer("little_guys");
+        this.#layer = new Layer("little-guys");
         this.#listeners = [];
     }
 

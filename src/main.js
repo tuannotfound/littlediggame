@@ -49,8 +49,8 @@ function initialize() {
 function initSettings() {
     SaveLoad.loadSettings();
 
-    const settingsButton = document.getElementById("settings_button");
-    const settingsDropdown = document.getElementById("settings_dropdown");
+    const settingsButton = document.getElementById("settings-button");
+    const settingsDropdown = document.getElementById("settings-dropdown");
 
     settingsButton.addEventListener("click", function (event) {
         event.stopPropagation(); // Prevent the click from immediately closing the dropdown
@@ -75,7 +75,7 @@ function initSettings() {
         }
     };
     updateVolume(window.SETTINGS.volume);
-    const sfxVolumeContainer = document.getElementById("sfx_volume_container");
+    const sfxVolumeContainer = document.getElementById("sfx-volume-container");
     const sfxVolumeWidget = new VolumeWidget(sfxVolumeContainer, "sfx", window.SETTINGS.volume);
     sfxVolumeWidget.addListener({
         onVolumeChange: updateVolume,
@@ -85,18 +85,18 @@ function initSettings() {
     });
 
     const censorBtn = document.getElementById("censor");
-    const toBeCensored = document.getElementById("to_be_censored");
+    const toBeCensored = document.getElementById("to-be-censored");
     censorBtn.checked = window.SETTINGS.censor;
     if (censorBtn.checked) {
-        toBeCensored.classList.add("blurry_text");
+        toBeCensored.classList.add("blurry-text");
     }
     censorBtn.addEventListener("change", () => {
         window.SETTINGS.censor = censorBtn.checked;
-        toBeCensored.classList.toggle("blurry_text");
+        toBeCensored.classList.toggle("blurry-text");
         SaveLoad.saveSettings();
     });
 
-    const dialogDurationInputs = document.querySelectorAll("#dialog_durations input");
+    const dialogDurationInputs = document.querySelectorAll("#dialog-durations input");
     const dialogDurationListener = (event) => {
         window.SETTINGS.dialogDurationModifier = event.target.value;
         SaveLoad.saveSettings();
@@ -119,7 +119,7 @@ function initSettings() {
 
 function initUi() {
     const gameContainer = document.getElementById("game");
-    const newGameBtn = document.getElementById("new_game");
+    const newGameBtn = document.getElementById("new-game");
     newGameBtn.addEventListener("click", () => {
         console.log("Starting new game");
         game = new Game();
@@ -127,7 +127,7 @@ function initUi() {
         updateUiVisibility();
         updateUiSizes();
     });
-    const loadGameBtn = document.getElementById("load_game");
+    const loadGameBtn = document.getElementById("load-game");
     loadGameBtn.addEventListener("click", () => {
         console.log("Loading game");
         game = SaveLoad.load();
@@ -135,7 +135,7 @@ function initUi() {
         updateUiVisibility();
         updateUiSizes();
     });
-    const saveGameBtn = document.getElementById("save_game");
+    const saveGameBtn = document.getElementById("save-game");
     if (SaveLoad.saveDataExists()) {
         loadGameBtn.removeAttribute("disabled");
     }
@@ -147,27 +147,27 @@ function initUi() {
         }
     });
 
-    const upgradesContainer = document.getElementById("upgrades_container");
+    const upgradesContainer = document.getElementById("upgrades-container");
 
     function updateUiVisibility() {
         if (game) {
             newGameBtn.classList.add("hidden");
             loadGameBtn.classList.add("hidden");
             saveGameBtn.classList.remove("hidden");
-            const pauseBtn = document.getElementById("pause_resume");
+            const pauseBtn = document.getElementById("pause-resume");
             pauseBtn.classList.remove("hidden");
             pauseBtn.removeAttribute("disabled");
-            document.getElementById("pregame_placeholder").classList.add("hidden");
+            document.getElementById("pregame-placeholder").classList.add("hidden");
             overlay.classList.remove("hidden");
             document.getElementById("legend").classList.remove("hidden");
-            document.getElementById("info_container").classList.remove("dark");
+            document.getElementById("info-container").classList.remove("dark");
             // Upgrades container is hidden by default
         } else {
             newGameBtn.classList.remove("hidden");
             loadGameBtn.classList.remove("hidden");
             saveGameBtn.classList.add("hidden");
-            document.getElementById("pause_resume").classList.add("hidden");
-            document.getElementById("pregame_placeholder").classList.remove("hidden");
+            document.getElementById("pause-resume").classList.add("hidden");
+            document.getElementById("pregame-placeholder").classList.remove("hidden");
             overlay.classList.add("hidden");
             upgradesContainer.classList.add("hidden");
         }
@@ -185,7 +185,7 @@ function initUi() {
         const overlay = document.querySelector("#overlay");
         overlay.style.width = widthPx;
         overlay.style.height = heightPx;
-        const upgradesContainer = document.querySelector("#upgrades_container");
+        const upgradesContainer = document.querySelector("#upgrades-container");
         upgradesContainer.style.width = widthPx;
         upgradesContainer.style.height = heightPx;
     }
@@ -225,7 +225,7 @@ function initDebug() {
             bot.stop();
         } else {
             if (!game) {
-                document.getElementById("new_game").click();
+                document.getElementById("new-game").click();
             }
             bot = new Bot(game);
             bot.start();
@@ -233,7 +233,7 @@ function initDebug() {
         updateBotText();
     });
 
-    const debugCheckbox = document.getElementById("debug_checkbox");
+    const debugCheckbox = document.getElementById("debug-checkbox");
     window.DEBUG_MODE = debugCheckbox.checked;
     debugCheckbox.addEventListener("change", () => {
         if (window.DEBUG_MODE == debugCheckbox.checked) {

@@ -60,7 +60,7 @@ export default class LittleGuy {
         let headColorIndex = Math.floor(Math.random() * LittleGuy.HEAD_COLORS.length);
         this.headColor = Color.wiggle(LittleGuy.HEAD_COLORS[headColorIndex], 5);
 
-        this.layer = new Layer("little_guy");
+        this.layer = new Layer("little-guy");
         this.center = new Vector(1, 1);
         this.previousPositions = [];
         this.previousDirection = 0;

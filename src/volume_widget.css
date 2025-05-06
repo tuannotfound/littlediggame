@@ -4,12 +4,12 @@
  * See LICENSE file in the project root for full license information.
  */
 
-.volume_value {
+.volume-value {
     width: 2rem;
     text-align: end;
 }
 
-.volume_icon {
+.volume-icon {
     width: 1.5rem;
     text-align: start;
 }

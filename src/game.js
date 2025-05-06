@@ -212,7 +212,7 @@ export default class Game {
         this.containerElement = containerElement;
         this.upgradesUi.init(
             document.getElementById("upgrades"),
-            document.getElementById("upgrades_hints"),
+            document.getElementById("upgrades-hints"),
             this.upgrades,
             // onPurchase callback
             (upgrade, button) => {
@@ -246,7 +246,7 @@ export default class Game {
     }
 
     initUi() {
-        const saveGameBtn = document.getElementById("save_game");
+        const saveGameBtn = document.getElementById("save-game");
         saveGameBtn.addEventListener("click", () => {
             console.log("Saving...");
             if (this.gameState === GameState.RUNNING) {
@@ -257,16 +257,16 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
-        const pauseBtn = document.getElementById("pause_resume");
+        const pauseBtn = document.getElementById("pause-resume");
         pauseBtn.addEventListener("click", () => {
-            document.getElementById("pause_icon").classList.toggle("hidden");
-            document.getElementById("play_icon").classList.toggle("hidden");
-            document.getElementById("pause_scrim").classList.toggle("hidden");
+            document.getElementById("pause-icon").classList.toggle("hidden");
+            document.getElementById("play-icon").classList.toggle("hidden");
+            document.getElementById("pause-scrim").classList.toggle("hidden");
             this.setPaused(!GameState.isPaused(this.gameState));
         });
 
         if (window.DEBUG) {
-            const nextPixelBodyBtn = document.getElementById("next_pixel_body");
+            const nextPixelBodyBtn = document.getElementById("next-pixel-body");
             nextPixelBodyBtn.addEventListener("click", () => {
                 this.goToNextPixelBody();
             });
@@ -279,7 +279,7 @@ export default class Game {
             for (let i = 0; i < 4; i++) {
                 const pow = i + 1;
                 const val = 10 ** pow;
-                const plusBtn = document.getElementById("plus_" + val);
+                const plusBtn = document.getElementById("plus-" + val);
                 plusBtn.addEventListener("click", () => {
                     this.aspis += val;
                     this.aspisNeedsUpdate = true;
@@ -287,8 +287,8 @@ export default class Game {
             }
         }
 
-        const upgradesContainer = document.getElementById("upgrades_container");
-        const showUpgradesBtn = document.getElementById("show_upgrades");
+        const upgradesContainer = document.getElementById("upgrades-container");
+        const showUpgradesBtn = document.getElementById("show-upgrades");
         showUpgradesBtn.addEventListener("click", () => {
             console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
@@ -296,7 +296,7 @@ export default class Game {
             this.upgradesUi.onShown(this.aspis);
             Dialogs.pause();
         });
-        const hideUpgradesBtn = document.getElementById("hide_upgrades");
+        const hideUpgradesBtn = document.getElementById("hide-upgrades");
         hideUpgradesBtn.addEventListener("click", () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
@@ -306,16 +306,16 @@ export default class Game {
             }
             this.maybeBloodDiamondEffect();
         });
-        this.purchasableUpgradeCountEl = document.getElementById("purchasable_upgrade_count");
+        this.purchasableUpgradeCountEl = document.getElementById("purchasable-upgrade-count");
 
         this.aspisElement = document.getElementById("aspis");
-        this.upgradesAspisElement = document.getElementById("upgrades_aspis");
+        this.upgradesAspisElement = document.getElementById("upgrades-aspis");
         this.aspisNeedsUpdate = true;
 
         this.healthElement = document.getElementById("health");
         this.updateHealth();
 
-        this.shieldCostElement = document.getElementById("shield_cost");
+        this.shieldCostElement = document.getElementById("shield-cost");
         this.shieldCostContainerElement = this.shieldCostElement.parentElement;
         const shieldButtonEl = document.getElementById("shield");
         shieldButtonEl.addEventListener("click", () => {
@@ -332,16 +332,16 @@ export default class Game {
             }
         );
 
-        this.littleGuyCountElement = document.getElementById("little_guy_count");
-        this.spawnCostElement = document.getElementById("spawn_cost");
+        this.littleGuyCountElement = document.getElementById("little-guy-count");
+        this.spawnCostElement = document.getElementById("spawn-cost");
         this.updateSpawnCost();
 
-        this.digsPerDeathElement = document.getElementById("digs_per_death");
+        this.digsPerDeathElement = document.getElementById("digs-per-death");
         this.updateDigsPerDeath();
 
         document.querySelector("span.dirt").style.color =
             Pixel.ACTIVE_DIRT_TYPE.color.asCssString();
-        document.querySelector("span.dirt_surface").style.color =
+        document.querySelector("span.dirt-surface").style.color =
             Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
         document.querySelector("span.tombstone").style.color =
             PixelConstants.TOMBSTONE_COLOR.asCssString();
@@ -673,7 +673,7 @@ export default class Game {
 
     onUpgradePurchased(upgrade, button) {
         const buttonCostEl = document.querySelector(
-            "button#" + button.id + " > div.upgrade_title > span.cost"
+            "button#" + button.id + " > div.upgrade-title > span.cost"
         );
         if (upgrade.cost > this.aspis) {
             this.startNotEnoughAspisAnimation([
@@ -778,18 +778,18 @@ export default class Game {
         if (this.activePixelBody.className == Serpent.name) {
             this.upgrades.getUpgrade(Upgrades.PROGRESS_GATE_ID_4).purchase();
             // Swap out the planet icon for the serpent
-            document.getElementById("planet_icon").classList.add("hidden");
-            document.getElementById("serpent_icon").classList.remove("hidden");
+            document.getElementById("planet-icon").classList.add("hidden");
+            document.getElementById("serpent-icon").classList.remove("hidden");
             // Initialize the hourglass
             this.hourglass.init(this.finalLevelLost.bind(this));
             Audio.instance.playOminousSting();
             // Save once and then prevent further saving.
             this.maybeSave();
-            const saveGameBtn = document.getElementById("save_game");
+            const saveGameBtn = document.getElementById("save-game");
             saveGameBtn.setAttribute("disabled", "");
             // Hide the legend
             document.getElementById("legend").classList.add("hidden");
-            document.getElementById("info_container").classList.add("dark");
+            document.getElementById("info-container").classList.add("dark");
             Audio.instance.playOminousSting();
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
@@ -798,7 +798,7 @@ export default class Game {
             this.zoomLevel = 1;
             document.querySelector("span.dirt").style.color =
                 Pixel.ACTIVE_DIRT_TYPE.color.asCssString();
-            document.querySelector("span.dirt_surface").style.color =
+            document.querySelector("span.dirt-surface").style.color =
                 Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
         }
         this.sky.setColors(this.activePixelBody.skyColors);
@@ -852,12 +852,12 @@ export default class Game {
         this.spawningAllowed = false;
         this.stats.updateRuntime();
         Story.instance.onGameOver(won, () => {
-            const showUpgradesBtn = document.getElementById("show_upgrades");
+            const showUpgradesBtn = document.getElementById("show-upgrades");
             showUpgradesBtn.classList.add("hidden");
-            const infoContainer = document.getElementById("info_container");
+            const infoContainer = document.getElementById("info-container");
             infoContainer.classList.add("hidden");
             this.shieldCooldownButton.buttonEl.classList.add("hidden");
-            const pauseBtn = document.getElementById("pause_resume");
+            const pauseBtn = document.getElementById("pause-resume");
             pauseBtn.setAttribute("disabled", "");
             this.showGameOverScreen(won);
         });
@@ -883,7 +883,7 @@ export default class Game {
             if (pixelType == PixelType.MAGIC) {
                 continue;
             }
-            document.getElementById("aspis_per_" + pixelType.name).innerText =
+            document.getElementById("aspis-per-" + pixelType.name).innerText =
                 this.upgrades.aspisPer[pixelType.name];
         }
 
@@ -902,7 +902,7 @@ export default class Game {
         updateHidden(PixelType.EGG, this.knowsEggDeath || this.upgrades.eggHandling);
 
         const eggSpan = document.querySelector(
-            "span#" + PixelType.EGG.name.toLowerCase() + "_legend_title"
+            "span#" + PixelType.EGG.name.toLowerCase() + "-legend-title"
         );
         if (this.upgrades.eggHandling) {
             eggSpan.innerText = "Egg";
@@ -1040,9 +1040,9 @@ export default class Game {
         if (!this.upgrades.showWorkerEV) {
             return;
         }
-        const evContainer = document.getElementById("worker_ev_container");
+        const evContainer = document.getElementById("worker-ev-container");
         evContainer.classList.remove("hidden");
-        const evSpan = document.getElementById("worker_ev");
+        const evSpan = document.getElementById("worker-ev");
         this.workerEv = Math.round(this.calculateExpectedValue());
         evSpan.innerHTML = this.workerEv;
     }

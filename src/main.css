@@ -121,14 +121,14 @@ input[type="checkbox"] {
     font-size: 3rem;
 }
 
-.boundFromTop {
-    animation-name: bounceFromTop;
+.blur_in_from_top {
+    animation-name: blur_in_from_top;
     animation-duration: 2s;
 }
 
-@keyframes bounceFromTop {
+@keyframes blur_in_from_top {
     from {
-        transform: scale(200%) translateY(-100%);
+        transform: scaleY(200%) translateY(-100%);
         filter: blur(20px);
         opacity: 0;
     }

@@ -184,8 +184,6 @@ input[type="checkbox"] {
     position: absolute;
     z-index: 1;
     display: grid;
-    grid-template-rows: 1fr 1fr;
-    grid-template-columns: 1fr 1fr;
 }
 
 #info_container {
@@ -303,6 +301,19 @@ input[type="checkbox"] {
     border-radius: 2px;
     border: black 1px solid;
     right: 0; /* Align to the right of the button */
+}
+@media (max-width: 450px) {
+    #settings_dropdown {
+        position: fixed;
+        right: auto;
+        left: 10px;
+        max-width: calc(100vw - 20px);
+    }
+    #title_container > h1 {
+        cursor: default;
+        color: rgb(24, 24, 24);
+        font-size: 2.5rem;
+    }
 }
 
 #settings_dropdown label {

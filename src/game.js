@@ -257,6 +257,14 @@ export default class Game {
         });
         saveGameBtn.removeAttribute("disabled");
 
+        const pauseBtn = document.getElementById("pause_resume");
+        pauseBtn.addEventListener("click", () => {
+            document.getElementById("pause_icon").classList.toggle("hidden");
+            document.getElementById("play_icon").classList.toggle("hidden");
+            document.getElementById("pause_scrim").classList.toggle("hidden");
+            this.setPaused(!GameState.isPaused(this.gameState));
+        });
+
         if (window.DEBUG) {
             const nextPixelBodyBtn = document.getElementById("next_pixel_body");
             nextPixelBodyBtn.addEventListener("click", () => {
@@ -266,13 +274,6 @@ export default class Game {
             bloodBtn.addEventListener("change", () => {
                 this.blood = bloodBtn.checked;
                 console.log("Blood: " + bloodBtn.checked);
-            });
-            const pauseBtn = document.getElementById("pause_resume");
-            pauseBtn.addEventListener("click", () => {
-                document.getElementById("pause_icon").classList.toggle("hidden");
-                document.getElementById("play_icon").classList.toggle("hidden");
-                document.getElementById("pause_scrim").classList.toggle("hidden");
-                this.setPaused(!GameState.isPaused(this.gameState));
             });
 
             for (let i = 0; i < 4; i++) {

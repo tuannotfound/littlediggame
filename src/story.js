@@ -2,8 +2,9 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Dialogs from "./dialogs.js";
 import AnagramRevealer from "./anagram_revealer.js";
+import Audio from "./audio.js";
+import Dialogs from "./dialogs.js";
 
 export default class Story {
     static #instance;
@@ -202,7 +203,9 @@ export default class Story {
             `Ssssssssssssssssssssssss.`,
             Story.SERPENT_AVATAR_PATH,
             0.25,
-            () => {},
+            () => {
+                Audio.instance.play(Audio.STORY_SERPENT_HISS);
+            },
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -309,8 +312,11 @@ export default class Story {
                         `Ssssssssssssssssssssssss.`,
                         Story.SERPENT_AVATAR_PATH,
                         0.25,
-                        () => {},
                         () => {
+                            Audio.instance.play(Audio.STORY_SERPENT_HISS);
+                        },
+                        () => {
+                            Audio.instance.play(Audio.STORY_FOREMAN_DEATH);
                             setTimeout(() => {
                                 Dialogs.show(
                                     this.serpentName,
@@ -438,7 +444,9 @@ export default class Story {
             move on to your next assignment. Do not panic.`,
             Story.COMPANY_COMMUNICATION_AVATAR_PATH,
             -1,
-            () => {},
+            () => {
+                Audio.instance.play(Audio.STORY_COMPANY_RADIO_STATIC);
+            },
             () => {
                 setTimeout(() => {
                     Dialogs.show(
@@ -481,7 +489,11 @@ export default class Story {
         Dialogs.show(
             Story.COMPANY_COMMUNICATION_NAME,
             `Your refusal to follow orders has been escalated. Dig operations must halt.`,
-            Story.COMPANY_COMMUNICATION_AVATAR_PATH
+            Story.COMPANY_COMMUNICATION_AVATAR_PATH,
+            -1,
+            () => {
+                Audio.instance.play(Audio.STORY_COMPANY_RADIO_STATIC);
+            }
         );
     }
 

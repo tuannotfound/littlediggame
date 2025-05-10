@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
+import Audio from "./audio.js";
 import Game from "./game.js";
 import SaveLoad from "./save_load.js";
 import VolumeWidget from "./volume_widget.js";
@@ -36,6 +37,7 @@ document.onreadystatechange = function () {
 };
 
 function initialize() {
+    Audio.init();
     initUi();
     initSettings();
 
@@ -64,7 +66,7 @@ function initSettings() {
         }
     });
 
-    const updateVolume = function (volume) {
+    const updateVolume = function (volume, play = true) {
         window.SETTINGS.volume = volume;
         if (volume == 0) {
             Howler.mute(true);
@@ -72,9 +74,12 @@ function initSettings() {
             Howler.mute(false);
             console.log("Setting Howler volume to " + volume);
             Howler.volume(volume);
+            if (play) {
+                Audio.instance.play(Audio.UI_VOLUME_CHANGE);
+            }
         }
     };
-    updateVolume(window.SETTINGS.volume);
+    updateVolume(window.SETTINGS.volume, false);
     const sfxVolumeContainer = document.getElementById("sfx-volume-container");
     const sfxVolumeWidget = new VolumeWidget(sfxVolumeContainer, "sfx", window.SETTINGS.volume);
     sfxVolumeWidget.addListener({

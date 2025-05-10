@@ -2,13 +2,14 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Vector from "../vector.js";
-import MathExtras from "../math_extras.js";
-import PixelType from "../diggables/pixel_type.js";
-import PixelBody from "./pixel_body.js";
-import Pixel from "../diggables/pixel.js";
-import SerpentDiggable from "../diggables/serpent.js";
+import Audio from "../audio.js";
 import Color from "../color.js";
+import MathExtras from "../math_extras.js";
+import Pixel from "../diggables/pixel.js";
+import PixelBody from "./pixel_body.js";
+import PixelType from "../diggables/pixel_type.js";
+import SerpentDiggable from "../diggables/serpent.js";
+import Vector from "../vector.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
@@ -520,6 +521,7 @@ class Segment {
     }
 
     killAll() {
+        Audio.instance.play(Audio.SERPENT_ATTACK);
         this.killAllAnimationFrame = Serpent.KILL_ALL_ANIMATION_FRAMES;
     }
 

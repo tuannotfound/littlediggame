@@ -125,7 +125,7 @@ export default class Game {
                 return;
             }
             this.sky.setColors(body.altSkyColors, Sky.DEFAULT_TRANSITION_DURATION_FRAMES * 2);
-            Audio.instance.playOminousWind();
+            Audio.instance.play(Audio.STORY_SKY_CHANGE);
         };
 
         this.bloodDiamondEffectShown = false;
@@ -293,6 +293,7 @@ export default class Game {
             console.log("Showing upgrades screen w/ Health: " + this.activePixelBody?.health);
             upgradesContainer.classList.remove("hidden");
             showUpgradesBtn.classList.add("hidden");
+            Audio.instance.play(Audio.UI_UPGRADES_OPEN);
             this.upgradesUi.onShown(this.aspis);
             Dialogs.pause();
         });
@@ -300,6 +301,7 @@ export default class Game {
         hideUpgradesBtn.addEventListener("click", () => {
             upgradesContainer.classList.add("hidden");
             showUpgradesBtn.classList.remove("hidden");
+            Audio.instance.play(Audio.UI_UPGRADES_CLOSE);
             this.upgradesUi.onHidden();
             if (!GameState.isPaused(this.gameState)) {
                 Dialogs.resume();
@@ -655,7 +657,7 @@ export default class Game {
         this.aspis -= this.shieldCost;
         this.aspisNeedsUpdate = true;
         this.shieldActive = true;
-        Audio.instance.playShield();
+        Audio.instance.play(Audio.SHIELD_ACTIVATE);
 
         this.littleGuys.onShieldActivated();
 
@@ -667,6 +669,7 @@ export default class Game {
             return;
         }
         this.shieldActive = false;
+        Audio.instance.play(Audio.SHIELD_DEACTIVATE);
 
         this.littleGuys.onShieldDeactivated();
     }
@@ -686,6 +689,7 @@ export default class Game {
         // Must mark the upgrade as purchased before we update the Aspis, otherwise the 'available
         // to purchase' notifcation bubble will include the one we just purchased.
         upgrade.purchase();
+        Audio.instance.play(Audio.UI_UPGRADE_PURCHASED);
         this.aspis -= upgrade.cost;
         if (upgrade.cost > 0) {
             this.aspisNeedsUpdate = true;
@@ -782,7 +786,6 @@ export default class Game {
             document.getElementById("serpent-icon").classList.remove("hidden");
             // Initialize the hourglass
             this.hourglass.init(this.finalLevelLost.bind(this));
-            Audio.instance.playOminousSting();
             // Save once and then prevent further saving.
             this.maybeSave();
             const saveGameBtn = document.getElementById("save-game");
@@ -790,7 +793,7 @@ export default class Game {
             // Hide the legend
             document.getElementById("legend").classList.add("hidden");
             document.getElementById("info-container").classList.add("dark");
-            Audio.instance.playOminousSting();
+            Audio.instance.play(Audio.STORY_SERPENT_REVEAL);
         } else {
             // Zooming from the current (zoomed in) point to a more zoomed out point looks kinda goofy,
             // so just have the planet come into view as if we're zooming towards it instead.

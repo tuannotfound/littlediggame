@@ -3,177 +3,186 @@
 // See LICENSE file in the project root for full license information.
 
 import { Howl, Howler } from "howler";
+import PixelType from "./diggables/pixel_type.js";
+import SwissPlanet from "./pixel_bodies/swiss_planet.js";
+import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
+import Serpent from "./pixel_bodies/serpent.js";
 
 export default class Audio {
-    static SFX_PREFIX = "assets/sfx/";
+    static DIG_DMG_DIRT = "dig_dmg_dirt";
+    static DIG_FINISH_DIRT = "dig_finish_dirt";
+    static DIG_DMG_GOLD = "dig_dmg_gold";
+    static DIG_FINISH_GOLD = "dig_finish_gold";
+    static DIG_DMG_TOMBSTONE = "dig_dmg_tombstone";
+    static DIG_FINISH_TOMBSTONE = "dig_finish_tombstone";
+    static DIG_DMG_DIAMOND = "dig_dmg_diamond";
+    static DIG_FINISH_DIAMOND = "dig_finish_diamond";
+    static DIG_DMG_MAGIC = "dig_dmg_magic";
+    static DIG_FINISH_MAGIC = "dig_finish_magic";
+    static DIG_DMG_EGG = "dig_dmg_egg";
+    static DIG_FINISH_EGG = "dig_finish_egg";
+    static DIG_DMG_SERPENT = "dig_dmg_serpent";
+    static DIG_FINISH_SERPENT = "dig_finish_serpent";
+    static DEATH_REGULAR = "death_regular";
+    static DEATH_ASCEND = "death_ascend";
+    static DEATH_DESCEND = "death_descend";
+    static DEATH_EXPLODE = "death_explode";
+    static DEATH_EGG = "death_egg";
+    static DEATH_SERPENT_ATTACK = "death_serpent_attack";
+    static STORY_SERPENT_HISS = "story_serpent_hiss";
+    static STORY_FOREMAN_DEATH = "story_foreman_death";
+    static STORY_SKY_CHANGE = "story_sky_change";
+    static STORY_SERPENT_REVEAL = "story_serpent_reveal";
+    static STORY_COMPANY_RADIO_STATIC = "story_company_radio_static";
+    static WALK_REGULAR = "walk_regular";
+    static WALK_GOOP = "walk_goop";
+    static WALK_SNOW = "walk_snow";
+    static WALK_SERPENT = "walk_serpent";
+    static SHIELD_ACTIVATE = "shield_activate";
+    static SHIELD_DEACTIVATE = "shield_deactivate";
+    static SHIELD_BLOCK_ATTACK = "shield_block_attack";
+    static SERPENT_ATTACK = "serpent_attack";
+    static UI_UPGRADES_OPEN = "ui_upgrades_open";
+    static UI_UPGRADES_CLOSE = "ui_upgrades_close";
+    static UI_UPGRADE_PURCHASED = "ui_upgrade_purchased";
+    static UI_VOLUME_CHANGE = "ui_volume_change";
+
+    static #DIG_DMG_MAP = new Map([
+        [PixelType.DIRT.name, Audio.DIG_DMG_DIRT],
+        [PixelType.GOLD.name, Audio.DIG_DMG_GOLD],
+        [PixelType.TOMBSTONE.name, Audio.DIG_DMG_TOMBSTONE],
+        [PixelType.DIAMOND.name, Audio.DIG_DMG_DIAMOND],
+        [PixelType.MAGIC.name, Audio.DIG_DMG_MAGIC],
+        [PixelType.EGG.name, Audio.DIG_DMG_EGG],
+        [PixelType.SERPENT.name, Audio.DIG_DMG_SERPENT],
+    ]);
+    static #DIG_FINISH_MAP = new Map([
+        [PixelType.DIRT.name, Audio.DIG_FINISH_DIRT],
+        [PixelType.GOLD.name, Audio.DIG_FINISH_GOLD],
+        [PixelType.TOMBSTONE.name, Audio.DIG_FINISH_TOMBSTONE],
+        [PixelType.DIAMOND.name, Audio.DIG_FINISH_DIAMOND],
+        [PixelType.MAGIC.name, Audio.DIG_FINISH_MAGIC],
+        [PixelType.EGG.name, Audio.DIG_FINISH_EGG],
+        [PixelType.SERPENT.name, Audio.DIG_FINISH_SERPENT],
+    ]);
+    static #WALK_MAP = new Map([
+        [SwissPlanet.name, Audio.WALK_GOOP],
+        [SpikyPlanet.name, Audio.WALK_SNOW],
+        [Serpent.name, Audio.WALK_SERPENT],
+    ]);
+
+    static #SFX_PATH_PREFIX = "assets/sfx/";
     static #instance;
+    #sfxMap;
 
     constructor() {
-        if (Audio.#instance) {
-            return Audio.#instance;
-        }
         Audio.#instance = this;
-
-        this.playCountMap = new Map();
-
-        this.dirtDamageSfx = new MultiAudioWrapper([
-            Audio.SFX_PREFIX + "dirt_dmg_0.ogg",
-            Audio.SFX_PREFIX + "dirt_dmg_1.ogg",
-        ]);
-        this.initRateLimited(this.dirtDamageSfx);
-
-        this.dirtDigSfx = new MultiAudioWrapper([
-            Audio.SFX_PREFIX + "dirt_dig_0.ogg",
-            Audio.SFX_PREFIX + "dirt_dig_1.ogg",
-        ]);
-        this.initRateLimited(this.dirtDigSfx);
-
-        this.oreDamageSfx = new MultiAudioWrapper([
-            Audio.SFX_PREFIX + "ore_dmg_0.ogg",
-            Audio.SFX_PREFIX + "ore_dmg_1.ogg",
-        ]);
-        this.initRateLimited(this.oreDamageSfx);
-
-        this.oreDigSfx = new Howl({
-            src: [Audio.SFX_PREFIX + "ore_dig_0.ogg"],
-        });
-        this.initRateLimited(this.oreDigSfx);
-
-        this.walkSfx = new MultiAudioWrapper(
-            [Audio.SFX_PREFIX + "walk_0.ogg", Audio.SFX_PREFIX + "walk_1.ogg"],
-            0.5,
-            false
-        );
-        this.initRateLimited(this.walkSfx);
-
-        this.deathSfx = new MultiAudioWrapper([
-            Audio.SFX_PREFIX + "death_tombstone_0.ogg",
-            Audio.SFX_PREFIX + "death_tombstone_1.ogg",
-        ]);
-        this.initRateLimited(this.deathSfx);
-
-        this.deathAscentSfx = new Howl({
-            src: [Audio.SFX_PREFIX + "death_ascent.ogg"],
-        });
-        this.initRateLimited(this.deathAscentSfx);
-
-        this.ominousWindSfx = new Howl({
-            src: [Audio.SFX_PREFIX + "wind.wav"],
-            volume: 1.0,
-        });
-        this.ominousStingSfx = new Howl({
-            src: [Audio.SFX_PREFIX + "horror.wav"],
-            volume: 1.0,
-        });
-        this.shieldSfx = new Howl({
-            src: [Audio.SFX_PREFIX + "shield.ogg"],
-        });
-    }
-
-    initRateLimited(sfx) {
-        this.playCountMap.set(sfx, 0);
-        sfx.on("end", () => {
-            this.onEndCallback(sfx);
-        });
+        this.#sfxMap = new Map();
     }
 
     static get instance() {
-        return Audio.#instance || new Audio();
+        if (Audio.#instance) {
+            return Audio.#instance;
+        }
+        return Audio.init();
     }
 
-    playDirtDamage() {
-        this.playRateLimited(this.dirtDamageSfx);
+    static init() {
+        const audio = new Audio();
+        audio.initWithJson("sfx.json");
+        return audio;
     }
 
-    playDirtDig() {
-        this.playRateLimited(this.dirtDigSfx);
+    initWithJson(jsonPath) {
+        const result = (async () => {
+            const response = await fetch(Audio.#SFX_PATH_PREFIX + jsonPath);
+            return await response.json();
+        })();
+
+        // Block on the result and parse.
+        result.then((sfxJson) => {
+            for (const [key, values] of Object.entries(sfxJson)) {
+                const files = values.files || [];
+                const volume = values.volume || 1;
+                const rateLimit = values.rateLimit || 0;
+                const sequential = values.sequential || false;
+                this.#sfxMap.set(
+                    key,
+                    new SoundEffect(
+                        key,
+                        Audio.#SFX_PATH_PREFIX,
+                        files,
+                        volume,
+                        rateLimit,
+                        sequential
+                    )
+                );
+            }
+        });
     }
 
-    playOreDamage() {
-        this.playRateLimited(this.oreDamageSfx);
+    playDigDamage(pixelType) {
+        this.#sfxMap.get(Audio.#DIG_DMG_MAP.get(pixelType.name))?.play();
     }
 
-    playOreDig() {
-        this.playRateLimited(this.oreDigSfx);
+    playDigFinish(pixelType) {
+        this.#sfxMap.get(Audio.#DIG_FINISH_MAP.get(pixelType.name))?.play();
     }
 
-    playWalk() {
-        this.playRateLimited(this.walkSfx);
-    }
-
-    playDeath() {
-        this.playRateLimited(this.deathSfx);
-    }
-
-    playDeathAscent() {
-        this.playRateLimited(this.deathAscentSfx);
-    }
-
-    playOminousWind() {
-        this.ominousWindSfx.play();
-    }
-
-    playOminousSting() {
-        this.ominousStingSfx.play();
-    }
-
-    playShield() {
-        this.shieldSfx.play();
-    }
-
-    playRateLimited(sfx) {
-        if (this.shouldRateLimit(sfx)) {
+    playWalk(pixelBodyName) {
+        if (!Audio.#WALK_MAP.has(pixelBodyName)) {
+            this.#sfxMap.get(Audio.WALK_REGULAR)?.play();
             return;
         }
-        sfx.play();
+        this.#sfxMap.get(Audio.#WALK_MAP.get(pixelBodyName))?.play();
     }
 
-    shouldRateLimit(sound) {
-        if (!this.playCountMap.has(sound)) {
-            return false;
-        }
-        if (this.playCountMap.get(sound) >= 2) {
-            return true;
-        }
-        this.playCountMap.set(sound, this.playCountMap.get(sound) + 1);
-        return false;
-    }
-
-    onEndCallback(sound) {
-        if (!this.playCountMap.has(sound)) {
+    play(key) {
+        if (!this.#sfxMap.has(key)) {
+            console.error("Attempted to play SFX for key that doesn't exist: " + key);
             return;
         }
-        this.playCountMap.set(sound, this.playCountMap.get(sound) - 1);
+        this.#sfxMap.get(key)?.play();
     }
 }
 
-class MultiAudioWrapper {
-    constructor(audioFiles, vol = 0.75, random = true) {
+class SoundEffect {
+    constructor(key, path_prefix, files, volume, rateLimit, sequential) {
+        this.key = key;
+        this.rateLimit = rateLimit;
+        this.sequential = sequential;
         this.howls = [];
-        for (let i = 0; i < audioFiles.length; i++) {
-            this.howls.push(
-                new Howl({
-                    src: [audioFiles[i]],
-                    volume: vol,
-                })
-            );
+        for (const file of files) {
+            const howl = new Howl({
+                src: [path_prefix + file],
+                volume: volume,
+            });
+            if (this.rateLimit > 0) {
+                howl.on("end", onEnd.bind(this));
+            }
+            this.howls.push(howl);
         }
-        this.random = random;
-        this.index = 0;
+        this.playIndex = 0;
+        this.playingCount = 0;
     }
 
     play() {
-        if (this.random) {
-            this.index = Math.floor(Math.random() * this.howls.length);
-        } else {
-            this.index = (this.index + 1) % this.howls.length;
+        if (this.howls.length == 0) {
+            return;
         }
-        this.howls[this.index].play();
+        if (this.rateLimit > 0 && this.playingCount >= this.rateLimit) {
+            return;
+        }
+        if (this.sequential) {
+            this.playIndex = (this.playIndex + 1) % this.howls.length;
+        } else {
+            this.playIndex = Math.floor(Math.random() * this.howls.length);
+        }
+        this.playingCount++;
+        this.howls[this.playIndex].play();
     }
 
-    on(event, callback) {
-        for (let howl of this.howls) {
-            howl.on(event, callback);
-        }
+    onEnd() {
+        this.playingCount--;
     }
 }

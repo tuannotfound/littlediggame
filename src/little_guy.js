@@ -90,6 +90,7 @@ export default class LittleGuy {
         this.deathByEgg = false;
         this.framesSinceDeath = 0;
         this.deathBySerpent = false;
+        this.blockingSerpentAttack = false;
 
         this.listeners = [];
     }
@@ -114,6 +115,7 @@ export default class LittleGuy {
             explosive: this.explosive,
             deathByEgg: this.deathByEgg,
             deathBySerpent: this.deathBySerpent,
+            blockingSerpentAttack: this.blockingSerpentAttack,
         };
     }
 
@@ -142,6 +144,7 @@ export default class LittleGuy {
         littleGuy.explosive = json.explosive;
         littleGuy.deathByEgg = json.deathByEgg;
         littleGuy.deathBySerpent = json.deathBySerpent;
+        littleGuy.blockingSerpentAttack = json.blockingSerpentAttack;
         return littleGuy;
     }
 
@@ -393,13 +396,21 @@ export default class LittleGuy {
             this.closestSurfacePixel.type == PixelType.SERPENT &&
             this.closestSurfacePixel.hasColorOverride()
         ) {
-            // Kind of a roundabout way to know that this guy needs to die. Why should LittleGuy
-            // have to know about the inner workings of Serpent.js? 'Cause I'm lazy, that's why.
-            if (!this.#shielded) {
+            // Checking if the serpent has a color override is kind of a roundabout way to know that
+            // this guy needs to die. Why should LittleGuy have to know about the inner workings of
+            // Serpent.js? 'Cause I'm BAD AT THIS, is that what you want to hear??
+            if (!this.#shielded && this.alive) {
                 this.deathBySerpent = true;
                 this.die();
                 return;
+            } else if (this.#shielded && !this.blockingSerpentAttack) {
+                // Ensure this only plays once per attack (instead of every frame while the serpent
+                // has a color override).
+                this.blockingSerpentAttack = true;
+                Audio.instance.play(Audio.SHIELD_BLOCK_ATTACK);
             }
+        } else {
+            this.blockingSerpentAttack = false;
         }
 
         // Update our position to match the pixel we're standing on, in case it moved.
@@ -439,7 +450,7 @@ export default class LittleGuy {
         let added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
         if (added) {
             this.pixelBody.updateSurface();
-            Audio.instance.playDeath();
+            Audio.instance.play(Audio.DEATH_REGULAR);
         }
 
         this.setInactive();
@@ -511,9 +522,9 @@ export default class LittleGuy {
             this.pixelBody.removePixel(this.pixelBeingDug);
             this.notifyDigsComplete([this.pixelBeingDug]);
             if (this.pixelBeingDug.type == PixelType.DIRT || this.pixelBeingDug.actLikeDirt()) {
-                Audio.instance.playDirtDig();
+                Audio.instance.playDigFinish(PixelType.DIRT);
             } else {
-                Audio.instance.playOreDig();
+                Audio.instance.playDigFinish(this.pixelBeingDug.type);
             }
         }
         this.goToNearestSurfacePixel();
@@ -545,8 +556,17 @@ export default class LittleGuy {
                 }
                 toRemove.push(nearbyPixel);
             }
+            Audio.instance.play(Audio.DEATH_EXPLODE);
             this.pixelBody.removePixels(toRemove);
             this.notifyDigsComplete(toRemove);
+        }
+        if (this.deathByEgg) {
+            Audio.instance.play(Audio.DEATH_EGG);
+        } else if (this.upgrades.afterlife) {
+            Audio.instance.play(this.saintly ? Audio.DEATH_ASCEND : Audio.DEATH_DESCEND);
+        }
+        if (this.deathBySerpent) {
+            Audio.instance.play(Audio.DEATH_SERPENT_ATTACK);
         }
         this.notifyDeath();
     }
@@ -606,9 +626,9 @@ export default class LittleGuy {
             this.finishDigging();
         } else if (didDamage) {
             if (this.pixelBeingDug.type == PixelType.DIRT || this.pixelBeingDug.actLikeDirt()) {
-                Audio.instance.playDirtDamage();
+                Audio.instance.playDigDamage(PixelType.DIRT);
             } else {
-                Audio.instance.playOreDamage();
+                Audio.instance.playDigDamage(this.pixelBeingDug.type);
             }
         }
     }
@@ -901,6 +921,6 @@ export default class LittleGuy {
         this.closestSurfacePixel = this.findPixelToStandOn();
         this.updateOrientation();
         this.framesSinceLastMove = 0;
-        Audio.instance.playWalk();
+        Audio.instance.playWalk(this.pixelBody.constructor.name);
     }
 }

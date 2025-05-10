@@ -1,0 +1,143 @@
+{
+    "dig_dmg_dirt": {
+        "rate_limit": 2,
+        "files": ["dig_dmg_dirt_0.ogg", "dig_dmg_dirt_1.ogg"]
+    },
+    "dig_finish_dirt": {
+        "rate_limit": 2,
+        "files": ["dig_finish_dirt_0.ogg", "dig_finish_dirt_1.ogg", "dig_finish_dirt_2.ogg"]
+    },
+    "dig_dmg_gold": {
+        "rate_limit": 2,
+        "files": ["dig_dmg_ore_0.ogg", "dig_dmg_ore_1.ogg"]
+    },
+    "dig_finish_gold": {
+        "rate_limit": 2,
+        "files": ["dig_finish_ore_0.ogg"]
+    },
+    "dig_dmg_tombstone": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_finish_tombstone": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_dmg_diamond": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_finish_diamond": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_dmg_magic": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_finish_magic": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_dmg_egg": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_finish_egg": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_dmg_serpent": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "dig_finish_serpent": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "death_regular": {
+        "files": ["death_tombstone_0.ogg", "death_tombstone_1.ogg"]
+    },
+    "death_ascend": {
+        "files": ["death_ascent.ogg"]
+    },
+    "death_descend": {
+        "files": []
+    },
+    "death_explode": {
+        "files": []
+    },
+    "death_egg": {
+        "files": []
+    },
+    "death_serpent_attack": {
+        "rate_limit": 2,
+        "files": []
+    },
+    "story_serpent_hiss": {
+        "files": []
+    },
+    "story_foreman_death": {
+        "files": []
+    },
+    "story_sky_change": {
+        "files": ["wind.wav"]
+    },
+    "story_serpent_reveal": {
+        "files": ["horror.wav"]
+    },
+    "story_company_radio_static": {
+        "files": []
+    },
+    "walk_regular": {
+        "volume": 0.5,
+        "sequential": true,
+        "rate_limit": 2,
+        "files": ["walk_dirt_0.ogg", "walk_dirt_1.ogg"]
+    },
+    "walk_goop": {
+        "volume": 0.5,
+        "sequential": true,
+        "rate_limit": 2,
+        "files": []
+    },
+    "walk_snow": {
+        "volume": 0.5,
+        "sequential": true,
+        "rate_limit": 2,
+        "files": []
+    },
+    "walk_serpent": {
+        "volume": 0.5,
+        "sequential": true,
+        "rate_limit": 2,
+        "files": []
+    },
+    "shield_activate": {
+        "files": ["shield_activate.ogg"]
+    },
+    "shield_deactivate": {
+        "files": []
+    },
+    "shield_block_attack": {
+        "volume": 0.5,
+        "rate_limit": 2,
+        "files": []
+    },
+    "serpent_attack": {
+        "files": []
+    },
+    "ui_upgrades_open": {
+        "files": []
+    },
+    "ui_upgrades_close": {
+        "files": []
+    },
+    "ui_upgrade_purchased": {
+        "files": []
+    },
+    "ui_volume_change": {
+        "rate_limit": 2,
+        "files": []
+    }
+}

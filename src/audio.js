@@ -106,7 +106,7 @@ export default class Audio {
             for (const [key, values] of Object.entries(sfxJson)) {
                 const files = values.files || [];
                 const volume = values.volume || 1;
-                const rateLimit = values.rateLimit || 0;
+                const rateLimit = values.rate_limit || 0;
                 const sequential = values.sequential || false;
                 this.#sfxMap.set(
                     key,
@@ -160,11 +160,12 @@ class SoundEffect {
                 volume: volume,
             });
             if (this.rateLimit > 0) {
-                howl.on("end", onEnd.bind(this));
+                howl.on("end", this.onEnd.bind(this));
             }
             this.howls.push(howl);
         }
         this.playIndex = 0;
+        // Only tracked if this has a rate limit.
         this.playingCount = 0;
     }
 
@@ -172,15 +173,34 @@ class SoundEffect {
         if (this.howls.length == 0) {
             return;
         }
-        if (this.rateLimit > 0 && this.playingCount >= this.rateLimit) {
-            return;
+        if (this.rateLimit > 0) {
+            if (this.playingCount >= this.rateLimit) {
+                if (window.DEBUG_MODE) {
+                    console.log(
+                        "Not playing " +
+                            this.key +
+                            " due to rate limit (" +
+                            this.playingCount +
+                            " >= " +
+                            this.rateLimit +
+                            ")"
+                    );
+                }
+                return;
+            }
+            this.playingCount++;
         }
         if (this.sequential) {
             this.playIndex = (this.playIndex + 1) % this.howls.length;
         } else {
+            const previousPlayIndex = this.playIndex;
             this.playIndex = Math.floor(Math.random() * this.howls.length);
+            // Avoid repeating if we have enough choices to prevent simply alternativing between 2
+            // SFX.
+            if (this.howls.length > 2 && this.playIndex === previousPlayIndex) {
+                this.playIndex = (this.playIndex + 1) % this.howls.length;
+            }
         }
-        this.playingCount++;
         this.howls[this.playIndex].play();
     }
 

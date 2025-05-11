@@ -3,190 +3,191 @@
         "rate_limit": 2,
         "volume": 0.8,
         "files": [
-            "dig_dmg_dirt_0.wav",
-            "dig_dmg_dirt_1.wav",
-            "dig_dmg_dirt_2.wav",
-            "dig_dmg_dirt_3.wav",
-            "dig_dmg_dirt_4.wav",
-            "dig_dmg_dirt_5.wav"
+            "dig_dmg_dirt_0.mp3",
+            "dig_dmg_dirt_1.mp3",
+            "dig_dmg_dirt_2.mp3",
+            "dig_dmg_dirt_3.mp3",
+            "dig_dmg_dirt_4.mp3",
+            "dig_dmg_dirt_5.mp3"
         ]
     },
     "dig_finish_dirt": {
         "rate_limit": 2,
-        "files": [
-            "dig_finish_dirt_0.wav",
-            "dig_finish_dirt_1.wav",
-            "dig_finish_dirt_2.wav",
-            "dig_finish_dirt_3.wav"
-        ]
+        "files": ["dig_finish_dirt_0.mp3", "dig_finish_dirt_1.mp3"]
     },
     "dig_dmg_gold": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": [
-            "dig_dmg_ore_0.wav",
-            "dig_dmg_ore_1.wav",
-            "dig_dmg_ore_2.wav",
-            "dig_dmg_ore_3.wav",
-            "dig_dmg_ore_4.wav"
+            "dig_dmg_ore_0.mp3",
+            "dig_dmg_ore_1.mp3",
+            "dig_dmg_ore_2.mp3",
+            "dig_dmg_ore_3.mp3",
+            "dig_dmg_ore_4.mp3"
         ]
     },
     "dig_finish_gold": {
         "rate_limit": 2,
-        "files": ["dig_finish_ore_0.wav", "dig_finish_ore_1.wav", "dig_finish_ore_2.wav"]
+        "files": ["dig_finish_ore_0.mp3", "dig_finish_ore_1.mp3"]
     },
     "dig_dmg_tombstone": {
         "rate_limit": 2,
-        "files": ["dig_dmg_tombstone_0.wav", "dig_dmg_tombstone_1.wav"]
+        "volume": 0.8,
+        "files": ["dig_dmg_tombstone_0.mp3", "dig_dmg_tombstone_1.mp3"]
     },
     "dig_finish_tombstone": {
         "rate_limit": 2,
-        "files": ["dig_finish_tombstone_0.wav", "dig_finish_tombstone_1.wav"]
+        "files": ["dig_finish_tombstone_0.mp3", "dig_finish_tombstone_1.mp3"]
     },
     "dig_dmg_diamond": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": [
-            "dig_dmg_diamond_0.wav",
-            "dig_dmg_diamond_1.wav",
-            "dig_dmg_diamond_2.wav",
-            "dig_dmg_diamond_3.wav"
+            "dig_dmg_diamond_0.mp3",
+            "dig_dmg_diamond_1.mp3",
+            "dig_dmg_diamond_2.mp3",
+            "dig_dmg_diamond_3.mp3"
         ]
     },
     "dig_finish_diamond": {
         "rate_limit": 2,
-        "files": ["dig_finish_diamond_0.wav"]
+        "files": ["dig_finish_diamond_0.mp3", "dig_finish_diamond_1.mp3"]
     },
     "dig_dmg_magic": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": [
-            "dig_dmg_magic_0.wav",
-            "dig_dmg_magic_1.wav",
-            "dig_dmg_magic_2.wav",
-            "dig_dmg_magic_3.wav"
+            "dig_dmg_magic_0.mp3",
+            "dig_dmg_magic_1.mp3",
+            "dig_dmg_magic_2.mp3",
+            "dig_dmg_magic_3.mp3"
         ]
     },
     "dig_finish_magic": {
         "rate_limit": 2,
-        "files": ["dig_finish_magic.wav"]
+        "files": ["dig_finish_magic.mp3"]
     },
     "dig_dmg_egg": {
         "rate_limit": 2,
-        "files": ["dig_dmg_egg_0.ogg", "dig_dmg_egg_1.ogg", "dig_dmg_egg_2.ogg"]
+        "volume": 0.8,
+        "files": ["dig_dmg_egg_0.mp3", "dig_dmg_egg_1.mp3", "dig_dmg_egg_2.mp3"]
     },
     "dig_finish_egg": {
         "rate_limit": 2,
-        "files": ["dig_finish_egg_0.wav"]
+        "files": ["dig_finish_egg_0.mp3", "dig_finish_egg_1.mp3"]
     },
     "dig_dmg_serpent": {
         "rate_limit": 2,
-        "files": ["dig_dmg_serpent_0.wav", "dig_dmg_serpent_1.wav", "dig_dmg_serpent_2.wav"]
+        "files": ["dig_dmg_serpent_0.mp3", "dig_dmg_serpent_1.mp3", "dig_dmg_serpent_2.mp3"]
     },
     "dig_finish_serpent": {
         "rate_limit": 2,
-        "files": ["dig_finish_serpent_0.wav", "dig_finish_serpent_1.wav"]
+        "files": ["dig_finish_serpent_0.mp3", "dig_finish_serpent_1.mp3"]
     },
     "death_regular": {
-        "files": ["death_tombstone_0.ogg", "death_tombstone_1.ogg"]
+        "files": ["death_tombstone_0.mp3", "death_tombstone_1.mp3"]
     },
     "death_ascend": {
         "rate_limit": 1,
         "volume": 0.5,
-        "files": ["ascend.wav"]
+        "files": ["ascend.mp3"]
     },
     "death_descend": {
         "rate_limit": 1,
         "volume": 0.5,
-        "files": ["descend.wav"]
+        "files": ["descend.mp3"]
     },
     "death_explode": {
         "rate_limit": 1,
-        "files": ["death_explode_0.wav", "death_explode_1.wav"]
+        "files": ["death_explode_0.mp3", "death_explode_1.mp3"]
     },
     "death_egg": {
-        "files": ["death_egg_0.wav", "death_egg_1.wav"]
+        "files": ["death_egg_0.mp3", "death_egg_1.mp3"]
     },
     "death_serpent_attack": {
         "rate_limit": 2,
-        "files": ["death_serpent_0.wav", "death_serpent_1.wav", "death_serpent_2.wav"]
+        "files": ["death_serpent_0.mp3", "death_serpent_1.mp3", "death_serpent_2.mp3"]
     },
     "story_serpent_hiss": {
-        "volume": 0.5,
-        "files": ["hiss.wav"]
+        "volume": 1,
+        "files": ["hiss.mp3"]
     },
     "story_foreman_death": {
-        "volume": 0.8,
-        "files": ["fall.wav"]
+        "volume": 1,
+        "files": ["fall.mp3"]
     },
     "story_sky_change": {
-        "files": ["wind.wav"]
+        "files": ["wind.mp3"]
     },
     "story_serpent_reveal": {
-        "files": ["serpent_reveal.wav"]
+        "files": ["serpent_reveal.mp3"]
     },
     "story_company_radio_static": {
-        "files": ["radio_static.wav"]
+        "files": ["radio_static.mp3"]
     },
     "story_serpent_death": {
-        "files": ["serpent_death.wav"]
+        "files": ["serpent_death.mp3"]
     },
     "walk_regular": {
-        "volume": 0.5,
+        "volume": 0.25,
         "sequential": true,
         "rate_limit": 2,
-        "files": ["walk_dirt_0.ogg", "walk_dirt_1.ogg", "walk_dirt_2.wav", "walk_dirt_3.wav"]
+        "files": ["walk_dirt_0.mp3", "walk_dirt_1.mp3", "walk_dirt_2.mp3", "walk_dirt_3.mp3"]
     },
     "walk_goop": {
-        "volume": 0.5,
+        "volume": 0.25,
         "sequential": true,
         "rate_limit": 2,
-        "files": ["walk_goop_0.wav", "walk_goop_1.wav", "walk_goop_2.wav", "walk_goop_3.wav"]
+        "files": ["walk_goop_0.mp3", "walk_goop_1.mp3", "walk_goop_2.mp3", "walk_goop_3.mp3"]
     },
     "walk_snow": {
-        "volume": 0.5,
+        "volume": 0.25,
         "sequential": true,
         "rate_limit": 2,
-        "files": ["walk_snow_0.wav", "walk_snow_1.wav", "walk_snow_2.wav", "walk_snow_3.wav"]
+        "files": ["walk_snow_0.mp3", "walk_snow_1.mp3", "walk_snow_2.mp3", "walk_snow_3.mp3"]
     },
     "walk_serpent": {
-        "volume": 0.5,
+        "volume": 0.25,
         "sequential": true,
         "rate_limit": 2,
-        "files": ["walk_goop_0.wav", "walk_goop_1.wav", "walk_goop_2.wav", "walk_goop_3.wav"]
+        "files": ["walk_goop_0.mp3", "walk_goop_1.mp3", "walk_goop_2.mp3", "walk_goop_3.mp3"]
     },
     "next_planet": {
         "sequential": true,
         "files": [
-            "next_planet_0.wav",
-            "next_planet_1.wav",
-            "next_planet_2.wav",
-            "next_planet_3.wav"
+            "next_planet_0.mp3",
+            "next_planet_1.mp3",
+            "next_planet_2.mp3",
+            "next_planet_3.mp3"
         ]
     },
     "shield_activate": {
-        "files": ["shield_activate.wav"]
+        "files": ["shield_activate.mp3"]
     },
     "shield_deactivate": {
-        "files": ["shield_deactivate.wav"]
+        "files": ["shield_deactivate.mp3"]
     },
     "shield_block_attack": {
         "volume": 0.5,
         "rate_limit": 2,
-        "files": ["shield_block_0.wav", "shield_block_1.wav"]
+        "files": ["shield_block_0.mp3", "shield_block_1.mp3"]
     },
     "serpent_attack": {
         "sequential": true,
-        "files": ["serpent_attack_0.wav", "serpent_attack_1.wav"]
+        "files": ["serpent_attack_0.mp3", "serpent_attack_1.mp3"]
     },
     "ui_upgrades_open": {
-        "files": ["ui_upgrades_open.wav"]
+        "files": ["ui_upgrades_open.mp3"]
     },
     "ui_upgrades_close": {
-        "files": ["volume_change.wav"]
+        "files": ["volume_change.mp3"]
     },
     "ui_upgrade_purchased": {
-        "files": ["ui_upgrade_purchased.wav"]
+        "volume": 0.5,
+        "files": ["ui_upgrade_purchased.mp3"]
     },
     "ui_volume_change": {
         "rate_limit": 1,
-        "files": ["volume_change.wav"]
+        "files": ["volume_change.mp3"]
     }
 }

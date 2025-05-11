@@ -1,0 +1,45 @@
+name: Deploy Game to Itch.io
+
+# Controls when the action will run.
+# Triggers the workflow on push events but only for the main branch.
+on:
+    push:
+        branches:
+            - release
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            # Step 1: Check out your repository code
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            # Step 2: Set up Node.js
+            - name: Setup Node.js
+              uses: actions/setup-node@v4 # Or the latest version
+              with:
+                  node-version: "20" # Specify your Node.js version (e.g., 18, 20, or read from .nvmrc)
+                  cache: "npm"
+
+            # Step 3: Install npm dependencies
+            - name: Install dependencies
+              run: npm ci
+
+            # Step 4: Build game
+            # Replace 'npm run build' with your actual npm build script command
+            # if it's different (e.g., 'npm run deploy', 'npm run bundle').
+            - name: Build game
+              run: npm run build
+
+            # Step 5: Deploy to Itch.io using Butler
+            - name: Upload game to Itch.io
+              uses: yeslayla/butler-publish-itchio-action@v1.0.3
+              env:
+                  BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+                  ITCH_USER: bicken-bones
+                  ITCH_GAME: little-dig-game
+                  CHANNEL: html5
+                  PACKAGE: dist
+                  VERSION: ${{ github.sha }}

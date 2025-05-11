@@ -4,7 +4,7 @@ This is a little game about working for a company that consumes planets to extra
 
 You're in charge of sending workers to the planet to wander around and collect resources.
 
-You can play this game in your browser at [bicken-bones.com](https://bicken-bones.com/).
+You can play this game in your browser at [bicken-bones.com](https://bicken-bones.com/) or on Itch.io at [bicken-bones.itch.io/little-dig-game](https://bicken-bones.itch.io/little-dig-game).
 
 ![Image showing a composite of the 4 planets in the game](/documentation/slices.png)
 

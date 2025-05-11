@@ -274,7 +274,11 @@ export default class Story {
             assignments.
             <br><br>
             Consider yourself commended.`,
-            Story.COMPANY_COMMUNICATION_AVATAR_PATH
+            Story.COMPANY_COMMUNICATION_AVATAR_PATH,
+            -1,
+            () => {
+                Audio.instance.play(Audio.STORY_COMPANY_RADIO_STATIC);
+            }
         );
     }
 

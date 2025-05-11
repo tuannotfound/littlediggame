@@ -760,6 +760,7 @@ export default class Game {
         if (body) {
             health = body.health;
         } else {
+            Audio.instance.play(Audio.STORY_SERPENT_DEATH);
             this.endGame(true);
         }
 
@@ -803,6 +804,7 @@ export default class Game {
                 Pixel.ACTIVE_DIRT_TYPE.color.asCssString();
             document.querySelector("span.dirt-surface").style.color =
                 Pixel.ACTIVE_DIRT_TYPE.surfaceColor.asCssString();
+            Audio.instance.play(Audio.NEXT_PLANET);
         }
         this.sky.setColors(this.activePixelBody.skyColors);
         this.zoomLevelSrc = this.zoomLevel;

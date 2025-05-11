@@ -33,8 +33,11 @@ And also makes use of assets from:
 
 -   [Font Awesome](https://fontawesome.com/), for icons
 -   [cssanimation.io](https://github.com/yesiamrocks/cssanimation.io), for the title blur-in effect
+-   [Sonniss GDQ SFX Archive](https://sonniss.com/gameaudiogdc/), for sound effects
+-   [Kenney](https://kenney.nl/), for sound effects
 -   [remaxim](https://opengameart.org/users/remaxim), for sound effects
--   [Kenney](https://kenney.nl/), also for sound effects
+-   [Jurij/SoundReality](https://pixabay.com/users/soundreality-31074404), for sound effects
+-   [Gerent/Freesound](https://pixabay.com/users/freesound_community-46691455/), also for sound effects
 
 And finally, all credit for the Latin used in the research titles goes to the fine folks over at [Google Translate](https://translate.google.com/). This is also my way of apologizing for the (probably) butchered Latin. Mea culpa.
 

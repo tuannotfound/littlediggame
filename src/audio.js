@@ -34,10 +34,12 @@ export default class Audio {
     static STORY_SKY_CHANGE = "story_sky_change";
     static STORY_SERPENT_REVEAL = "story_serpent_reveal";
     static STORY_COMPANY_RADIO_STATIC = "story_company_radio_static";
+    static STORY_SERPENT_DEATH = "story_serpent_death";
     static WALK_REGULAR = "walk_regular";
     static WALK_GOOP = "walk_goop";
     static WALK_SNOW = "walk_snow";
     static WALK_SERPENT = "walk_serpent";
+    static NEXT_PLANET = "next_planet";
     static SHIELD_ACTIVATE = "shield_activate";
     static SHIELD_DEACTIVATE = "shield_deactivate";
     static SHIELD_BLOCK_ATTACK = "shield_block_attack";

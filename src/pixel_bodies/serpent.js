@@ -20,6 +20,7 @@ export default class Serpent extends PixelBody {
     static KILL_ALL_INTERVAL_MIN_MS = 10 * 1000;
     static KILL_ALL_INTERVAL_MAX_MS = 15 * 1000;
     static KILL_ALL_ANIMATION_FRAMES = 20;
+    static KILL_ALL_SEGMENT_DELAY_MS = 500;
     static KILL_ALL_SEGMENT_OFFSET_MS = 100;
 
     constructor(
@@ -188,6 +189,7 @@ export default class Serpent extends PixelBody {
     }
 
     killAll() {
+        Audio.instance.play(Audio.SERPENT_ATTACK);
         for (let i = 0; i < this.segments.length; i++) {
             setTimeout(() => {
                 if (i >= this.segments.length) {
@@ -195,7 +197,7 @@ export default class Serpent extends PixelBody {
                     return;
                 }
                 this.segments[i].killAll();
-            }, i * Serpent.KILL_ALL_SEGMENT_OFFSET_MS);
+            }, Serpent.KILL_ALL_SEGMENT_DELAY_MS + i * Serpent.KILL_ALL_SEGMENT_OFFSET_MS);
         }
     }
 
@@ -521,7 +523,6 @@ class Segment {
     }
 
     killAll() {
-        Audio.instance.play(Audio.SERPENT_ATTACK);
         this.killAllAnimationFrame = Serpent.KILL_ALL_ANIMATION_FRAMES;
     }
 

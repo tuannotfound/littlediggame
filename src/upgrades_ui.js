@@ -486,6 +486,7 @@ export default class UpgradesUi {
             this.maybeUpdateLinePositions();
         }
 
+        const notUpdatedHintIds = [...this.hintsMap.keys()];
         if (this.purchasableUpgradeButtons.length > 0) {
             for (const button of this.purchasableUpgradeButtons) {
                 const buttonRect = button.getBoundingClientRect();
@@ -518,7 +519,12 @@ export default class UpgradesUi {
                 } else {
                     hint.classList.add("hidden");
                 }
+                notUpdatedHintIds.splice(notUpdatedHintIds.indexOf(button.id), 1);
             }
+        }
+        // Ensure we don't have any dangling hints still showing.
+        for (const hintId of notUpdatedHintIds) {
+            this.hintsMap.get(hintId).classList.add("hidden");
         }
 
         if (this.showing) {

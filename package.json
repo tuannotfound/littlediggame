@@ -27,6 +27,6 @@
         "@panzoom/panzoom": "^4.6.0",
         "copy-webpack-plugin": "^13.0.0",
         "howler": "^2.2.4",
-        "linkerline": "^1.6.0"
+        "linkerline": "^1.6.1"
     }
 }

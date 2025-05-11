@@ -1,7 +1,7 @@
 {
     "dig_dmg_dirt": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": [
             "dig_dmg_dirt_0.mp3",
             "dig_dmg_dirt_1.mp3",
@@ -13,11 +13,12 @@
     },
     "dig_finish_dirt": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_dirt_0.mp3", "dig_finish_dirt_1.mp3"]
     },
     "dig_dmg_gold": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": [
             "dig_dmg_ore_0.mp3",
             "dig_dmg_ore_1.mp3",
@@ -28,20 +29,22 @@
     },
     "dig_finish_gold": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_ore_0.mp3", "dig_finish_ore_1.mp3"]
     },
     "dig_dmg_tombstone": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": ["dig_dmg_tombstone_0.mp3", "dig_dmg_tombstone_1.mp3"]
     },
     "dig_finish_tombstone": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_tombstone_0.mp3", "dig_finish_tombstone_1.mp3"]
     },
     "dig_dmg_diamond": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": [
             "dig_dmg_diamond_0.mp3",
             "dig_dmg_diamond_1.mp3",
@@ -51,11 +54,12 @@
     },
     "dig_finish_diamond": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_diamond_0.mp3", "dig_finish_diamond_1.mp3"]
     },
     "dig_dmg_magic": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": [
             "dig_dmg_magic_0.mp3",
             "dig_dmg_magic_1.mp3",
@@ -65,23 +69,27 @@
     },
     "dig_finish_magic": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_magic.mp3"]
     },
     "dig_dmg_egg": {
         "rate_limit": 2,
-        "volume": 0.8,
+        "volume": 0.5,
         "files": ["dig_dmg_egg_0.mp3", "dig_dmg_egg_1.mp3", "dig_dmg_egg_2.mp3"]
     },
     "dig_finish_egg": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_egg_0.mp3", "dig_finish_egg_1.mp3"]
     },
     "dig_dmg_serpent": {
         "rate_limit": 2,
+        "volume": 0.5,
         "files": ["dig_dmg_serpent_0.mp3", "dig_dmg_serpent_1.mp3", "dig_dmg_serpent_2.mp3"]
     },
     "dig_finish_serpent": {
         "rate_limit": 2,
+        "volume": 0.8,
         "files": ["dig_finish_serpent_0.mp3", "dig_finish_serpent_1.mp3"]
     },
     "death_regular": {
@@ -89,12 +97,12 @@
     },
     "death_ascend": {
         "rate_limit": 1,
-        "volume": 0.5,
+        "volume": 0.3,
         "files": ["ascend.mp3"]
     },
     "death_descend": {
         "rate_limit": 1,
-        "volume": 0.5,
+        "volume": 0.3,
         "files": ["descend.mp3"]
     },
     "death_explode": {
@@ -102,6 +110,8 @@
         "files": ["death_explode_0.mp3", "death_explode_1.mp3"]
     },
     "death_egg": {
+        "rate_limit": 2,
+        "volume": 0.9,
         "files": ["death_egg_0.mp3", "death_egg_1.mp3"]
     },
     "death_serpent_attack": {
@@ -187,7 +197,6 @@
         "files": ["ui_upgrade_purchased.mp3"]
     },
     "ui_volume_change": {
-        "rate_limit": 1,
         "files": ["volume_change.mp3"]
     }
 }

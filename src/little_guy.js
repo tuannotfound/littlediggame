@@ -54,10 +54,10 @@ export default class LittleGuy {
         // This is relative to the center of the pixelBody
         this.position = this.toLocalSpace(this.positionInPixelBodySpace);
 
-        let angle = Math.atan2(this.position.y, this.position.x);
+        const angle = Math.atan2(this.position.y, this.position.x);
         this.orientation = this.angleToOrientation(angle);
 
-        let headColorIndex = Math.floor(Math.random() * LittleGuy.HEAD_COLORS.length);
+        const headColorIndex = Math.floor(Math.random() * LittleGuy.HEAD_COLORS.length);
         this.headColor = Color.wiggle(LittleGuy.HEAD_COLORS[headColorIndex], 5);
 
         this.layer = new Layer("little-guy");
@@ -72,6 +72,8 @@ export default class LittleGuy {
         this.#shielded = false;
         // Whether we're dead or alive.
         this.alive = true;
+        // A non-rounded position for tracking ascension/descension progress.
+        this.ascensionPosition = null;
         this.ascentionProgressPct = 0;
         // Whether we should do anything at all, which is different than being alive or dead.
         this.active = true;
@@ -79,7 +81,7 @@ export default class LittleGuy {
         this.digsRemaining = this.upgrades.digCount;
 
         // Less likely to be saintly if they were not immaculate.
-        let saintlyThreshold = this.immaculate
+        const saintlyThreshold = this.immaculate
             ? this.upgrades.saintlyPctImmaculate
             : this.upgrades.saintlyPctMaculate;
         this.saintly = Math.random() < saintlyThreshold;
@@ -108,6 +110,7 @@ export default class LittleGuy {
             digProcessPct: this.digProcessPct,
             shielded: this.#shielded,
             alive: this.alive,
+            ascensionPosition: this.ascensionPosition,
             ascentionProgressPct: this.ascentionProgressPct,
             active: this.active,
             digsRemaining: this.digsRemaining,
@@ -120,7 +123,7 @@ export default class LittleGuy {
     }
 
     static fromJSON(json, pixelBody, upgrades, pixelBeingDug) {
-        let littleGuy = new LittleGuy(
+        const littleGuy = new LittleGuy(
             pixelBody,
             Vector.fromJSON(json.positionInPixelBodySpace),
             upgrades,
@@ -137,6 +140,7 @@ export default class LittleGuy {
         littleGuy.digProcessPct = json.digProcessPct;
         littleGuy.#shielded = json.shielded;
         littleGuy.alive = json.alive;
+        littleGuy.ascensionPosition = Vector.fromJSON(json.ascensionPosition);
         littleGuy.ascentionProgressPct = json.ascentionProgressPct;
         littleGuy.active = json.active;
         littleGuy.digsRemaining = json.digsRemaining;
@@ -179,7 +183,7 @@ export default class LittleGuy {
     }
 
     removeListener(listener) {
-        let index = this.listeners.indexOf(listener);
+        const index = this.listeners.indexOf(listener);
         if (index >= 0) {
             this.listeners.splice(index, 1);
         }
@@ -194,7 +198,7 @@ export default class LittleGuy {
     }
 
     toLocalSpace(positionInPlaceSpace) {
-        let positionInLocalSpace = this.pixelBody.center.copy();
+        const positionInLocalSpace = this.pixelBody.center.copy();
         positionInLocalSpace.sub(positionInPlaceSpace);
         positionInLocalSpace.x = -positionInLocalSpace.x;
         positionInLocalSpace.y = -positionInLocalSpace.y;
@@ -202,7 +206,7 @@ export default class LittleGuy {
     }
 
     toPixelBodySpace(position) {
-        let positionInPixelBodySpace = this.pixelBody.center.copy();
+        const positionInPixelBodySpace = this.pixelBody.center.copy();
         positionInPixelBodySpace.add(position);
         return positionInPixelBodySpace;
     }
@@ -216,8 +220,8 @@ export default class LittleGuy {
                     return LittleGuy.TRANSPARENT_COLOR;
                 }
             } else if (this.upgrades.afterlife) {
-                let alpha = this.getAscensionAlpha();
-                let color = this.headColor.copy();
+                const alpha = this.getAscensionAlpha();
+                const color = this.headColor.copy();
                 color.a = alpha;
                 return color;
             }
@@ -233,8 +237,8 @@ export default class LittleGuy {
             if (this.deathByEgg) {
                 return LittleGuy.DEATH_BY_EGG_COLOR;
             } else if (this.upgrades.afterlife) {
-                let alpha = this.getAscensionAlpha();
-                let color = this.saintly
+                const alpha = this.getAscensionAlpha();
+                const color = this.saintly
                     ? LittleGuy.ASCENDING_BODY_COLOR.copy()
                     : LittleGuy.DESCENDING_BODY_COLOR.copy();
                 color.a = alpha;
@@ -285,7 +289,7 @@ export default class LittleGuy {
         }
 
         // Calculate the slice index based on the normalized angle
-        let sliceIndex = Math.floor(normalizedAngle / sliceAngle);
+        const sliceIndex = Math.floor(normalizedAngle / sliceAngle);
         // Map slice index to (x, y) coordinates
         switch (sliceIndex) {
             case 0:
@@ -322,7 +326,7 @@ export default class LittleGuy {
 
         // Check all possible orientations (we'll possibly recheck our current orientation, but
         // whatever, it's cheap).
-        let orientations = [
+        const orientations = [
             new Vector(0, 1),
             new Vector(-1, 0),
             new Vector(0, -1),
@@ -447,7 +451,7 @@ export default class LittleGuy {
             tombstonePosition = this.positionInPixelBodySpace.copy();
             tombstonePosition.add(this.orientation);
         }
-        let added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
+        const added = this.pixelBody.addPixel(tombstonePosition, PixelType.TOMBSTONE);
         if (added) {
             this.pixelBody.updateSurface();
             Audio.instance.play(Audio.DEATH_REGULAR);
@@ -462,15 +466,23 @@ export default class LittleGuy {
             console.error("Attempted to ascend before dying");
             return;
         }
-        let angle = Math.atan2(this.position.y, this.position.x);
-        let distToCenter = this.position.mag();
+        if (!this.ascensionPosition) {
+            this.ascensionPosition = this.position.copy();
+        }
+        const angle = Math.atan2(this.ascensionPosition.y, this.ascensionPosition.x);
+        let distToCenter = this.ascensionPosition.mag();
         if (this.saintly) {
             distToCenter += 0.1;
         } else {
             // Just kidding, we're going straight to hell.
             distToCenter -= 0.1;
         }
-        this.position = new Vector(distToCenter * Math.cos(angle), distToCenter * Math.sin(angle));
+        this.ascensionPosition = new Vector(
+            distToCenter * Math.cos(angle),
+            distToCenter * Math.sin(angle)
+        );
+        this.position = this.ascensionPosition.copy();
+        this.position.round();
         this.positionInPixelBodySpace = this.toPixelBodySpace(this.position);
         this.ascentionProgressPct += 1;
         if (this.ascentionProgressPct >= 100 || this.distToCenter < 0.2) {
@@ -489,7 +501,7 @@ export default class LittleGuy {
         // Look just below our feet next. Note: I don't know why this isn't always the best
         // option, but sometimes there's a pixel right @ positionInPlaceSpace that we need to
         // set as the highest priority. Life is full of mysteries. And/or bugs.
-        let underFootCoords = Vector.sub(this.positionInPixelBodySpace, this.orientation);
+        const underFootCoords = Vector.sub(this.positionInPixelBodySpace, this.orientation);
         underFoot = this.pixelBody.getPixel(underFootCoords);
         if (underFoot && underFoot.isSurface) {
             return underFoot;
@@ -562,17 +574,17 @@ export default class LittleGuy {
         }
         if (this.deathByEgg) {
             Audio.instance.play(Audio.DEATH_EGG);
+        } else if (this.deathBySerpent) {
+            Audio.instance.play(Audio.DEATH_SERPENT_ATTACK);
         } else if (this.upgrades.afterlife) {
             Audio.instance.play(this.saintly ? Audio.DEATH_ASCEND : Audio.DEATH_DESCEND);
         }
-        if (this.deathBySerpent) {
-            Audio.instance.play(Audio.DEATH_SERPENT_ATTACK);
-        }
+
         this.notifyDeath();
     }
 
     goToNearestSurfacePixel() {
-        let newSurfacePixel = this.findPixelToStandOn();
+        const newSurfacePixel = this.findPixelToStandOn();
         if (!newSurfacePixel) {
             this.die();
             return;
@@ -581,8 +593,8 @@ export default class LittleGuy {
         // Take a guess at a good orientation to be standing at. Really only makes sense for
         // planets, but we re-check it in updateOrientation(), so it really just sets our preference
         // for an orientation.
-        let pixelPositionInLocalSpace = this.toLocalSpace(this.closestSurfacePixel.position);
-        let angle = Math.atan2(pixelPositionInLocalSpace.y, pixelPositionInLocalSpace.x);
+        const pixelPositionInLocalSpace = this.toLocalSpace(this.closestSurfacePixel.position);
+        const angle = Math.atan2(pixelPositionInLocalSpace.y, pixelPositionInLocalSpace.x);
         this.orientation = this.angleToOrientation(angle);
         this.updateOrientation();
 
@@ -640,13 +652,13 @@ export default class LittleGuy {
         if (this.framesSinceLastMove < LittleGuy.MIN_FRAMES_BETWEEN_MOVES) {
             return;
         }
-        let willMove = Math.random() * 100 <= LittleGuy.MOVE_PROBABILITY_PCT;
+        const willMove = Math.random() * 100 <= LittleGuy.MOVE_PROBABILITY_PCT;
         if (!willMove) {
             return;
         }
         // Prefer continuing in the current direction to avoid quickly going back and forth too
         // much.
-        let threshold =
+        const threshold =
             this.previousDirection < 0
                 ? LittleGuy.DIRECTION_PERSISTENCE_FACTOR
                 : 1 - LittleGuy.DIRECTION_PERSISTENCE_FACTOR;
@@ -676,7 +688,7 @@ export default class LittleGuy {
         }
 
         // 1. Get the surrounding pixels
-        let positionInPixelBodySpace = this.pixelBody.center.copy();
+        const positionInPixelBodySpace = this.pixelBody.center.copy();
         positionInPixelBodySpace.add(this.position);
         if (window.DEBUG_MODE) {
             console.log(
@@ -698,24 +710,24 @@ export default class LittleGuy {
         }
         // 2. Figure out which of the surrounding pixels are surface pixels.
         //    Assumption: there must be at least one surrounding pixel that is a surface.
-        let surfacePixels = [];
-        for (let pixel of surroundingPixels.values()) {
+        const surfacePixels = [];
+        for (const pixel of surroundingPixels.values()) {
             if (pixel.surface) {
                 surfacePixels.push(pixel);
             }
         }
         // 3. Get the possible EDGEs that we can stand on. A given surface may have up to 4 edges
         //    to stand on.
-        let edges = new Map();
+        const edges = new Map();
         // top edge:    ( 0, -1)
         // bottom edge: ( 0,  1)
         // left edge:   (-1,  0)
         // right edge:  ( 1,  0)
-        let toCheck = [new Vector(0, -1), new Vector(0, 1), new Vector(-1, 0), new Vector(1, 0)];
-        for (let pixel of surfacePixels) {
-            let pEdges = [];
-            for (let d of toCheck) {
-                let edgePos = pixel.position.copy();
+        const toCheck = [new Vector(0, -1), new Vector(0, 1), new Vector(-1, 0), new Vector(1, 0)];
+        for (const pixel of surfacePixels) {
+            const pEdges = [];
+            for (const d of toCheck) {
+                const edgePos = pixel.position.copy();
                 edgePos.add(d);
                 if (this.pixelBody.getPixel(edgePos)) {
                     continue;
@@ -726,10 +738,10 @@ export default class LittleGuy {
         }
         // 4. Iterate through the edges until we get one that results in a position different than
         //    our current position.
-        let candidates = [];
+        const candidates = [];
         for (const [pixel, pEdges] of edges.entries()) {
             for (const edge of pEdges) {
-                let candidate = pixel.position.copy();
+                const candidate = pixel.position.copy();
                 candidate.add(edge);
                 if (
                     candidate.x == positionInPixelBodySpace.x &&
@@ -792,8 +804,8 @@ export default class LittleGuy {
             );
         }
 
-        let rotatedCandidates = [];
-        for (let candidate of candidates) {
+        const rotatedCandidates = [];
+        for (const candidate of candidates) {
             if (this.orientation.x == 0 && this.orientation.y == -1) {
                 // ↑, no rotation needed
                 rotatedCandidates.push({
@@ -847,7 +859,8 @@ export default class LittleGuy {
                             rotatedCandidates[i].original.position.dist(positionInPixelBodySpace)
                     );
                 }
-                let newDist = rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
+                const newDist =
+                    rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
                 if (
                     newDist < currentDist ||
                     (newDist == currentDist &&
@@ -879,7 +892,8 @@ export default class LittleGuy {
                             rotatedCandidates[i].original.position.dist(positionInPixelBodySpace)
                     );
                 }
-                let newDist = rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
+                const newDist =
+                    rotatedCandidates[i].original.position.dist(positionInPixelBodySpace);
                 if (
                     newDist < currentDist ||
                     (newDist == currentDist &&
@@ -900,10 +914,10 @@ export default class LittleGuy {
                 }
             }
         }
-        let selectedCandidate = selected.original;
+        const selectedCandidate = selected.original;
 
         // 5. Move to that position.
-        let newPosition = selectedCandidate.position.copy();
+        const newPosition = selectedCandidate.position.copy();
         this.orientation = selectedCandidate.orientation;
         if (window.DEBUG_MODE) {
             console.log(

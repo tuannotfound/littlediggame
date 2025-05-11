@@ -105,8 +105,8 @@ export default class Audio {
         result.then((sfxJson) => {
             for (const [key, values] of Object.entries(sfxJson)) {
                 const files = values.files || [];
-                const volume = values.volume || 1;
-                const rateLimit = values.rate_limit || 0;
+                const volume = values.volume ?? 1;
+                const rateLimit = values.rate_limit ?? 0;
                 const sequential = values.sequential || false;
                 this.#sfxMap.set(
                     key,

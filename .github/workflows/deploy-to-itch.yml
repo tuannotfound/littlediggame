@@ -38,6 +38,7 @@ jobs:
               uses: yeslayla/butler-publish-itchio-action@v1.0.3
               env:
                   BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+                  BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
                   ITCH_USER: bicken-bones
                   ITCH_GAME: little-dig-game
                   CHANNEL: html5

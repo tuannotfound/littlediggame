@@ -622,7 +622,7 @@ export default class Upgrades {
             ],
             1050,
             () => {
-                this.freeWorkerCount = 4;
+                this.freeWorkerCount = 5;
                 this.populationPowerScale = 1.7;
             }
         );

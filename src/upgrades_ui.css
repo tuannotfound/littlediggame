@@ -47,8 +47,16 @@ div:has(> #upgrades-aspis) {
     display: grid;
     padding: 5px;
     margin: 1px 0px;
-    column-gap: 250px;
+    column-gap: 100px;
     /* transition: transform 0.2s ease-in, transform-origin 0.2s ease-in; */
+}
+
+#upgrades-lines-svg {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
 }
 
 button.upgrade {
@@ -56,6 +64,11 @@ button.upgrade {
     width: 300px;
     margin: 5px 0px;
     padding-top: 10px;
+    position: relative;
+    z-index: 1;
+    background-color: rgba(240, 240, 240, 0.8);
+    border: 1px rgb(100, 100, 100) solid;
+    border-radius: 4px;
 }
 
 button.upgrade:disabled {
@@ -77,7 +90,7 @@ button.upgrade.cannot-afford:enabled > div.upgrade-title {
 }
 
 button.upgrade.purchased {
-    background-color: rgb(188, 214, 188);
+    background-color: rgba(188, 214, 188, 0.8);
 }
 
 button.upgrade > div.upgrade-details {

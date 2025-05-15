@@ -110,4 +110,20 @@ export default class Color {
         result.clamp();
         return result;
     }
+
+    equals(other) {
+        if (other instanceof Color) {
+            return (
+                this.r === other.r && this.g === other.g && this.b === other.b && this.a === other.a
+            );
+        }
+        return false;
+    }
+
+    static equals(c1, c2) {
+        if (c1 instanceof Color) {
+            return c1.equals(c2);
+        }
+        return false;
+    }
 }

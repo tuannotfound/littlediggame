@@ -3,7 +3,7 @@
 // See LICENSE file in the project root for full license information.
 
 import Color from "./color.js";
-import LinkerLine from "linkerline";
+import UpgradeLines from "./upgrade_lines.js";
 import PanZoomWrapper from "./pan_zoom_wrapper.js";
 import Vector from "./vector.js";
 
@@ -26,6 +26,7 @@ export default class UpgradesUi {
         this.buttonMap = new Map();
         this.gridMap = new Map();
         this.rowTrackMap = new Map();
+        this.upgradeLines = null;
         this.linesMap = new Map();
         this.lastLineUpdate = 0;
         this.showing = false;
@@ -47,6 +48,8 @@ export default class UpgradesUi {
 
     init(container, hintsContainer, upgrades, onPurchaseAttemptFunc, getCurrentAspisFunc) {
         this.container = container;
+
+        this.upgradeLines = new UpgradeLines(document.getElementById("upgrades-lines-svg"));
         this.hintsContainer = hintsContainer;
         this.upgrades = upgrades;
         this.onPurchaseAttemptFunc = onPurchaseAttemptFunc;
@@ -233,23 +236,12 @@ export default class UpgradesUi {
             const button = this.buttonMap.get(upgrade.id);
             for (const prereqId of upgrade.prereqs.keys()) {
                 const prereqButton = this.buttonMap.get(prereqId);
-                const line = new LinkerLine({
-                    parent: this.container,
-                    // This allows Panzoom + LinkerLine to co-exist in a weird way, but the
-                    // framerate really suffers.
-                    // parent: document.getElementById("lines-container"),
-                    start: prereqButton,
-                    end: button,
-                });
-                line.setOptions({
-                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
-                    size: 2,
-                    dash: true,
-                    endPlug: "square",
-                    endPlugSize: 1.5,
-                    startSocket: "right",
-                    endSocket: "left",
-                });
+                const line = this.upgradeLines.addLine(
+                    prereqButton,
+                    button,
+                    UpgradesUi.LINE_COLOR_LOCKED,
+                    true
+                );
                 this.linesMap.set(this.getLineMapKey(prereqId, upgrade.id), line);
             }
         }
@@ -282,7 +274,8 @@ export default class UpgradesUi {
                 this.handlePurchase(upgrade);
             }
         }
-        LinkerLine.positionAll();
+
+        this.upgradeLines.positionAll();
 
         this.onAspisChanged(aspis);
 
@@ -320,7 +313,7 @@ export default class UpgradesUi {
             "button#" + upgrade.id + " > div.obscured-details"
         );
         obscuredDetailsEl.style.height = "0px";
-        LinkerLine.positionAll();
+        this.upgradeLines.positionAll();
         this.updateLineStyles(upgrade);
     }
 
@@ -331,7 +324,10 @@ export default class UpgradesUi {
     getFullHeight(el) {
         const rect = el.getBoundingClientRect();
         const style = window.getComputedStyle(el);
-        const height = rect.height + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+        const height =
+            rect.height * this.panZoom.getZoom() +
+            parseFloat(style.marginTop) +
+            parseFloat(style.marginBottom);
 
         return height;
     }
@@ -341,7 +337,7 @@ export default class UpgradesUi {
         button.setAttribute("disabled", true);
         button.classList.remove("cannot-afford");
         button.classList.add("purchased");
-        LinkerLine.positionAll();
+        this.upgradeLines.positionAll();
         this.updateLineStyles(upgrade);
     }
 
@@ -365,7 +361,8 @@ export default class UpgradesUi {
             // Grey out all of the lines leading up to this upgrade
             for (const preReqId of upgrade.prereqs.keys()) {
                 const line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
-                line.setOptions({ color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(), dash: false });
+                line.color = UpgradesUi.LINE_COLOR_LOCKED;
+                line.dashed = false;
             }
             // Testing: don't do this - the downstream upgrades will update these lines
             for (const downstreamId of upgrade.downstream.keys()) {
@@ -374,28 +371,24 @@ export default class UpgradesUi {
                     continue;
                 }
                 const line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
-                // This is expensive - it causes the browser to recalculate the style.
-                line.setOptions({
-                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
-                    dash: false,
-                });
+                line.color = UpgradesUi.LINE_COLOR_LOCKED;
+                line.dashed = false;
             }
         } else if (upgrade.unlocked) {
             // Update all of the lines leading up to this upgrade based on whether it can be afforded
             const canAfford = this.getCurrentAspisFunc() >= upgrade.cost;
             const lineColor = canAfford
-                ? UpgradesUi.LINE_COLOR_CAN_AFFORD.asCssString()
-                : UpgradesUi.LINE_COLOR_CANNOT_AFFORD.asCssString();
+                ? UpgradesUi.LINE_COLOR_CAN_AFFORD
+                : UpgradesUi.LINE_COLOR_CANNOT_AFFORD;
             for (const preReqId of upgrade.prereqs.keys()) {
                 const line = this.linesMap.get(this.getLineMapKey(preReqId, upgrade.id));
-                line.setOptions({ color: lineColor, dash: false });
+                line.color = lineColor;
+                line.dashed = false;
             }
             for (const downstreamId of upgrade.downstream.keys()) {
                 const line = this.linesMap.get(this.getLineMapKey(upgrade.id, downstreamId));
-                line.setOptions({
-                    color: UpgradesUi.LINE_COLOR_LOCKED.asCssString(),
-                    dash: true,
-                });
+                line.color = UpgradesUi.LINE_COLOR_LOCKED;
+                line.dashed = true;
             }
         }
     }
@@ -637,7 +630,7 @@ export default class UpgradesUi {
         const now = performance.now();
         if (now - this.lastLineUpdate > UpgradesUi.LINE_UPDATE_INTERVAL_MS) {
             this.lastLineUpdate = now;
-            LinkerLine.positionAll();
+            this.upgradeLines.positionAll();
         }
     }
 }

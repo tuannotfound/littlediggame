@@ -161,7 +161,10 @@ export default class Hourglass {
         this.generateSand();
         this.updateRenderData();
 
-        let sandPixelCount = this.staticSandPixels.values().reduce((a, b) => a + b.length, 0);
+        let sandPixelCount = 0;
+        for (const layer of this.staticSandPixels.values()) {
+            sandPixelCount += layer.length;
+        }
         this.secondsPerSand = this.durationSeconds / sandPixelCount;
         console.log(sandPixelCount + " sand pixels, so secondsPerSand = " + this.secondsPerSand);
 
@@ -272,8 +275,15 @@ export default class Hourglass {
             }
         }
         // Skip this entire block if there are no active physics sand pixels.
-        if (this.physicsSandPixels.values().some((pixel) => pixel.active)) {
-            let updatedPhysicsSandPixels = new Map(this.physicsSandPixels);
+        let anyActive = false;
+        for (const pixel of this.physicsSandPixels.values()) {
+            if (pixel.active) {
+                anyActive = true;
+                break;
+            }
+        }
+        if (anyActive) {
+            const updatedPhysicsSandPixels = new Map(this.physicsSandPixels);
             let updateCount = 0;
             for (let physicsPixel of this.physicsSandPixels.values()) {
                 physicsPixel.update(elapsedMs, updatedPhysicsSandPixels);
@@ -295,7 +305,12 @@ export default class Hourglass {
 
     dropSand() {
         // Remove a piece of sand from the top layer
-        let smallestKey = this.staticSandPixels.keys().reduce((a, b) => Math.min(a, b), Infinity);
+        let smallestKey = Infinity;
+        for (const key of this.staticSandPixels.keys()) {
+            if (key < smallestKey) {
+                smallestKey = key;
+            }
+        }
         if (smallestKey == Infinity) {
             // Time is up!
             if (this.timesUpCallback) {

@@ -17,10 +17,8 @@ export default class Upgrades {
 
     static SHIELDS_ID = "shields";
 
-    #karma;
-
     constructor() {
-        this.#karma = 100;
+        this.karma = 100;
 
         // Base
         this.digSpeed = 0.5;
@@ -87,6 +85,7 @@ export default class Upgrades {
             saintlyPctMaculate: this.saintlyPctMaculate,
             eggHandling: this.eggHandling,
             upgradeStates: upgradeStates,
+            karma: this.karma,
         };
     }
 
@@ -110,11 +109,7 @@ export default class Upgrades {
     }
 
     updateKarma(dk) {
-        this.#karma += dk;
-    }
-
-    get karma() {
-        return this.#karma;
+        this.karma += dk;
     }
 
     getUpgrade(id) {

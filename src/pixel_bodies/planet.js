@@ -49,16 +49,17 @@ export default class Planet extends PixelBody {
         for (const pixel of this.pixels) {
             const nearestSurfacePixel = this.getClosestSurfacePixel(pixel.position);
             if (!nearestSurfacePixel) {
-                pixel.darkness = 0;
+                pixel.setDarkness(0);
                 continue;
             }
             const distanceToSurface = nearestSurfacePixel.position.dist(pixel.position);
             // Original calculation:
-            // pixel.darkness = 1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2;
+            // pixel.setDarkness(1 - (this.radius - distanceToSurface) ** 2 / this.radius ** 2);
             // Optimized to use pre-computed values and reduce division:
-            pixel.darkness =
+            pixel.setDarkness(
                 2 * distanceToSurface * this.oneOverRadius -
-                distanceToSurface * distanceToSurface * this.oneOverRadiusSquared;
+                    distanceToSurface * distanceToSurface * this.oneOverRadiusSquared
+            );
         }
     }
 }

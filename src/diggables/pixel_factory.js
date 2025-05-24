@@ -43,7 +43,7 @@ export default class PixelFactory {
         pixel.health = json.health;
         pixel.healthModifier = json.healthModifier;
         pixel.isSurface = json.isSurface;
-        pixel.darkness = json.darkness;
+        pixel.setDarkness(json.darkness);
         return pixel;
     }
 }

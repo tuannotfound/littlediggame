@@ -6,6 +6,7 @@ const GameState = Object.freeze({
     UNINITIALIZED: "uninitialized",
     PAUSED: "paused",
     RUNNING: "running",
+    ENDING: "ending",
     LOST: "lost",
     WON: "won",
     isPaused: function (state) {

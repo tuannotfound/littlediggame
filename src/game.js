@@ -855,6 +855,10 @@ export default class Game {
     }
 
     endGame(won) {
+        if (this.gameState == GameState.ENDING || GameState.isOver(this.gameState)) {
+            return;
+        }
+        this.gameState = GameState.ENDING;
         this.spawningAllowed = false;
         this.stats.updateRuntime();
         Story.instance.onGameOver(won, () => {

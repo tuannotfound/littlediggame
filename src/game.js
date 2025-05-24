@@ -5,6 +5,7 @@
 import Layer from "./layer.js";
 import Vector from "./vector.js";
 import PerfStats from "stats.js";
+import Planet from "./pixel_bodies/planet.js";
 import CircularPlanet from "./pixel_bodies/circular_planet.js";
 import SwissPlanet from "./pixel_bodies/swiss_planet.js";
 import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
@@ -1151,6 +1152,9 @@ export default class Game {
     handleInactive() {
         this.stats.recordDeath();
         this.updateSpawnCost();
+        if (this.activePixelBody instanceof Planet) {
+            this.activePixelBody.updateDarkness();
+        }
     }
 
     maybeAutoSpawn() {

@@ -24,8 +24,7 @@ The code is unpolished and in someplaces downright ugly, but that's the beauty o
 
 This game has a few dependencies on some lovely JS libraries, such as:
 
--   [LinkerLine](https://github.com/AhmedAyachi/LinkerLine), used in the research UI
--   [Panzoom](https://github.com/timmywil/panzoom), also used in the research UI
+-   [Panzoom](https://github.com/timmywil/panzoom), used in the research UI
 -   [Howler](https://github.com/goldfire/howler.js), for audio
 -   [Stats](https://github.com/mrdoob/stats.js), for performance metrics during testing
 

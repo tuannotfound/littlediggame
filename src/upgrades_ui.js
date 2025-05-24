@@ -70,7 +70,13 @@ export default class UpgradesUi {
     }
 
     getRootUpgrades() {
-        return [...this.upgrades.upgradeTree.values().filter((u) => u.prereqs.size == 0)];
+        const rootUpgrades = [];
+        for (const upgrade of this.upgrades.upgradeTree.values()) {
+            if (upgrade.prereqs.size == 0) {
+                rootUpgrades.push(upgrade);
+            }
+        }
+        return rootUpgrades;
     }
 
     createButtons() {

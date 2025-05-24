@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Vector from "./vector.js";
-import Layer from "./layer.js";
 import Color from "./color.js";
+import Layer from "./layer.js";
 import MathExtras from "./math_extras.js";
+import Vector from "./vector.js";
 
 class SandPixel {
     static BASE_COLOR = new Color(194, 167, 95).immutableCopy();

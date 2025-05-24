@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Planet from "./planet.js";
+import PixelFactory from "../diggables/pixel_factory.js";
 import PixelType from "../diggables/pixel_type.js";
-import Pixel from "../diggables/pixel.js";
 import MathExtras from "../math_extras.js";
+import Planet from "./planet.js";
 
 export default class CircularPlanet extends Planet {
     // This controls the range of sizes the planet can take. Larger = less variation.
@@ -64,7 +64,7 @@ export default class CircularPlanet extends Planet {
         planet.maxRadiusDeltaPerStep = json.maxRadiusDeltaPerStep;
         planet.circumferenceBeforeMatchup = json.circumferenceBeforeMatchup;
         for (const pixelJson of json.pixels) {
-            planet.pixels.push(Pixel.fromJSON(pixelJson, upgrades));
+            planet.pixels.push(PixelFactory.createFromJSON(pixelJson, upgrades));
         }
         return planet;
     }

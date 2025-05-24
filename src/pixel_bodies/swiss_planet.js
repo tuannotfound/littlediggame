@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import CircularPlanet from "./circular_planet.js";
+import Color from "../color.js";
+import Pixel from "../diggables/pixel.js";
 import MathExtras from "../math_extras.js";
 import Vector from "../vector.js";
-import Pixel from "../diggables/pixel.js";
-import Color from "../color.js";
+import CircularPlanet from "./circular_planet.js";
 
 export default class SwissPlanet extends CircularPlanet {
     static GOOP_SKY_TOP = new Color(238, 219, 255).immutableCopy();

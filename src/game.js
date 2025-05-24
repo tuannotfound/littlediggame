@@ -2,35 +2,35 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Layer from "./layer.js";
-import Vector from "./vector.js";
 import PerfStats from "stats.js";
-import Planet from "./pixel_bodies/planet.js";
-import CircularPlanet from "./pixel_bodies/circular_planet.js";
-import SwissPlanet from "./pixel_bodies/swiss_planet.js";
-import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
-import EggPlanet from "./pixel_bodies/egg_planet.js";
-import LittleGuys from "./little_guys.js";
-import Upgrades from "./upgrades.js";
-import MathExtras from "./math_extras.js";
-import SaveLoad from "./save_load.js";
-import UpgradesUi from "./upgrades_ui.js";
+import Audio from "./audio.js";
+import Color from "./color.js";
+import CooldownButton from "./cooldown_button.js";
+import CssEffects from "./css_effects.js";
+import Dialogs from "./dialogs.js";
+import PixelConstants from "./diggables/constants.js";
 import Pixel from "./diggables/pixel.js";
 import PixelType from "./diggables/pixel_type.js";
-import Particles from "./particles.js";
-import Color from "./color.js";
-import Serpent from "./pixel_bodies/serpent.js";
-import Hourglass from "./hourglass.js";
-import GameState from "./game_state.js";
-import Sky from "./sky.js";
-import PixelConstants from "./diggables/constants.js";
-import Story from "./story.js";
-import Dialogs from "./dialogs.js";
 import GameOverArt from "./game_over_art.js";
+import GameState from "./game_state.js";
+import Hourglass from "./hourglass.js";
+import Layer from "./layer.js";
+import LittleGuys from "./little_guys.js";
+import MathExtras from "./math_extras.js";
+import Particles from "./particles.js";
+import CircularPlanet from "./pixel_bodies/circular_planet.js";
+import EggPlanet from "./pixel_bodies/egg_planet.js";
+import Planet from "./pixel_bodies/planet.js";
+import Serpent from "./pixel_bodies/serpent.js";
+import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
+import SwissPlanet from "./pixel_bodies/swiss_planet.js";
+import SaveLoad from "./save_load.js";
+import Sky from "./sky.js";
 import Stats from "./stats.js";
-import CooldownButton from "./cooldown_button.js";
-import Audio from "./audio.js";
-import CssEffects from "./css_effects.js";
+import Story from "./story.js";
+import Upgrades from "./upgrades.js";
+import UpgradesUi from "./upgrades_ui.js";
+import Vector from "./vector.js";
 
 export default class Game {
     MIN_WIDTH = 300;

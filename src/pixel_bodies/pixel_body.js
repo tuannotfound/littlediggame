@@ -2,12 +2,12 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Vector from "../vector.js";
-import Layer from "../layer.js";
-import PixelType from "../diggables/pixel_type.js";
-import PixelFactory from "../diggables/pixel_factory.js";
 import Pixel from "../diggables/pixel.js";
+import PixelFactory from "../diggables/pixel_factory.js";
+import PixelType from "../diggables/pixel_type.js";
+import Layer from "../layer.js";
 import MathExtras from "../math_extras.js";
+import Vector from "../vector.js";
 
 // Base class for things that are composed of diggable pixels.
 export default class PixelBody {

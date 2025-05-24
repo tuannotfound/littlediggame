@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import { Howl, Howler } from "howler";
+import { Howl } from "howler";
 import PixelType from "./diggables/pixel_type.js";
-import SwissPlanet from "./pixel_bodies/swiss_planet.js";
-import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
 import Serpent from "./pixel_bodies/serpent.js";
+import SpikyPlanet from "./pixel_bodies/spiky_planet.js";
+import SwissPlanet from "./pixel_bodies/swiss_planet.js";
 
 export default class Audio {
     static DIG_DMG_DIRT = "dig_dmg_dirt";

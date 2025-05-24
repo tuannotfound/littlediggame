@@ -3,9 +3,9 @@
 // See LICENSE file in the project root for full license information.
 
 import Color from "../color.js";
+import Constants from "./constants.js";
 import Pixel from "./pixel.js";
 import PixelType from "./pixel_type.js";
-import Constants from "./constants.js";
 
 export default class Tombstone extends Pixel {
     static COLOR_VARIABILITY = 5;

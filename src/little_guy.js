@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
+import Audio from "./audio.js";
+import Color from "./color.js";
+import PixelType from "./diggables/pixel_type.js";
 import Layer from "./layer.js";
 import Vector from "./vector.js";
-import PixelType from "./diggables/pixel_type.js";
-import Color from "./color.js";
-import Audio from "./audio.js";
 
 export default class LittleGuy {
     static HEAD_COLORS = [

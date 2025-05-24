@@ -2,11 +2,11 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import CircularPlanet from "./circular_planet.js";
-import Pixel from "../diggables/pixel.js";
 import Color from "../color.js";
-import Vector from "../vector.js";
+import Pixel from "../diggables/pixel.js";
 import PixelType from "../diggables/pixel_type.js";
+import Vector from "../vector.js";
+import CircularPlanet from "./circular_planet.js";
 
 // Doesn't really work well with a radius < 20 or so.
 export default class SpikyPlanet extends CircularPlanet {

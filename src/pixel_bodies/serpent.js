@@ -4,12 +4,12 @@
 
 import Audio from "../audio.js";
 import Color from "../color.js";
-import MathExtras from "../math_extras.js";
-import Pixel from "../diggables/pixel.js";
-import PixelBody from "./pixel_body.js";
+import PixelFactory from "../diggables/pixel_factory.js";
 import PixelType from "../diggables/pixel_type.js";
 import SerpentDiggable from "../diggables/serpent.js";
+import MathExtras from "../math_extras.js";
 import Vector from "../vector.js";
+import PixelBody from "./pixel_body.js";
 
 export default class Serpent extends PixelBody {
     static TAG = "[SERP] ";
@@ -321,7 +321,7 @@ class Segment {
             serpent.upgrades
         );
         for (const pixelJson of json.pixels) {
-            segment.pixels.push(Pixel.fromJSON(pixelJson, serpent.upgrades));
+            segment.pixels.push(PixelFactory.createFromJSON(pixelJson, serpent.upgrades));
         }
         segment.history = [];
         for (const historyJSON of json.history) {

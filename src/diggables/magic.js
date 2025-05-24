@@ -3,10 +3,10 @@
 // See LICENSE file in the project root for full license information.
 
 import Color from "../color.js";
-import Pixel from "./pixel.js";
-import PixelType from "./pixel_type.js";
 import MathExtras from "../math_extras.js";
 import Story from "../story.js";
+import Pixel from "./pixel.js";
+import PixelType from "./pixel_type.js";
 
 export default class Magic extends Pixel {
     static FRAMES_PER_COLOR_CHANGE = 15;

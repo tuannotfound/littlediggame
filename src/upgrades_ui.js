@@ -3,8 +3,8 @@
 // See LICENSE file in the project root for full license information.
 
 import Color from "./color.js";
-import UpgradeLines from "./upgrade_lines.js";
 import PanZoomWrapper from "./pan_zoom_wrapper.js";
+import UpgradeLines from "./upgrade_lines.js";
 import Vector from "./vector.js";
 
 import "./upgrades_ui.css";

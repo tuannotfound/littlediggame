@@ -2,13 +2,13 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Particle from "./particle.js";
-import Layer from "./layer.js";
-import Vector from "./vector.js";
 import Color from "./color.js";
-import Gradient from "./gradient.js";
-import MathExtras from "./math_extras.js";
 import { default as PixelConstants } from "./diggables/constants.js";
+import Gradient from "./gradient.js";
+import Layer from "./layer.js";
+import MathExtras from "./math_extras.js";
+import Particle from "./particle.js";
+import Vector from "./vector.js";
 
 export default class Particles {
     constructor() {

@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import CircularPlanet from "./circular_planet.js";
-import Vector from "../vector.js";
-import PixelType from "../diggables/pixel_type.js";
 import Color from "../color.js";
+import PixelType from "../diggables/pixel_type.js";
+import Vector from "../vector.js";
+import CircularPlanet from "./circular_planet.js";
 
 export default class EggPlanet extends CircularPlanet {
     static EGG_WIDTH = 7;

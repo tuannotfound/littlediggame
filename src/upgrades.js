@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Upgrade from "./upgrade.js";
 import PixelType from "./diggables/pixel_type.js";
-import StringUtils from "./string_utils.js";
 import Story from "./story.js";
+import StringUtils from "./string_utils.js";
+import Upgrade from "./upgrade.js";
 
 export default class Upgrades {
     static PROGRESS_GATE_ID_1 = "progress_gate_1";

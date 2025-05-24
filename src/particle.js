@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import Vector from "./vector.js";
 import Color from "./color.js";
+import Vector from "./vector.js";
 
 export default class Particle {
     constructor(position, color, initialVelocity, gravity) {

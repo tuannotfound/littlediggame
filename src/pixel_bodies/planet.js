@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import PixelBody from "./pixel_body.js";
 import Color from "../color.js";
+import PixelBody from "./pixel_body.js";
 
 export default class Planet extends PixelBody {
     static SKY_TOP = new Color(237, 253, 255).immutableCopy();

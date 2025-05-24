@@ -2,12 +2,9 @@
 // Licensed under the MIT License.
 // See LICENSE file in the project root for full license information.
 
-import PixelType from "./pixel_type.js";
 import Color from "../color.js";
 import MathExtras from "../math_extras.js";
-import Vector from "../vector.js";
 import Constants from "./constants.js";
-import PixelFactory from "./pixel_factory.js";
 
 // Not really a general-purpose pixel. These are the pixels that make up the planet and can be dug.
 export default class Pixel {
@@ -75,19 +72,6 @@ export default class Pixel {
             isSurface: this.isSurface,
             darkness: this.darkness,
         };
-    }
-
-    static fromJSON(json, upgrades) {
-        let position = Vector.fromJSON(json.position);
-        let type = PixelType[json.typeName];
-        let pixel = PixelFactory.create(position, upgrades, type);
-        pixel.color = json.color;
-        pixel.surfaceColor = json.surfaceColor;
-        pixel.health = json.health;
-        pixel.healthModifier = json.healthModifier;
-        pixel.isSurface = json.isSurface;
-        pixel.darkness = json.darkness;
-        return pixel;
     }
 
     getDirtColor() {

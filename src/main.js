@@ -7,8 +7,8 @@ import Game from "./game.js";
 import SaveLoad from "./save_load.js";
 import VolumeWidget from "./volume_widget.js";
 
-import "./main.css";
 import "@fortawesome/fontawesome-free/css/all.css";
+import "./main.css";
 
 import Bot from "../testing/bot.js";
 

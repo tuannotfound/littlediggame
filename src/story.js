@@ -671,7 +671,7 @@ export default class Story {
         // DA[B]DA
         Dialogs.show(
             Story.SERPENT_NAME,
-            `If you stop now, I'll devour you and your crew last. Your Leader will sake my appetite
+            `If you stop now, I'll devour you and your crew last. Your Leader will slake my appetite
             for days, weeks even. That time could be yours.`,
             Story.SERPENT_AVATAR_PATH
         );
